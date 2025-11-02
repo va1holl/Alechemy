@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Войти</h1>
+<form method="post" novalidate>
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div>
+    <label for="{{ form.username.id_for_label }}">Email</label>
+    {{ form.username }}
+    {{ form.username.errors }}
+  </div>
+  <div>
+    <label for="{{ form.password.id_for_label }}">Пароль</label>
+    {{ form.password }}
+    {{ form.password.errors }}
+  </div>
+  <button type="submit">Войти</button>
+</form>
+<p><a href="{% url 'accounts:password_reset' %}">Забыли пароль?</a></p>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Регистрация</h1>
+<form method="post" novalidate>
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div>
+    <label>Email</label>
+    {{ form.email }}
+    {{ form.email.errors }}
+  </div>
+  <div>
+    <label>Username</label>
+    {{ form.username }}
+    {{ form.username.errors }}
+  </div>
+  <div>
+    <label>Имя</label>
+    {{ form.first_name }}
+  </div>
+  <div>
+    <label>Фамилия</label>
+    {{ form.last_name }}
+  </div>
+  <div>
+    <label>Пароль</label>
+    {{ form.password1 }}
+    {{ form.password1.errors }}
+  </div>
+  <div>
+    <label>Повторите пароль</label>
+    {{ form.password2 }}
+    {{ form.password2.errors }}
+  </div>
+  <button type="submit">Создать аккаунт</button>
+</form>
+{% endblock %}
