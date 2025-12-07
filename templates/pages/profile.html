@@ -1,7 +1,68 @@
 {% extends "base.html" %}
+
+{% block title %}Мой профиль — Alechmy{% endblock %}
+
 {% block content %}
-<h1>Профиль</h1>
-<p>Email: {{ request.user.email }}</p>
-<p>Имя: {{ request.user.get_full_name|default:"—" }}</p>
-<a href="{% url 'accounts:password_change' %}">Сменить пароль</a>
+  <h1>Мой профиль</h1>
+
+  <p>
+    Эти данные используются для расчёта ориентировочного BAC в алко-дневнике
+    и более адекватных рекомендаций по событиям.
+    Это не медсовет и не призыв что-либо пить.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    {% for field in form %}
+      <div style="margin-bottom: 10px;">
+        {{ field.label_tag }}<br>
+        {{ field }}
+        {% if field.help_text %}
+          <div style="font-size: 0.85em; color: #666;">{{ field.help_text }}</div>
+        {% endif %}
+        {% for error in field.errors %}
+          <div style="color: red; font-size: 0.85em;">{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <button type="submit">Сохранить</button>
+  </form>
+
+  <hr>
+
+  <h2>Текущие данные</h2>
+  <ul>
+    <li>Возраст: {{ profile.age|default:"не указан" }}</li>
+    <li>
+      Пол:
+      {% if profile.sex == "m" %}
+        Мужской
+      {% elif profile.sex == "f" %}
+        Женский
+      {% elif profile.sex %}
+        {{ profile.get_sex_display }}
+      {% else %}
+        не указан
+      {% endif %}
+    </li>
+    <li>
+      Рост:
+      {% if profile.height_cm %}
+        {{ profile.height_cm }} см
+      {% else %}
+        не указан
+      {% endif %}
+    </li>
+    <li>
+      Вес:
+      {% if profile.weight_kg %}
+        {{ profile.weight_kg }} кг
+      {% else %}
+        не указан
+      {% endif %}
+    </li>
+  </ul>
 {% endblock %}

@@ -18,39 +18,52 @@ class User(AbstractUser):
 
 
 class Profile(models.Model):
-    class Gender(models.TextChoices):
-        MALE = "male", "Мужчина"
-        FEMALE = "female", "Женщина"
-        OTHER = "other", "Другое"
+    class Sex(models.TextChoices):
+        MALE = "m", "Мужской"
+        FEMALE = "f", "Женский"
+        OTHER = "other", "Другое / не указано"
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="profile",
     )
-    age = models.PositiveSmallIntegerField(null=True, blank=True)
-    gender = models.CharField(
+
+    # по ТЗ: возраст, пол, вес, рост
+    age = models.PositiveIntegerField(null=True, blank=True, help_text="Полных лет")
+    sex = models.CharField(
         max_length=10,
-        choices=Gender.choices,
+        choices=Sex.choices,
         blank=True,
+        help_text="Нужно для более точной оценки BAC",
+    )
+    height_cm = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Рост в см",
     )
     weight_kg = models.DecimalField(
         max_digits=5,
-        decimal_places=2,
+        decimal_places=1,
         null=True,
         blank=True,
+        help_text="Вес в кг, нужен для BAC",
     )
-    height_cm = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        null=True,
+
+    favorite_scenarios = models.ManyToManyField(
+        "events.Scenario",
+        related_name="favorite_for_profiles",
         blank=True,
     )
 
-    # вот этого у тебя сейчас нет, из-за чего всё падает
-    favorite_scenarios = models.ManyToManyField(
-        "events.Scenario",
-        related_name="fans",
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        null=True,
+        blank=True,
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
         blank=True,
     )
 
