@@ -1,72 +1,67 @@
-<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="utf-8">
-    <title>Алко-дневник</title>
-  </head>
-  <body>
-    <h1>Алко-дневник</h1>
+{% extends "base.html" %}
 
-    <p>
-      <a href="{% url 'events:diary_add' %}">Добавить запись</a> |
-      <a href="{% url 'events:event_list' %}">Мои события</a>
-    </p>
+{% block title %}Алко-дневник — Alechmy{% endblock %}
 
-    {% if logs %}
-      <table border="1" cellpadding="4">
-        <thead>
+{% block content %}
+  <h1>Алко-дневник</h1>
+
+  <p><a href="{% url 'events:diary_add' %}">Добавить запись</a></p>
+
+  {% if logs %}
+    <table border="1" cellpadding="4">
+      <thead>
+        <tr>
+          <th>Когда</th>
+          <th>Событие</th>
+          <th>Напиток</th>
+          <th>Объём, мл</th>
+          <th>Крепость, %</th>
+          <th>Оценка BAC, ‰</th>
+          <th>Заметка</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
           <tr>
-            <th>Когда</th>
-            <th>Событие</th>
-            <th>Напиток</th>
-            <th>Объём, мл</th>
-            <th>Крепость, %</th>
-            <th>Оценка BAC, ‰</th>
-            <th>Заметка</th>
+            <td>{{ log.taken_at }}</td>
+            <td>
+              {% if log.event %}
+                {{ log.event.scenario.name }} ({{ log.event.date }})
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if log.drink %}
+                {{ log.drink.name }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>{{ log.volume_ml }}</td>
+            <td>
+              {% if log.abv %}
+                {{ log.abv }}
+              {% elif log.drink and log.drink.abv %}
+                {{ log.drink.abv }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if log.bac_estimate %}
+                {{ log.bac_estimate }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>{{ log.note }}</td>
           </tr>
-        </thead>
-        <tbody>
-          {% for log in logs %}
-            <tr>
-              <td>{{ log.taken_at }}</td>
-              <td>
-                {% if log.event %}
-                  {{ log.event.scenario.name }} ({{ log.event.date }})
-                {% else %}
-                  —
-                {% endif %}
-              </td>
-              <td>
-                {% if log.drink %}
-                  {{ log.drink.name }}
-                {% else %}
-                  —
-                {% endif %}
-              </td>
-              <td>{{ log.volume_ml }}</td>
-              <td>
-                {% if log.abv %}
-                  {{ log.abv }}
-                {% elif log.drink and log.drink.abv %}
-                  {{ log.drink.abv }}
-                {% else %}
-                  —
-                {% endif %}
-              </td>
-              <td>
-                {% if log.bac_estimate %}
-                  {{ log.bac_estimate }}
-                {% else %}
-                  —
-                {% endif %}
-              </td>
-              <td>{{ log.note }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p>Записей пока нет.</p>
-    {% endif %}
-  </body>
-</html>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Записей пока нет.</p>
+  {% endif %}
+
+{% endblock %}

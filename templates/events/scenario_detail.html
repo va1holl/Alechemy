@@ -1,62 +1,60 @@
-<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="utf-8">
-    <title>{{ scenario.name }}</title>
-  </head>
-  <body>
-    <h1>{{ scenario.name }}</h1>
+{% extends "base.html" %}
 
-    <section>
-      <h2>Подготовка</h2>
-      {% if profile %}
-        <p>Возраст: {{ profile.age|default:"-" }}</p>
-        <p>Вес: {{ profile.weight_kg|default:"-" }} кг</p>
-        <p>Рост: {{ profile.height_cm|default:"-" }} см</p>
-      {% else %}
-        <p>Профиль не заполнен.</p>
-      {% endif %}
-      {% if scenario.description %}
-        <p>{{ scenario.description }}</p>
-      {% endif %}
-    </section>
+{% block title %}{{ scenario.name }} — Alechmy{% endblock %}
 
-    <section>
-      <h2>Выбор напитка и сложности</h2>
-      <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Показать подходящие блюда</button>
-      </form>
-    </section>
+{% block content %}
+  <h1>{{ scenario.name }}</h1>
 
-    {% if selected_drink and dishes %}
-      <section>
-        <h2>Выбор блюда</h2>
-        <p>Напиток: {{ selected_drink.name }}</p>
-
-        <form method="post" action="{% url 'events:event_create_from_scenario' scenario.slug %}">
-          {% csrf_token %}
-          <input type="hidden" name="step" value="select_dish">
-          <input type="hidden" name="drink_id" value="{{ selected_drink.id }}">
-          <input type="hidden" name="difficulty" value="{{ selected_difficulty }}">
-
-          {% for dish in dishes %}
-            <p>
-              <label>
-                <input type="radio" name="dish_id" value="{{ dish.id }}" required>
-                {{ dish.name }} ({{ dish.get_difficulty_display }})
-              </label>
-            </p>
-          {% endfor %}
-
-          <button type="submit">Перейти к параметрам события</button>
-        </form>
-      </section>
-    {% elif selected_drink and not dishes %}
-      <p>К этому напитку пока нет блюд в базе.</p>
+  <section>
+    <h2>Подготовка</h2>
+    {% if profile %}
+      <p>Возраст: {{ profile.age|default:"-" }}</p>
+      <p>Вес: {{ profile.weight_kg|default:"-" }} кг</p>
+      <p>Рост: {{ profile.height_cm|default:"-" }} см</p>
+    {% else %}
+      <p>Профиль не заполнен.</p>
     {% endif %}
 
-    <p><a href="{% url 'events:scenario_list' %}">К списку сценариев</a></p>
-  </body>
-</html>
+    {% if scenario.description %}
+      <p>{{ scenario.description }}</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Выбор напитка и сложности блюда</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Показать подходящие блюда</button>
+    </form>
+  </section>
+
+  {% if selected_drink and dishes %}
+    <section>
+      <h2>Выбор блюда</h2>
+      <p>Напиток: {{ selected_drink.name }}</p>
+
+      <form method="post" action="{% url 'events:event_create_from_scenario' scenario.slug %}">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="select_dish">
+        <input type="hidden" name="drink_id" value="{{ selected_drink.id }}">
+        <input type="hidden" name="difficulty" value="{{ selected_difficulty }}">
+
+        {% for dish in dishes %}
+          <p>
+            <label>
+              <input type="radio" name="dish_id" value="{{ dish.id }}" required>
+              {{ dish.name }} ({{ dish.get_difficulty_display }})
+            </label>
+          </p>
+        {% endfor %}
+
+        <button type="submit">Перейти к параметрам события</button>
+      </form>
+    </section>
+  {% elif selected_drink and not dishes %}
+    <p>К этому напитку пока нет блюд в базе.</p>
+  {% endif %}
+
+  <p><a href="{% url 'events:scenario_list' %}">К списку сценариев</a></p>
+{% endblock %}

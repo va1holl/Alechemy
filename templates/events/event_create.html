@@ -1,21 +1,20 @@
-<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="utf-8">
-    <title>Новое событие — {{ scenario.name }}</title>
-  </head>
-  <body>
-    <h1>Новое событие: {{ scenario.name }}</h1>
+{% extends "base.html" %}
 
-    <p>Напиток: {{ drink.name }}</p>
-    <p>Блюдо: {{ dish.name }}</p>
+{% block title %}Новое событие — Alechmy{% endblock %}
+
+{% block content %}
+  <h1>Новое событие: {{ scenario.name }}</h1>
+
+  <p>Напиток: {{ drink.name }}</p>
+  <p>Блюдо: {{ dish.name }}</p>
 
   {% if recommendations %}
+    <h2>Рекомендации</h2>
+
     <div id="recommendations-block"
          data-scenario-id="{{ scenario.id }}"
          data-drink-id="{{ drink.id }}"
          data-dish-id="{{ dish.id }}">
-      <h2>Рекомендации</h2>
       <p id="reco-summary">{{ recommendations.summary }}</p>
 
       <ul>
@@ -45,24 +44,22 @@
     </div>
   {% endif %}
 
+  <h2>Параметры события</h2>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="create_event">
+    <input type="hidden" name="drink_id" value="{{ drink.id }}">
+    <input type="hidden" name="dish_id" value="{{ dish.id }}">
+    <input type="hidden" name="difficulty" value="{{ difficulty }}">
 
+    {{ form.as_p }}
 
-    <h2>Параметры события</h2>
-    <form method="post">
-      {% csrf_token %}
-      <input type="hidden" name="step" value="create_event">
-      <input type="hidden" name="drink_id" value="{{ drink.id }}">
-      <input type="hidden" name="dish_id" value="{{ dish.id }}">
-      <input type="hidden" name="difficulty" value="{{ difficulty }}">
+    <button type="submit">Сохранить событие</button>
+  </form>
 
-      {{ form.as_p }}
+  <p><a href="{% url 'events:scenario_detail' scenario.slug %}">Назад к сценарию</a></p>
 
-      <button type="submit">Сохранить событие</button>
-    </form>
-
-    <p><a href="{% url 'events:event_list' %}">Мои события</a></p>
-  </body>
-
+  {% if recommendations %}
   <script>
     function getCookie(name) {
       const value = `; ${document.cookie}`;
@@ -83,12 +80,10 @@
       const hoursInput = document.querySelector('input[name="duration_hours"]');
 
       function getIntensityValue() {
-        // пробуем радио
         const radios = document.querySelectorAll('input[name="intensity"]');
         for (const r of radios) {
           if (r.checked) return r.value;
         }
-        // пробуем select
         const select = document.querySelector('select[name="intensity"]');
         if (select) return select.value;
         return "";
@@ -134,13 +129,8 @@
       }
 
       const handlers = [];
-
-      if (peopleInput) {
-        handlers.push(peopleInput);
-      }
-      if (hoursInput) {
-        handlers.push(hoursInput);
-      }
+      if (peopleInput) handlers.push(peopleInput);
+      if (hoursInput) handlers.push(hoursInput);
 
       const intensityRadios = document.querySelectorAll('input[name="intensity"]');
       intensityRadios.forEach((r) => handlers.push(r));
@@ -150,10 +140,8 @@
         el.addEventListener("change", updateRecommendations);
       });
 
-      // первый вызов чтобы всё было актуально
       updateRecommendations();
     });
   </script>
-
-
-</html>
+  {% endif %}
+{% endblock %}

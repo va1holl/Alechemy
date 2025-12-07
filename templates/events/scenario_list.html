@@ -1,42 +1,37 @@
-<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="utf-8">
-    <title>Сценарии</title>
-  </head>
-  <body>
-    <h1>Сценарии</h1>
+{% extends "base.html" %}
 
-    {% if favorite_scenarios %}
-      <h2>Избранные</h2>
-      <ul>
-        {% for s in favorite_scenarios %}
-          <li>
-            <a href="{% url 'events:scenario_detail' s.slug %}">{{ s.name }}</a>
-            (<a href="{% url 'events:toggle_favorite' s.slug %}">убрать из избранного</a>)
-          </li>
-        {% endfor %}
-      </ul>
-    {% endif %}
+{% block title %}Сценарии — Alechmy{% endblock %}
 
-    <h2>Все сценарии</h2>
-    {% if scenarios %}
-      <ul>
-        {% for s in scenarios %}
-          <li>
-            <a href="{% url 'events:scenario_detail' s.slug %}">{{ s.name }}</a>
-            {% if s.id in favorite_ids %}
-              ★
-            {% else %}
-              (<a href="{% url 'events:toggle_favorite' s.slug %}">в избранное</a>)
-            {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>Сценариев пока нет.</p>
-    {% endif %}
+{% block content %}
+  <h1>Сценарии</h1>
 
-    <p><a href="{% url 'events:event_list' %}">Мои события</a></p>
-  </body>
-</html>
+  {% if favorite_scenarios %}
+    <h2>Избранные</h2>
+    <ul>
+      {% for s in favorite_scenarios %}
+        <li>
+          <a href="{% url 'events:scenario_detail' s.slug %}">{{ s.name }}</a>
+          (<a href="{% url 'events:toggle_favorite' s.slug %}">убрать из избранного</a>)
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <h2>Все сценарии</h2>
+  {% if scenarios %}
+    <ul>
+      {% for s in scenarios %}
+        <li>
+          <a href="{% url 'events:scenario_detail' s.slug %}">{{ s.name }}</a>
+          {% if s.id in favorite_ids %}
+            ★
+          {% else %}
+            (<a href="{% url 'events:toggle_favorite' s.slug %}">в избранное</a>)
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Сценариев пока нет.</p>
+  {% endif %}
+{% endblock %}

@@ -1,32 +1,27 @@
-<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="utf-8">
-    <title>Мои события</title>
-  </head>
-  <body>
-    <h1>Мои события</h1>
+{% extends "base.html" %}
 
-    {% if events %}
-      <ul>
-        {% for event in events %}
-          <li>
-            {{ event.date }} —
-            {{ event.scenario.name }}
-            {% if event.title %} ({{ event.title }}){% endif %}
-            · людей: {{ event.people_count }}
-            · длительность: {{ event.duration_hours }} ч
-            · интенсивность: {{ event.get_intensity_display }}
-            {% if event.drink %} · напиток: {{ event.drink.name }}{% endif %}
-            {% if event.dish %} · блюдо: {{ event.dish.name }}{% endif %}
-            · <a href="{% url 'events:event_detail' event.pk %}">Подробнее</a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>Событий пока нет.</p>
-    {% endif %}
+{% block title %}Мои события — Alechmy{% endblock %}
 
-    <p><a href="{% url 'events:scenario_list' %}">К сценариям</a></p>
-  </body>
-</html>
+{% block content %}
+  <h1>Мои события</h1>
+
+  {% if events %}
+    <ul>
+      {% for event in events %}
+        <li>
+          {{ event.date }} —
+          {{ event.scenario.name }}
+          {% if event.title %} ({{ event.title }}){% endif %}
+          · людей: {{ event.people_count }}
+          · длительность: {{ event.duration_hours }} ч
+          · интенсивность: {{ event.get_intensity_display }}
+          {% if event.drink %} · напиток: {{ event.drink.name }}{% endif %}
+          {% if event.dish %} · блюдо: {{ event.dish.name }}{% endif %}
+          · <a href="{% url 'events:event_detail' event.pk %}">Подробнее</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Событий пока нет.</p>
+  {% endif %}
+{% endblock %}

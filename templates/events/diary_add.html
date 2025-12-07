@@ -1,22 +1,19 @@
-<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="utf-8">
-    <title>Добавить запись в алко-дневник</title>
-  </head>
-  <body>
-    <h1>Добавить запись в алко-дневник</h1>
+{% extends "base.html" %}
 
-    {% if event %}
-      <p>Событие: {{ event.scenario.name }} — {{ event.date }}</p>
-    {% endif %}
+{% block title %}Добавить запись в алко-дневник — Alechmy{% endblock %}
 
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Сохранить</button>
-    </form>
+{% block content %}
+  <h1>Добавить запись в алко-дневник</h1>
 
-    <p><a href="{% url 'events:diary_list' %}">К дневнику</a></p>
-  </body>
-</html>
+  {% if event %}
+    <p>Событие: {{ event.scenario.name }} — {{ event.date }}</p>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить</button>
+  </form>
+
+  <p><a href="{% url 'events:diary_list' %}">К дневнику</a></p>
+{% endblock %}
