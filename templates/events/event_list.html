@@ -19,7 +19,7 @@
             · интенсивность: {{ event.get_intensity_display }}
             {% if event.drink %} · напиток: {{ event.drink.name }}{% endif %}
             {% if event.dish %} · блюдо: {{ event.dish.name }}{% endif %}
-            · <a href="{% url 'events:event_edit' event.pk %}">Редактировать</a>
+            · <a href="{% url 'events:event_detail' event.pk %}">Подробнее</a>
           </li>
         {% endfor %}
       </ul>

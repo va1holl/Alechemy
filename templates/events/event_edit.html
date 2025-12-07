@@ -28,12 +28,7 @@
       <button type="submit">Сохранить изменения</button>
     </form>
 
-    <hr>
-
-    <form method="post" action="{% url 'events:event_delete' event.pk %}">
-      {% csrf_token %}
-      <button type="submit">Удалить событие</button>
-    </form>
+    <p><a href="{% url 'events:event_detail' event.pk %}">Назад к событию</a></p>
 
     <p><a href="{% url 'events:event_list' %}">Назад к событиям</a></p>
   </body>

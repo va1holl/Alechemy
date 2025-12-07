@@ -10,10 +10,42 @@
     <p>Напиток: {{ drink.name }}</p>
     <p>Блюдо: {{ dish.name }}</p>
 
-    {% if recommendations %}
+  {% if recommendations %}
+    <div id="recommendations-block"
+         data-scenario-id="{{ scenario.id }}"
+         data-drink-id="{{ drink.id }}"
+         data-dish-id="{{ dish.id }}">
       <h2>Рекомендации</h2>
-      <p>{{ recommendations.summary }}</p>
-    {% endif %}
+      <p id="reco-summary">{{ recommendations.summary }}</p>
+
+      <ul>
+        <li>
+          Напиток на человека:
+          <span id="reco-per-person-alc">{{ recommendations.per_person_alcohol_ml }}</span> мл
+        </li>
+        <li>
+          Всего напитка:
+          <span id="reco-total-alc">{{ recommendations.total_alcohol_ml }}</span> мл
+          (≈ <span id="reco-bottles">{{ recommendations.bottles_750_ml }}</span> × 0.75 л)
+        </li>
+        <li>
+          Вода на человека:
+          <span id="reco-per-person-water">{{ recommendations.per_person_water_ml }}</span> мл
+        </li>
+        <li>
+          Всего воды:
+          <span id="reco-total-water">{{ recommendations.total_water_ml }}</span> мл
+          (≈ <span id="reco-water-bottles">{{ recommendations.water_bottles_1500_ml }}</span> × 1.5 л)
+        </li>
+        <li>
+          Порций еды:
+          <span id="reco-food-portions">{{ recommendations.food_portions }}</span>
+        </li>
+      </ul>
+    </div>
+  {% endif %}
+
+
 
     <h2>Параметры события</h2>
     <form method="post">
@@ -30,4 +62,98 @@
 
     <p><a href="{% url 'events:event_list' %}">Мои события</a></p>
   </body>
+
+  <script>
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const block = document.getElementById("recommendations-block");
+      if (!block) {
+        return;
+      }
+
+      const url = "{% url 'events:event_recommendations_preview' %}";
+
+      const peopleInput = document.querySelector('input[name="people_count"]');
+      const hoursInput = document.querySelector('input[name="duration_hours"]');
+
+      function getIntensityValue() {
+        // пробуем радио
+        const radios = document.querySelectorAll('input[name="intensity"]');
+        for (const r of radios) {
+          if (r.checked) return r.value;
+        }
+        // пробуем select
+        const select = document.querySelector('select[name="intensity"]');
+        if (select) return select.value;
+        return "";
+      }
+
+      function updateRecommendations() {
+        const data = new URLSearchParams();
+        data.append("scenario_id", block.dataset.scenarioId);
+        data.append("drink_id", block.dataset.drinkId || "");
+        data.append("dish_id", block.dataset.dishId || "");
+        data.append("people_count", peopleInput ? peopleInput.value : "");
+        data.append("duration_hours", hoursInput ? hoursInput.value : "");
+        data.append("intensity", getIntensityValue());
+
+        fetch(url, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: data.toString(),
+        })
+          .then((response) => response.json())
+          .then((rec) => {
+            const setText = (id, value) => {
+              const el = document.getElementById(id);
+              if (el) el.textContent = value;
+            };
+
+            setText("reco-summary", rec.summary);
+            setText("reco-per-person-alc", rec.per_person_alcohol_ml);
+            setText("reco-total-alc", rec.total_alcohol_ml);
+            setText("reco-bottles", rec.bottles_750_ml);
+            setText("reco-per-person-water", rec.per_person_water_ml);
+            setText("reco-total-water", rec.total_water_ml);
+            setText("reco-water-bottles", rec.water_bottles_1500_ml);
+            setText("reco-food-portions", rec.food_portions);
+          })
+          .catch((err) => {
+            console.error("Ошибка обновления рекомендаций", err);
+          });
+      }
+
+      const handlers = [];
+
+      if (peopleInput) {
+        handlers.push(peopleInput);
+      }
+      if (hoursInput) {
+        handlers.push(hoursInput);
+      }
+
+      const intensityRadios = document.querySelectorAll('input[name="intensity"]');
+      intensityRadios.forEach((r) => handlers.push(r));
+
+      handlers.forEach((el) => {
+        el.addEventListener("input", updateRecommendations);
+        el.addEventListener("change", updateRecommendations);
+      });
+
+      // первый вызов чтобы всё было актуально
+      updateRecommendations();
+    });
+  </script>
+
+
 </html>
