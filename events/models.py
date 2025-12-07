@@ -77,13 +77,16 @@ class Dish(models.Model):
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    recipe_text = models.TextField(
+        blank=True,
+        help_text="Короткий рецепт или инструкция для этого блюда.",
+    )
     difficulty = models.CharField(
         max_length=10,
         choices=Difficulty.choices,
         default=Difficulty.EASY,
     )
-    # M2M к Drink внутри того же приложения
-    drinks = models.ManyToManyField("Drink", related_name="dishes", blank=True)
+    drinks = models.ManyToManyField("events.Drink", related_name="dishes", blank=True)
 
     def __str__(self) -> str:
         return self.name
@@ -93,8 +96,23 @@ class Scenario(models.Model):
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+
     # какие напитки доступны в этом сценарии
-    drinks = models.ManyToManyField("Drink", related_name="scenarios", blank=True)
+    drinks = models.ManyToManyField("events.Drink", related_name="scenarios", blank=True)
+
+    # НОВОЕ: текст по этапам
+    prep_text = models.TextField(
+        blank=True,
+        help_text="Рекомендации по подготовке: що купити, що підготувати, атмосфера.",
+    )
+    during_text = models.TextField(
+        blank=True,
+        help_text="Що робити під час події: теми розмов, темп пиття, ритм вечора.",
+    )
+    after_text = models.TextField(
+        blank=True,
+        help_text="Відновлення: сон, вода, поїсти, не сідати за кермо тощо.",
+    )
 
     def __str__(self) -> str:
         return self.name

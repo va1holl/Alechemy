@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Запись дневника{% endblock %}
+
+{% block content %}
+  <h1>Запись дневника</h1>
+
+  <ul>
+    <li>Дата и время: {{ log.taken_at }}</li>
+    {% if log.event %}
+      <li>Событие:
+        <a href="{% url 'events:event_detail' log.event.pk %}">
+          {{ log.event }}
+        </a>
+      </li>
+    {% endif %}
+    {% if log.drink %}
+      <li>Напиток: {{ log.drink.name }}</li>
+    {% endif %}
+    <li>Объём: {{ log.volume_ml }} мл</li>
+    {% if log.abv %}
+      <li>Крепость: {{ log.abv }} %</li>
+    {% endif %}
+    {% if log.bac_estimate %}
+      <li>Оценочный BAC: {{ log.bac_estimate }} ‰</li>
+    {% endif %}
+    {% if log.note %}
+      <li>Комментарий: {{ log.note }}</li>
+    {% endif %}
+    <li>Создано: {{ log.created_at }}</li>
+  </ul>
+
+  <p>
+    <a href="{% url 'events:diary_list' %}">Назад к дневнику</a>
+  </p>
+{% endblock %}

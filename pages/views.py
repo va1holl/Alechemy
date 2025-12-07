@@ -3,6 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 
 from accounts.models import Profile
+from events.views import get_diary_stats_for_user
 from .forms import ProfileForm
 
 
@@ -11,20 +12,18 @@ class HomeView(TemplateView):
 
 
 class ProfileView(LoginRequiredMixin, View):
-    """
-    /pages/me/ — редактирование профиля пользователя.
-    Эти данные потом использует BAC в алко-дневнике.
-    """
-
     def get(self, request, *args, **kwargs):
         profile, _ = Profile.objects.get_or_create(user=request.user)
         form = ProfileForm(instance=profile)
+        diary_stats = get_diary_stats_for_user(request.user)
+
         return render(
             request,
             "pages/profile.html",
             {
                 "profile": profile,
                 "form": form,
+                "diary_stats": diary_stats,
             },
         )
 
@@ -35,11 +34,14 @@ class ProfileView(LoginRequiredMixin, View):
             form.save()
             return redirect("pages:me")
 
+        diary_stats = get_diary_stats_for_user(request.user)
+
         return render(
             request,
             "pages/profile.html",
             {
                 "profile": profile,
                 "form": form,
+                "diary_stats": diary_stats,
             },
         )

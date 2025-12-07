@@ -65,4 +65,31 @@
       {% endif %}
     </li>
   </ul>
+
+  <hr>
+
+  <h2>Алко-дневник</h2>
+
+  {% if diary_stats %}
+    <ul>
+      <li>Записей всего: {{ diary_stats.count }}</li>
+      <li>Максимальный зафиксированный BAC: {{ diary_stats.max_bac|default:"—" }} ‰</li>
+      <li>
+        Последняя запись:
+        {{ diary_stats.last_log.taken_at }} —
+        {% if diary_stats.last_log.drink %}
+          {{ diary_stats.last_log.drink.name }} ({{ diary_stats.last_log.volume_ml }} мл)
+        {% else %}
+          без указания напитка ({{ diary_stats.last_log.volume_ml }} мл)
+        {% endif %}
+      </li>
+    </ul>
+    <p><a href="{% url 'events:diary_list' %}">Перейти в дневник</a></p>
+  {% else %}
+    <p>
+      Пока нет записей в дневнике. Если пьёшь хоть что-то, логировать безопаснее,
+      чем делать вид, что ничего не было.
+    </p>
+  {% endif %}
+
 {% endblock %}

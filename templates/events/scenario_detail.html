@@ -7,18 +7,38 @@
 
   <section>
     <h2>Подготовка</h2>
+
     {% if profile %}
-      <p>Возраст: {{ profile.age|default:"-" }}</p>
-      <p>Вес: {{ profile.weight_kg|default:"-" }} кг</p>
-      <p>Рост: {{ profile.height_cm|default:"-" }} см</p>
-    {% else %}
-      <p>Профиль не заполнен.</p>
+      <p>
+        <strong>Твои данные профиля:</strong><br>
+        Возраст: {{ profile.age|default:"-" }}<br>
+        Вес: {{ profile.weight_kg|default:"-" }} кг<br>
+        Рост: {{ profile.height_cm|default:"-" }} см
+      </p>
     {% endif %}
 
-    {% if scenario.description %}
+    {% if scenario.prep_text %}
+      <p>{{ scenario.prep_text }}</p>
+    {% elif scenario.description %}
       <p>{{ scenario.description }}</p>
+    {% else %}
+      <p>Пока нет подробного описания подготовки для этого сценария.</p>
     {% endif %}
   </section>
+
+  {% if scenario.during_text %}
+    <section>
+      <h2>Во время события</h2>
+      <p>{{ scenario.during_text }}</p>
+    </section>
+  {% endif %}
+
+  {% if scenario.after_text %}
+    <section>
+      <h2>Восстановление</h2>
+      <p>{{ scenario.after_text }}</p>
+    </section>
+  {% endif %}
 
   <section>
     <h2>Выбор напитка и сложности блюда</h2>

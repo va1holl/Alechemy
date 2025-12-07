@@ -1,4 +1,7 @@
+from decimal import ROUND_HALF_UP, Decimal
+
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max
 from django.shortcuts import render, get_object_or_404, redirect
 
 from .models import Scenario, Event, Dish, Drink, AlcoholLog
@@ -230,6 +233,56 @@ def build_recommendations_placeholder(
     }
 
 
+def build_recovery_advice(user, drink, recommendations):
+    """
+    Текст: как отойти после такого объёма алкоголя.
+    Используем оценочный BAC и стандартную скорость выведения.
+    """
+    if not recommendations:
+        return None
+
+    bac = recommendations.get("bac_promille")
+    if not bac:
+        # если не смогли посчитать BAC (нет профиля, веса и т.п.) – ничего умного не скажем
+        return None
+
+    if not isinstance(bac, Decimal):
+        bac = Decimal(str(bac))
+
+    # Очень приблизительная скорость выведения: 0.15 ‰ в час
+    elimination_rate = Decimal("0.15")
+    hours_to_zero = (bac / elimination_rate).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+
+    per_person_water_ml = recommendations.get("per_person_water_ml") or 0
+    try:
+        per_person_water_ml = int(per_person_water_ml)
+    except (TypeError, ValueError):
+        per_person_water_ml = 0
+
+    extra_water_ml = max(0, int(per_person_water_ml * 0.5))  # +50% к базовой воде
+
+    text = (
+        f"При таком объёме напитка ориентировочный пик для тебя — около {bac} ‰. "
+        f"Организм в среднем выводит примерно 0.15 ‰ алкоголя в час, так что до почти полного "
+        f"отрезвления может пройти около {hours_to_zero} ч. "
+    )
+
+    if extra_water_ml > 0:
+        text += (
+            f"После события стоит переключиться на воду: выпить ещё хотя бы {extra_water_ml} мл "
+            f"поверх того, что планировалось во время вечера, и нормально поесть."
+        )
+    else:
+        text += "После события стоит переключиться на воду и нормальную еду."
+
+    text += (
+        " Эта оценка очень приблизительная и не годится для решений про вождение, "
+        "здоровье или дозировки лекарств."
+    )
+
+    return text
+
+
 @login_required
 def event_create_from_scenario(request, slug):
     """
@@ -360,18 +413,21 @@ def event_detail(request, pk):
     event = get_object_or_404(Event, pk=pk, user=request.user)
     scenario = event.scenario
 
-    # если нет напитка или блюда – просто покажем инфу без расчётов
-    recommendations = None
-    if event.drink and event.dish:
-        recommendations = build_recommendations_placeholder(
-            request.user,
-            scenario,
-            event.drink,
-            event.dish,
-            people_count=event.people_count,
-            duration_hours=event.duration_hours,
-            intensity=event.intensity,
-        )
+    recommendations = build_recommendations_placeholder(
+        user=request.user,
+        scenario=scenario,
+        drink=event.drink,
+        dish=event.dish,
+        people_count=event.people_count,
+        duration_hours=event.duration_hours,
+        intensity=event.intensity,
+    )
+
+    recovery_advice = build_recovery_advice(
+        user=request.user,
+        drink=event.drink,
+        recommendations=recommendations,
+    )
 
     return render(
         request,
@@ -380,6 +436,7 @@ def event_detail(request, pk):
             "event": event,
             "scenario": scenario,
             "recommendations": recommendations,
+            "recovery_advice": recovery_advice,
         },
     )
 
@@ -433,6 +490,17 @@ def diary_list(request):
         {"logs": logs},
     )
 
+@login_required
+def diary_detail(request, pk):
+    log = get_object_or_404(AlcoholLog, pk=pk, user=request.user)
+    return render(
+        request,
+        "events/diary_detail.html",
+        {
+            "log": log,
+        },
+    )
+
 
 @login_required
 def diary_add(request, event_pk=None):
@@ -464,3 +532,19 @@ def diary_add(request, event_pk=None):
         "events/diary_add.html",
         {"form": form, "event": event},
     )
+
+
+def get_diary_stats_for_user(user):
+    qs = AlcoholLog.objects.filter(user=user)
+
+    if not qs.exists():
+        return None
+
+    last_log = qs.order_by("-taken_at").first()
+    max_bac = qs.aggregate(Max("bac_estimate"))["bac_estimate__max"]
+
+    return {
+        "count": qs.count(),
+        "max_bac": max_bac,
+        "last_log": last_log,
+    }

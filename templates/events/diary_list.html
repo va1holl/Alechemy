@@ -23,10 +23,16 @@
       <tbody>
         {% for log in logs %}
           <tr>
-            <td>{{ log.taken_at }}</td>
+            <td>
+              <a href="{% url 'events:diary_detail' log.pk %}">
+                {{ log.taken_at }}
+              </a>
+            </td>
             <td>
               {% if log.event %}
-                {{ log.event.scenario.name }} ({{ log.event.date }})
+                <a href="{% url 'events:event_detail' log.event.pk %}">
+                  {{ log.event.scenario.name }} ({{ log.event.date }})
+                </a>
               {% else %}
                 —
               {% endif %}

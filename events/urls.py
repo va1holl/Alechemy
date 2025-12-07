@@ -20,6 +20,7 @@ urlpatterns = [
     path("diary/", views.diary_list, name="diary_list"),
     path("diary/add/", views.diary_add, name="diary_add"),
     path("events/<int:event_pk>/diary/add/", views.diary_add, name="diary_add_for_event"),
+    path("diary/<int:pk>/", views.diary_detail, name="diary_detail"),
 
     # ajax-рекомендации
     path(

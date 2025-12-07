@@ -27,8 +27,53 @@
     <li>Создано: {{ event.created_at }}</li>
   </ul>
 
+  <h2>Подготовка</h2>
+  <section>
+    {% if scenario.prep_text %}
+      <p>{{ scenario.prep_text }}</p>
+    {% elif scenario.description %}
+      <p>{{ scenario.description }}</p>
+    {% else %}
+      <p>Для этого сценария пока нет общего описания подготовки.</p>
+    {% endif %}
+
+    {% if event.dish %}
+      <h3>Рецепт выбранного блюда</h3>
+      {% if event.dish.recipe_text %}
+        <p>{{ event.dish.recipe_text }}</p>
+      {% elif event.dish.description %}
+        <p>{{ event.dish.description }}</p>
+      {% else %}
+        <p>Для этого блюда пока нет подробного рецепта.</p>
+      {% endif %}
+      <p><em>Сложность: {{ event.dish.get_difficulty_display }}</em></p>
+    {% endif %}
+  </section>
+
+  {% if scenario.during_text %}
+    <h2>Во время события</h2>
+    <section>
+      <p>{{ scenario.during_text }}</p>
+    </section>
+  {% endif %}
+
+  <h2>Восстановление</h2>
+  <section>
+    {% if recovery_advice %}
+      <p>{{ recovery_advice }}</p>
+    {% endif %}
+
+    {% if scenario.after_text %}
+      <p>{{ scenario.after_text }}</p>
+    {% endif %}
+
+    {% if not recovery_advice and not scenario.after_text %}
+      <p>Рекомендации по восстановлению для этого сценария пока не заданы.</p>
+    {% endif %}
+  </section>
+
   {% if recommendations %}
-    <h2>Рекомендации</h2>
+    <h2>Рекомендации по объёмам</h2>
 
     <div id="recommendations-block"
          data-scenario-id="{{ scenario.id }}"
