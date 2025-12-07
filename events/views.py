@@ -108,12 +108,15 @@ def build_recommendations_placeholder(
 ):
     """
     Простейший калькулятор под Event.
-    Мы считаем:
+
+    Считает:
     - ориентировочный объём напитка на человека и всего,
     - сколько это бутылок по 0.75,
     - объём воды,
-    - примерное количество порций еды.
-    Это НЕ призыв "выпей столько", а оценка масштаба события.
+    - примерное количество порций еды,
+    - очень грубую оценку BAC на одного (по профилю пользователя), если есть данные.
+
+    Это НЕ рекомендация "столько выпей", а просто ориентировочные цифры.
     """
     profile = getattr(user, "profile", None)
 
@@ -176,7 +179,7 @@ def build_recommendations_placeholder(
 
     food_portions = max(1, math.ceil(people * food_factor))
 
-    # --- текстовое резюме ---
+    # --- базовый текст ---
 
     summary = (
         f"Оценка: на {people} человек при длительности {hours} ч "
@@ -187,8 +190,30 @@ def build_recommendations_placeholder(
         f"и ориентироваться примерно на {food_portions} порций еды."
     )
 
-    if profile:
-        summary += " В будущем можно учитывать данные профиля, чтобы уточнять расчёт."
+    bac_promille = None
+
+    if profile and drink and getattr(drink, "abv", None):
+        dummy_log = AlcoholLog(
+            user=user,
+            drink=drink,
+            volume_ml=per_person_alcohol_ml,
+            abv=drink.abv,
+        )
+        bac_promille = dummy_log.calculate_bac()
+
+        if bac_promille is not None:
+            summary += (
+                f" Для тебя это может дать около {bac_promille} ‰ в пике "
+                f"(очень приблизительно, не использовать для решений про вождение и здоровье)."
+            )
+        else:
+            summary += (
+                " Для оценки BAC нужно корректно заполнить вес/пол в профиле."
+            )
+    elif profile:
+        summary += (
+            " Для расчёта BAC нужен напиток с указанной крепостью и заполненные вес/пол в профиле."
+        )
 
     return {
         "summary": summary,
@@ -201,6 +226,7 @@ def build_recommendations_placeholder(
         "total_water_ml": total_water_ml,
         "water_bottles_1500_ml": water_bottles_1500_ml,
         "food_portions": food_portions,
+        "bac_promille": bac_promille,
     }
 
 
