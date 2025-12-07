@@ -1,8 +1,13 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 
-from .models import Scenario, Event, Dish, Drink
-from .forms import ScenarioDrinkForm, EventCreateFromScenarioForm, EventUpdateForm
+from .models import Scenario, Event, Dish, Drink, AlcoholLog
+from .forms import (
+    ScenarioDrinkForm,
+    EventCreateFromScenarioForm,
+    EventUpdateForm,
+    AlcoholLogForm,
+)
 
 import math
 from django.http import JsonResponse
@@ -383,3 +388,53 @@ def event_recommendations_preview(request):
         intensity=intensity,
     )
     return JsonResponse(rec)
+
+
+@login_required
+def diary_list(request):
+    """
+    Список записей алко-дневника текущего пользователя.
+    """
+    logs = (
+        AlcoholLog.objects
+        .filter(user=request.user)
+        .select_related("event", "drink")
+        .order_by("-taken_at", "-created_at")
+    )
+    return render(
+        request,
+        "events/diary_list.html",
+        {"logs": logs},
+    )
+
+
+@login_required
+def diary_add(request, event_pk=None):
+    """
+    Добавление записи в дневник.
+    Если передан event_pk — пробуем привязать запись к событию.
+    """
+    event = None
+    if event_pk is not None:
+        event = get_object_or_404(Event, pk=event_pk, user=request.user)
+
+    if request.method == "POST":
+        form = AlcoholLogForm(request.POST)
+        if form.is_valid():
+            log = form.save(commit=False)
+            log.user = request.user
+            if event and not log.event:
+                log.event = event
+            log.save()
+            return redirect("events:diary_list")
+    else:
+        initial = {}
+        if event is not None:
+            initial["event"] = event
+        form = AlcoholLogForm(initial=initial)
+
+    return render(
+        request,
+        "events/diary_add.html",
+        {"form": form, "event": event},
+    )

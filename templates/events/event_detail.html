@@ -70,6 +70,12 @@
       <a href="{% url 'events:event_edit' event.pk %}">Редактировать</a>
     </p>
 
+    <p>
+      <a href="{% url 'events:diary_add_for_event' event.pk %}">
+        Добавить в алко-дневник
+      </a>
+    </p>
+
     <form method="post" action="{% url 'events:event_delete' event.pk %}">
       {% csrf_token %}
       <button type="submit">Удалить событие</button>

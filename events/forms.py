@@ -1,5 +1,5 @@
 from django import forms
-from .models import Event, Drink, Dish
+from .models import Event, Drink, Dish, AlcoholLog
 
 
 class ScenarioDrinkForm(forms.Form):
@@ -82,3 +82,12 @@ class EventUpdateForm(forms.ModelForm):
             self.fields["dish"].queryset = Dish.objects.filter(drinks=drink).order_by("name")
         else:
             self.fields["dish"].queryset = Dish.objects.all().order_by("name")
+
+
+class AlcoholLogForm(forms.ModelForm):
+    class Meta:
+        model = AlcoholLog
+        fields = ["event", "drink", "volume_ml", "taken_at", "abv", "note"]
+        widgets = {
+            "taken_at": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+        }
