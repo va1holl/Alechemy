@@ -9,7 +9,6 @@ from django.dispatch import receiver
 class User(AbstractUser):
     """
     Кастомный пользователь: логинимся по email, он уникальный.
-    username остаётся (требование AbstractUser), но можем не светить его в формах.
     """
     email = models.EmailField(_("email address"), unique=True)
     is_verified = models.BooleanField(default=False)
@@ -19,48 +18,41 @@ class User(AbstractUser):
 
 
 class Profile(models.Model):
-    """
-    Профиль пользователя: базовые физические параметры,
-    которые дальше будем использовать в расчётах из ТЗ.
-    """
-
     class Gender(models.TextChoices):
-        MALE = "male", _("Мужчина")
-        FEMALE = "female", _("Женщина")
-        OTHER = "other", _("Другое")
+        MALE = "male", "Мужчина"
+        FEMALE = "female", "Женщина"
+        OTHER = "other", "Другое"
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="profile",
     )
-    age = models.PositiveSmallIntegerField(
-        null=True,
-        blank=True,
-        verbose_name=_("Возраст"),
-    )
+    age = models.PositiveSmallIntegerField(null=True, blank=True)
     gender = models.CharField(
         max_length=10,
         choices=Gender.choices,
         blank=True,
-        verbose_name=_("Пол"),
     )
     weight_kg = models.DecimalField(
         max_digits=5,
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name=_("Вес (кг)"),
     )
     height_cm = models.DecimalField(
         max_digits=5,
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name=_("Рост (см)"),
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+
+    # вот этого у тебя сейчас нет, из-за чего всё падает
+    favorite_scenarios = models.ManyToManyField(
+        "events.Scenario",
+        related_name="fans",
+        blank=True,
+    )
 
     def __str__(self) -> str:
         return f"Профиль {self.user.email or self.user.username}"
@@ -68,11 +60,6 @@ class Profile(models.Model):
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
-    """
-    Гарантируем, что у каждого пользователя есть Profile.
-    При создании юзера – создаём профиль.
-    Если юзер уже был – убедимся, что профиль существует.
-    """
     if created:
         Profile.objects.create(user=instance)
     else:

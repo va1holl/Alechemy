@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <title>Редактировать событие — {{ scenario.name }}</title>
+  </head>
+  <body>
+    <h1>Редактировать событие</h1>
+
+    <p>Сценарий: {{ scenario.name }}</p>
+
+    {% if event.drink %}
+      <p>Текущий напиток: {{ event.drink.name }}</p>
+    {% endif %}
+    {% if event.dish %}
+      <p>Текущее блюдо: {{ event.dish.name }}</p>
+    {% endif %}
+
+    {% if recommendations %}
+      <h2>Рекомендации</h2>
+      <p>{{ recommendations.summary }}</p>
+    {% endif %}
+
+    <h2>Параметры</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Сохранить изменения</button>
+    </form>
+
+    <hr>
+
+    <form method="post" action="{% url 'events:event_delete' event.pk %}">
+      {% csrf_token %}
+      <button type="submit">Удалить событие</button>
+    </form>
+
+    <p><a href="{% url 'events:event_list' %}">Назад к событиям</a></p>
+  </body>
+</html>

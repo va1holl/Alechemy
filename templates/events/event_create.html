@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <title>Новое событие — {{ scenario.name }}</title>
+  </head>
+  <body>
+    <h1>Новое событие: {{ scenario.name }}</h1>
+
+    <p>Напиток: {{ drink.name }}</p>
+    <p>Блюдо: {{ dish.name }}</p>
+
+    {% if recommendations %}
+      <h2>Рекомендации</h2>
+      <p>{{ recommendations.summary }}</p>
+    {% endif %}
+
+    <h2>Параметры события</h2>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="step" value="create_event">
+      <input type="hidden" name="drink_id" value="{{ drink.id }}">
+      <input type="hidden" name="dish_id" value="{{ dish.id }}">
+      <input type="hidden" name="difficulty" value="{{ difficulty }}">
+
+      {{ form.as_p }}
+
+      <button type="submit">Сохранить событие</button>
+    </form>
+
+    <p><a href="{% url 'events:event_list' %}">Мои события</a></p>
+  </body>
+</html>
