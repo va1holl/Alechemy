@@ -88,6 +88,13 @@ class Dish(models.Model):
     )
     drinks = models.ManyToManyField("events.Drink", related_name="dishes", blank=True)
 
+    ingredients = models.ManyToManyField(
+        "events.Ingredient",
+        through="events.DishIngredient",
+        related_name="dishes",
+        blank=True,
+    )
+
     def __str__(self) -> str:
         return self.name
 
@@ -316,3 +323,50 @@ class AlcoholLog(models.Model):
     def save(self, *args, **kwargs):
         self.bac_estimate = self.calculate_bac()
         super().save(*args, **kwargs)
+
+
+class IngredientUnit(models.TextChoices):
+    PCS = "pcs", "шт"
+    G = "g", "г"
+    KG = "kg", "кг"
+    ML = "ml", "мл"
+    L = "l", "л"
+
+
+class IngredientCategory(models.TextChoices):
+    FOOD = "food", "Еда"
+    OTHER = "other", "Другое"
+
+
+class Ingredient(models.Model):
+    name = models.CharField(max_length=120, unique=True)
+    category = models.CharField(
+        max_length=16,
+        choices=IngredientCategory.choices,
+        default=IngredientCategory.FOOD,
+    )
+    default_unit = models.CharField(
+        max_length=8,
+        choices=IngredientUnit.choices,
+        default=IngredientUnit.G,
+    )
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class DishIngredient(models.Model):
+    """
+    Количество ингредиента на 1 человека (на порцию).
+    """
+    dish = models.ForeignKey("events.Dish", on_delete=models.CASCADE, related_name="dish_ingredients")
+    ingredient = models.ForeignKey("events.Ingredient", on_delete=models.PROTECT, related_name="dish_uses")
+
+    qty_per_person = models.DecimalField(max_digits=12, decimal_places=3, default=Decimal("0.0"))
+    unit = models.CharField(max_length=8, choices=IngredientUnit.choices, default=IngredientUnit.G)
+
+    class Meta:
+        unique_together = ("dish", "ingredient", "unit")
+
+    def __str__(self) -> str:
+        return f"{self.dish}: {self.ingredient} {self.qty_per_person} {self.unit}"

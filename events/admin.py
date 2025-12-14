@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import Scenario, Event, Drink, Dish
+from .models import (
+    Scenario, Event, Drink, Dish,
+    Ingredient, DishIngredient,
+)
 
 
 @admin.register(Drink)
@@ -8,11 +11,24 @@ class DrinkAdmin(admin.ModelAdmin):
     search_fields = ("name", "slug")
 
 
+class DishIngredientInline(admin.TabularInline):
+    model = DishIngredient
+    extra = 0
+
+
 @admin.register(Dish)
 class DishAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")
     search_fields = ("name", "slug")
     filter_horizontal = ("drinks",)
+    inlines = [DishIngredientInline]
+
+
+@admin.register(Ingredient)
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ("name", "category", "default_unit")
+    search_fields = ("name",)
+    list_filter = ("category", "default_unit")
 
 
 @admin.register(Scenario)

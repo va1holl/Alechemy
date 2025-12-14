@@ -2,37 +2,168 @@
 {% block content %}
   <h1>Калькулятор и список покупок</h1>
 
-  <form method="post">
+  <form method="post" id="calc-form">
     {% csrf_token %}
-    {{ form.as_p }}
+    {{ form.event.as_p }}
+    {{ form.scenario }}
+
+    <div style="margin:12px 0; padding:10px; border:1px solid #333;">
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <strong>Блюда:</strong>
+        <span id="selected-dishes-text">ничего не выбрано</span>
+        <button type="button" id="toggle-dishes">Добавить блюда</button>
+      </div>
+
+      <div id="dish-picker" style="display:none; margin-top:10px;">
+        <input type="text" id="dish-filter" placeholder="Фильтр по названию…" style="width:100%; max-width:520px;">
+
+        <div style="display:none;">
+          {{ form.dishes }}
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:10px; align-items:center;">
+          <div style="flex:1;">
+            <div><strong>Доступные</strong></div>
+            <select id="available-dishes" size="10" style="width:100%;"></select>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button type="button" id="add-dish">+</button>
+            <button type="button" id="remove-dish">-</button>
+          </div>
+          <div style="flex:1;">
+            <div><strong>Выбранные</strong></div>
+            <select id="chosen-dishes" size="10" style="width:100%;"></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <fieldset style="margin:12px 0;">
+      <legend><strong>Этапы</strong></legend>
+      {{ form.stages }}
+    </fieldset>
+
+    <details style="margin:12px 0;">
+      <summary><strong>Параметры (необязательно)</strong></summary>
+      <div style="margin-top:10px;">
+        {{ form.people_count.as_p }}
+        {{ form.duration_hours.as_p }}
+        {{ form.intensity.as_p }}
+      </div>
+    </details>
+
     <button type="submit">Посчитать</button>
+    <small style="display:block; margin-top:6px; opacity:.8;">
+      Пересчёт происходит автоматически при изменениях (если JS включен).
+    </small>
   </form>
 
-  {% if items %}
-    <hr>
-    <h2>Результат</h2>
+  <div id="result-container" style="margin-top:14px;">
+    {% include "shopping/_result.html" %}
+  </div>
 
-    <ul>
-      {% for i in items %}
-        <li>{{ i.name }}: {{ i.qty }} {{ i.unit }} ({{ i.category }})</li>
-      {% endfor %}
-    </ul>
+  <script>
+    (function () {
+      const form = document.getElementById("calc-form");
+      const result = document.getElementById("result-container");
 
-    <form method="post" action="{% url 'shopping:create' %}">
-      {% csrf_token %}
-      {# прокидываем те же значения, чтобы создать список #}
-      <input type="hidden" name="scenario" value="{{ form.cleaned_data.scenario.id }}">
-      {% if form.cleaned_data.event %}
-        <input type="hidden" name="event" value="{{ form.cleaned_data.event.id }}">
-      {% endif %}
-      {% for s in form.cleaned_data.stages %}
-        <input type="hidden" name="stages" value="{{ s }}">
-      {% endfor %}
-      <input type="hidden" name="people_count" value="{{ form.cleaned_data.people_count }}">
-      <input type="hidden" name="duration_hours" value="{{ form.cleaned_data.duration_hours }}">
-      <input type="hidden" name="intensity" value="{{ form.cleaned_data.intensity }}">
+      const toggleBtn = document.getElementById("toggle-dishes");
+      const picker = document.getElementById("dish-picker");
+      const filterInput = document.getElementById("dish-filter");
+      const hiddenSelect = document.getElementById("id_dishes");
+      const available = document.getElementById("available-dishes");
+      const chosen = document.getElementById("chosen-dishes");
+      const addBtn = document.getElementById("add-dish");
+      const removeBtn = document.getElementById("remove-dish");
+      const selectedText = document.getElementById("selected-dishes-text");
 
-      <button type="submit">Сохранить (Premium)</button>
-    </form>
-  {% endif %}
+      function csrf() {
+        return form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+      }
+
+      function createOption(text, value) {
+        const opt = document.createElement("option");
+        opt.textContent = text;
+        opt.value = value;
+        return opt;
+      }
+
+      function rebuildLists() {
+        if (!hiddenSelect) return;
+        available.innerHTML = "";
+        chosen.innerHTML = "";
+        const q = (filterInput.value || "").toLowerCase().trim();
+        Array.from(hiddenSelect.options).forEach(opt => {
+          const label = opt.text.trim();
+          const value = opt.value;
+          const match = !q || label.toLowerCase().includes(q);
+          if (opt.selected) chosen.appendChild(createOption(label, value));
+          else if (match) available.appendChild(createOption(label, value));
+        });
+        updateHidden();
+      }
+
+      function updateHidden() {
+        const vals = new Set(Array.from(chosen.options).map(o => o.value));
+        Array.from(hiddenSelect.options).forEach(o => {
+          o.selected = vals.has(o.value);
+        });
+        updateSelectedText();
+      }
+
+      function updateSelectedText() {
+        const names = Array.from(chosen.options).map(o => o.text);
+        selectedText.textContent = names.length ? names.join(", ") : "ничего не выбрано";
+      }
+
+      function move(from, to) {
+        const picked = Array.from(from.selectedOptions);
+        if (!picked.length) return;
+        picked.forEach(opt => {
+          to.appendChild(createOption(opt.textContent, opt.value));
+          opt.remove();
+        });
+        updateHidden();
+        debounceRecalc();
+      }
+
+      toggleBtn.addEventListener("click", () => {
+        const open = picker.style.display === "none";
+        picker.style.display = open ? "block" : "none";
+        if (open) rebuildLists();
+      });
+
+      filterInput.addEventListener("input", rebuildLists);
+      addBtn.addEventListener("click", () => move(available, chosen));
+      removeBtn.addEventListener("click", () => move(chosen, available));
+
+      let timer = null;
+      function debounceRecalc() {
+        clearTimeout(timer);
+        timer = setTimeout(recalc, 200);
+      }
+
+      async function recalc() {
+        const fd = new FormData(form);
+        const resp = await fetch("{% url 'shopping:ajax_preview' %}", {
+          method: "POST",
+          headers: { "X-CSRFToken": csrf(), "X-Requested-With": "XMLHttpRequest" },
+          body: fd
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (!data.ok) return;
+        result.innerHTML = data.html;
+      }
+
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        recalc();
+      });
+      form.addEventListener("change", debounceRecalc);
+
+      rebuildLists();
+      if (form.querySelector("#id_event")?.value) recalc();
+    })();
+  </script>
 {% endblock %}

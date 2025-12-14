@@ -1,0 +1,90 @@
+{% if dish_cards %}
+  <h2>Рецепты и ингредиенты</h2>
+  {% for card in dish_cards %}
+    <details open style="margin:10px 0; padding:10px; border:1px solid #333;">
+      <summary><strong>{{ card.dish.name }}</strong></summary>
+
+      {% if card.dish.recipe_text %}
+        <p style="margin-top:8px;">{{ card.dish.recipe_text }}</p>
+      {% endif %}
+
+      <h4>Ингредиенты (на выбранное кол-во людей)</h4>
+      <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Ингредиент</th>
+            <th>Кол-во</th>
+            <th>Ед.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in card.ingredients %}
+            <tr>
+              <td>{{ r.name }}</td>
+              <td>{{ r.qty }}</td>
+              <td>{{ r.unit }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </details>
+  {% endfor %}
+{% endif %}
+
+{% if missing_dishes %}
+  <p style="color:#b00;">
+    У этих блюд нет ингредиентов, поэтому они не влияют на расчёт:
+    {% for d in missing_dishes %}{{ d.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+  </p>
+{% endif %}
+
+{% if items %}
+  <hr>
+  <h2>Итоговый список покупок</h2>
+
+  {% for cat, rows in grouped.items %}
+    <h3>{{ cat }}</h3>
+    <table border="1" cellpadding="6" cellspacing="0" style="margin-bottom:12px;">
+      <thead>
+        <tr>
+          <th>Позиция</th>
+          <th>Кол-во</th>
+          <th>Ед.</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in rows %}
+          <tr>
+            <td>{{ i.name }}</td>
+            <td>{{ i.qty }}</td>
+            <td>{{ i.unit_label }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endfor %}
+
+  <form method="post" action="{% url 'shopping:create' %}">
+    {% csrf_token %}
+    {% if form.cleaned_data.scenario %}
+      <input type="hidden" name="scenario" value="{{ form.cleaned_data.scenario.id }}">
+    {% endif %}
+    {% if form.cleaned_data.event %}
+      <input type="hidden" name="event" value="{{ form.cleaned_data.event.id }}">
+    {% endif %}
+
+    {% for d in form.cleaned_data.dishes %}
+      <input type="hidden" name="dishes" value="{{ d.id }}">
+    {% endfor %}
+
+    {% for s in form.cleaned_data.stages %}
+      <input type="hidden" name="stages" value="{{ s }}">
+    {% endfor %}
+
+    <input type="hidden" name="people_count" value="{{ form.cleaned_data.people_count }}">
+    <input type="hidden" name="duration_hours" value="{{ form.cleaned_data.duration_hours }}">
+    <input type="hidden" name="intensity" value="{{ form.cleaned_data.intensity }}">
+
+    <button type="submit">Сохранить (Premium)</button>
+  </form>
+{% endif %}

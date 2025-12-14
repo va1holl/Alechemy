@@ -88,6 +88,8 @@ class ShoppingList(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    dishes = models.ManyToManyField("events.Dish", blank=True, related_name="shopping_lists")
+
     class Meta:
         ordering = ["-created_at", "-id"]
 

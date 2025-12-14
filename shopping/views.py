@@ -1,12 +1,103 @@
+# shopping/views.py
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods
+from django.template.loader import render_to_string
+from django.views.decorators.http import require_http_methods, require_POST
 
 from accounts.decorators import adult_required, premium_required
+from events.models import DishIngredient, Event, Scenario
 from .forms import ShoppingCalcForm
 from .models import ShoppingItem, ShoppingList
 from .services import build_shopping_items
+
+
+def _build_result_context(form: ShoppingCalcForm):
+    """
+    Собирает всё, что нужно для красивого результата:
+    - итоговый список покупок (items + grouped)
+    - выбранные блюда + рецепты + ингридиенты под people_count
+    """
+    items = None
+    grouped = {}
+    dish_cards = []
+    missing_dishes = []
+
+    if not form.is_valid():
+        return {
+            "items": None,
+            "grouped": {},
+            "dish_cards": [],
+            "missing_dishes": [],
+        }
+
+    scenario = form.cleaned_data["scenario"]
+    dishes = list(form.cleaned_data.get("dishes") or [])
+    stages = form.cleaned_data["stages"]
+    people_count = form.cleaned_data["people_count"]
+    duration_hours = form.cleaned_data["duration_hours"]
+    intensity = form.cleaned_data["intensity"]
+
+    items = build_shopping_items(
+        scenario=scenario,
+        stages=stages,
+        people_count=people_count,
+        duration_hours=duration_hours,
+        intensity=intensity,
+        dishes=dishes,
+    )
+
+    # группировка для табличек
+    for i in items:
+        grouped.setdefault(i["category_label"], []).append(i)
+
+    # блюда: рецепт + ингредиенты под кол-во людей
+    if dishes:
+        # префетчим, чтобы не было N+1
+        di_qs = (
+            DishIngredient.objects
+            .filter(dish__in=dishes)
+            .select_related("dish", "ingredient")
+            .order_by("dish_id", "ingredient__name")
+        )
+
+        by_dish = {}
+        for di in di_qs:
+            by_dish.setdefault(di.dish_id, []).append(di)
+
+        for d in dishes:
+            ing_rows = []
+            dis = by_dish.get(d.id, [])
+            if not dis:
+                missing_dishes.append(d)
+                continue
+
+            for di in dis:
+                qty_total = (di.qty_per_person * Decimal(people_count)).quantize(Decimal("0.001"))
+                ing_rows.append(
+                    {
+                        "name": di.ingredient.name,
+                        "qty": qty_total,
+                        "unit": di.get_unit_display() if hasattr(di, "get_unit_display") else di.unit,
+                    }
+                )
+
+            dish_cards.append(
+                {
+                    "dish": d,
+                    "ingredients": ing_rows,
+                }
+            )
+
+    return {
+        "items": items,
+        "grouped": grouped,
+        "dish_cards": dish_cards,
+        "missing_dishes": missing_dishes,
+    }
 
 
 @login_required
@@ -14,25 +105,41 @@ from .services import build_shopping_items
 @require_http_methods(["GET", "POST"])
 def preview(request):
     items = None
+    grouped = {}
+    dish_cards = []
+    missing_dishes = []
 
     if request.method == "POST":
         form = ShoppingCalcForm(request.POST, user=request.user)
-        if form.is_valid():
-            scenario = form.cleaned_data["scenario"]
-            stages = form.cleaned_data["stages"]
-            people_count = form.cleaned_data["people_count"]
-            duration_hours = form.cleaned_data["duration_hours"]
-            intensity = form.cleaned_data["intensity"]
-
-            items = build_shopping_items(
-                scenario=scenario,
-                stages=stages,
-                people_count=people_count,
-                duration_hours=duration_hours,
-                intensity=intensity,
-            )
+        result = _build_result_context(form)
+        items = result["items"]
+        grouped = result["grouped"]
+        dish_cards = result["dish_cards"]
+        missing_dishes = result["missing_dishes"]
     else:
-        form = ShoppingCalcForm(user=request.user)
+        initial = {}
+        event_id = request.GET.get("event")
+        scenario_id = request.GET.get("scenario")
+
+        if event_id:
+            ev = get_object_or_404(Event, pk=event_id, user=request.user)
+            initial.update(
+                {
+                    "event": ev,
+                    "scenario": ev.scenario,
+                    "people_count": getattr(ev, "people_count", 4),
+                    "duration_hours": getattr(ev, "duration_hours", 4),
+                    "intensity": getattr(ev, "intensity", "normal"),
+                    "stages": ["prep", "during", "recovery"],
+                }
+            )
+            if getattr(ev, "dish_id", None):
+                initial["dishes"] = [ev.dish]
+        elif scenario_id:
+            sc = get_object_or_404(Scenario, pk=scenario_id)
+            initial.update({"scenario": sc, "stages": ["prep", "during", "recovery"]})
+
+        form = ShoppingCalcForm(initial=initial, user=request.user)
 
     return render(
         request,
@@ -40,8 +147,29 @@ def preview(request):
         {
             "form": form,
             "items": items,
+            "grouped": grouped,
+            "dish_cards": dish_cards,
+            "missing_dishes": missing_dishes,
         },
     )
+
+
+@login_required
+@adult_required
+@require_POST
+def ajax_preview(request):
+    form = ShoppingCalcForm(request.POST, user=request.user)
+
+    if not form.is_valid():
+        return JsonResponse({"ok": False, "html": ""})
+
+    ctx = _build_result_context(form)
+    html = render_to_string(
+        "shopping/_result.html",
+        {"form": form, **ctx},
+        request=request,
+    )
+    return JsonResponse({"ok": True, "html": html})
 
 
 @login_required
@@ -60,6 +188,7 @@ def create_from_preview(request):
     people_count = form.cleaned_data["people_count"]
     duration_hours = form.cleaned_data["duration_hours"]
     intensity = form.cleaned_data["intensity"]
+    dishes = form.cleaned_data.get("dishes")
 
     items = build_shopping_items(
         scenario=scenario,
@@ -67,6 +196,7 @@ def create_from_preview(request):
         people_count=people_count,
         duration_hours=duration_hours,
         intensity=intensity,
+        dishes=dishes,
     )
 
     sl = ShoppingList.objects.create(
@@ -78,6 +208,9 @@ def create_from_preview(request):
         intensity=intensity,
         stages=stages,
     )
+
+    if dishes:
+        sl.dishes.set(dishes)
 
     ShoppingItem.objects.bulk_create(
         [
@@ -99,13 +232,18 @@ def create_from_preview(request):
 
 @login_required
 @adult_required
-def detail(request, pk: int):
-    sl = get_object_or_404(ShoppingList, pk=pk, user=request.user)
-    return render(request, "shopping/detail.html", {"sl": sl})
+def my_lists(request):
+    qs = (
+        ShoppingList.objects
+        .filter(user=request.user)
+        .select_related("event", "scenario")
+        .order_by("-created_at", "-id")
+    )
+    return render(request, "shopping/my_lists.html", {"lists": qs})
 
 
 @login_required
 @adult_required
-def my_lists(request):
-    qs = ShoppingList.objects.filter(user=request.user).select_related("event", "scenario")
-    return render(request, "shopping/my_lists.html", {"lists": qs})
+def detail(request, pk: int):
+    sl = get_object_or_404(ShoppingList, pk=pk, user=request.user)
+    return render(request, "shopping/detail.html", {"sl": sl})

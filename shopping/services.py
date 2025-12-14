@@ -1,6 +1,7 @@
 from collections import defaultdict
 from decimal import Decimal
 
+from events.models import DishIngredient
 from .models import (
     IntensityChoices,
     ItemCategoryChoices,
@@ -18,7 +19,6 @@ def _intensity_multiplier(intensity: str) -> Decimal:
 
 
 def _water_l_per_person_per_hour(intensity: str) -> Decimal:
-    # базовая вода, чтобы потом не делать вид, что люди фотосинтезируют
     return {
         IntensityChoices.LOW: Decimal("0.25"),
         IntensityChoices.NORMAL: Decimal("0.33"),
@@ -34,6 +34,20 @@ def _ice_kg_per_person_per_hour(intensity: str) -> Decimal:
     }.get(intensity, Decimal("0.10"))
 
 
+def _label_for_category(category: str) -> str:
+    try:
+        return ItemCategoryChoices(category).label
+    except Exception:
+        return str(category)
+
+
+def _label_for_unit(unit: str) -> str:
+    try:
+        return UnitChoices(unit).label
+    except Exception:
+        return str(unit)
+
+
 def build_shopping_items(
     *,
     scenario,
@@ -41,18 +55,19 @@ def build_shopping_items(
     people_count: int,
     duration_hours: int,
     intensity: str,
+    dishes=None,
 ):
     """
-    Возвращает список dict'ов: [{name, category, unit, qty}, ...]
+    Возвращает список dict'ов: [{name, category, category_label, unit, unit_label, qty}, ...]
     """
     if not stages:
-        stages = []  # ок, просто будет вода+лёд (и ничего из шаблонов)
+        stages = []
 
     mult = _intensity_multiplier(intensity)
 
     rows = ScenarioSupplyTemplate.objects.filter(scenario=scenario, stage__in=stages)
 
-    bucket = defaultdict(Decimal)  # key -> qty
+    bucket = defaultdict(Decimal)  # (name, category, unit) -> qty
 
     for r in rows:
         qty = (r.qty_per_person_per_hour * Decimal(people_count) * Decimal(duration_hours)) * mult
@@ -61,7 +76,19 @@ def build_shopping_items(
         key = (r.name.strip(), r.category, r.unit)
         bucket[key] += qty
 
-    # Обязательные вещи по ТЗ: вода и лёд (даже если в шаблонах забыли)
+    # ингредиенты из выбранных блюд (если есть)
+    if dishes:
+        di_qs = DishIngredient.objects.filter(dish__in=dishes).select_related("ingredient", "dish")
+        for di in di_qs:
+            qty = di.qty_per_person * Decimal(people_count)
+            if qty <= 0:
+                continue
+            name = di.ingredient.name.strip()
+            category = ItemCategoryChoices.FOOD
+            unit = di.unit  # значения совпадают с UnitChoices: pcs/g/kg/ml/l
+            bucket[(name, category, unit)] += qty
+
+    # базовые позиции
     water_qty = _water_l_per_person_per_hour(intensity) * Decimal(people_count) * Decimal(duration_hours)
     bucket[("Вода", ItemCategoryChoices.WATER, UnitChoices.L)] += water_qty
 
@@ -74,7 +101,9 @@ def build_shopping_items(
             {
                 "name": name,
                 "category": category,
+                "category_label": _label_for_category(category),
                 "unit": unit,
+                "unit_label": _label_for_unit(unit),
                 "qty": qty.quantize(Decimal("0.001")),
             }
         )

@@ -5,6 +5,11 @@
 {% block content %}
   <h1>{{ scenario.name }}</h1>
 
+  <p>
+    <a href="{% url 'shopping:preview' %}?scenario={{ scenario.id }}">Посчитать покупки по сценарию</a>
+  </p>
+
+
   <section>
     <h2>Подготовка</h2>
 

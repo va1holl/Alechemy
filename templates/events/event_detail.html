@@ -110,6 +110,10 @@
 
   <h2>Действия</h2>
   <p>
+    <a href="{% url 'shopping:preview' %}?event={{ event.id }}">Рассчитать покупки по событию</a>
+  </p>
+
+  <p>
     <a href="{% url 'events:event_edit' event.pk %}">Редактировать</a>
   </p>
 
