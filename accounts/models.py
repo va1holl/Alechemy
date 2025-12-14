@@ -2,8 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 
 class User(AbstractUser):
@@ -50,6 +48,15 @@ class Profile(models.Model):
         help_text="Вес в кг, нужен для BAC",
     )
 
+    is_adult_confirmed = models.BooleanField(
+        default=False,
+        help_text="Подтверждение, что пользователю 18+.",
+    )
+    gdpr_consent = models.BooleanField(
+        default=False,
+        help_text="Согласие на обработку персональных данных.",
+    )
+
     favorite_scenarios = models.ManyToManyField(
         "events.Scenario",
         related_name="favorite_for_profiles",
@@ -69,11 +76,3 @@ class Profile(models.Model):
 
     def __str__(self) -> str:
         return f"Профиль {self.user.email or self.user.username}"
-
-
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-    else:
-        Profile.objects.get_or_create(user=instance)

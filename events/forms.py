@@ -91,3 +91,15 @@ class AlcoholLogForm(forms.ModelForm):
         widgets = {
             "taken_at": forms.DateTimeInput(attrs={"type": "datetime-local"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        if "event" in self.fields:
+            if user is not None and getattr(user, "is_authenticated", False):
+                self.fields["event"].queryset = (
+                    Event.objects.filter(user=user).order_by("-date", "-id")
+                )
+            else:
+                self.fields["event"].queryset = Event.objects.none()

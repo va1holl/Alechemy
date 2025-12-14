@@ -3,6 +3,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
 from django.shortcuts import render, get_object_or_404, redirect
+from accounts.decorators import adult_required
 
 from .models import Scenario, Event, Dish, Drink, AlcoholLog
 from .forms import (
@@ -17,6 +18,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 @login_required
+@adult_required
 def scenario_list(request):
     scenarios = Scenario.objects.all().order_by("name")
     profile = getattr(request.user, "profile", None)
@@ -41,6 +43,7 @@ def scenario_list(request):
 
 
 @login_required
+@adult_required
 def toggle_favorite_scenario(request, slug):
     scenario = get_object_or_404(Scenario, slug=slug)
     profile = request.user.profile
@@ -54,6 +57,7 @@ def toggle_favorite_scenario(request, slug):
 
 
 @login_required
+@adult_required
 def scenario_detail(request, slug):
     scenario = get_object_or_404(Scenario, slug=slug)
     profile = getattr(request.user, "profile", None)
@@ -91,6 +95,7 @@ def scenario_detail(request, slug):
 
 
 @login_required
+@adult_required
 def event_list(request):
     events = (
         Event.objects.filter(user=request.user)
@@ -284,6 +289,7 @@ def build_recovery_advice(user, drink, recommendations):
 
 
 @login_required
+@adult_required
 def event_create_from_scenario(request, slug):
     """
     Шаг 2:
@@ -360,6 +366,7 @@ def event_create_from_scenario(request, slug):
 
 
 @login_required
+@adult_required
 def event_edit(request, pk):
     event = get_object_or_404(Event, pk=pk, user=request.user)
     scenario = event.scenario
@@ -394,6 +401,7 @@ def event_edit(request, pk):
     )
 
 @login_required
+@adult_required
 def event_delete(request, pk):
     """
     Удаление события. Только своего, без чужих приколов.
@@ -409,6 +417,7 @@ def event_delete(request, pk):
 
 
 @login_required
+@adult_required
 def event_detail(request, pk):
     event = get_object_or_404(Event, pk=pk, user=request.user)
     scenario = event.scenario
@@ -443,6 +452,7 @@ def event_detail(request, pk):
 
 @require_POST
 @login_required
+@adult_required
 def event_recommendations_preview(request):
     """
     AJAX-эндпоинт:
@@ -474,6 +484,7 @@ def event_recommendations_preview(request):
 
 
 @login_required
+@adult_required
 def diary_list(request):
     """
     Список записей алко-дневника текущего пользователя.
@@ -491,6 +502,7 @@ def diary_list(request):
     )
 
 @login_required
+@adult_required
 def diary_detail(request, pk):
     log = get_object_or_404(AlcoholLog, pk=pk, user=request.user)
     return render(
@@ -503,29 +515,42 @@ def diary_detail(request, pk):
 
 
 @login_required
+@adult_required
 def diary_add(request, event_pk=None):
     """
     Добавление записи в дневник.
-    Если передан event_pk — пробуем привязать запись к событию.
+    Если передан event_pk — привязываем запись ТОЛЬКО к этому событию (если оно пользователя).
     """
     event = None
     if event_pk is not None:
         event = get_object_or_404(Event, pk=event_pk, user=request.user)
 
     if request.method == "POST":
-        form = AlcoholLogForm(request.POST)
+        form = AlcoholLogForm(request.POST, user=request.user)
         if form.is_valid():
             log = form.save(commit=False)
             log.user = request.user
-            if event and not log.event:
+
+            # Если пришли по /events/<event_pk>/... то фиксируем событие принудительно
+            if event is not None:
                 log.event = event
+            else:
+                # Защита от ручной подмены event id в POST
+                if log.event is not None and log.event.user_id != request.user.id:
+                    form.add_error("event", "Нельзя выбрать чужое событие.")
+                    return render(
+                        request,
+                        "events/diary_add.html",
+                        {"form": form, "event": event},
+                    )
+
             log.save()
             return redirect("events:diary_list")
     else:
         initial = {}
         if event is not None:
             initial["event"] = event
-        form = AlcoholLogForm(initial=initial)
+        form = AlcoholLogForm(initial=initial, user=request.user)
 
     return render(
         request,
