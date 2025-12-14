@@ -5,7 +5,9 @@
   <form method="post" id="calc-form">
     {% csrf_token %}
     {{ form.event.as_p }}
-    {{ form.scenario }}
+    <div id="scenario-row">
+      {{ form.scenario.as_p }}
+    </div>
 
     <div style="margin:12px 0; padding:10px; border:1px solid #333;">
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -48,7 +50,6 @@
       <div style="margin-top:10px;">
         {{ form.people_count.as_p }}
         {{ form.duration_hours.as_p }}
-        {{ form.intensity.as_p }}
       </div>
     </details>
 
@@ -145,15 +146,25 @@
 
       async function recalc() {
         const fd = new FormData(form);
-        const resp = await fetch("{% url 'shopping:ajax_preview' %}", {
+
+        // Ключевой фикс: переносим ?event=... (и любые query-параметры) в AJAX запрос.
+        const ajaxUrl = "{% url 'shopping:ajax_preview' %}" + window.location.search;
+
+        const resp = await fetch(ajaxUrl, {
           method: "POST",
           headers: { "X-CSRFToken": csrf(), "X-Requested-With": "XMLHttpRequest" },
           body: fd
         });
-        if (!resp.ok) return;
+
+        if (!resp.ok) {
+          result.innerHTML = "<div style=\"margin:12px 0; padding:10px; border:1px solid #b00; color:#b00;\">Ошибка сервера при пересчёте (HTTP " + resp.status + ")</div>";
+          return;
+        }
+
         const data = await resp.json();
-        if (!data.ok) return;
-        result.innerHTML = data.html;
+        if (data && data.html !== undefined) {
+          result.innerHTML = data.html;
+        }
       }
 
       form.addEventListener("submit", e => {
@@ -161,6 +172,22 @@
         recalc();
       });
       form.addEventListener("change", debounceRecalc);
+
+      const eventSelect = document.getElementById("id_event");
+      const scenarioRow = document.getElementById("scenario-row");
+      function syncScenarioVisibility() {
+        if (!eventSelect || !scenarioRow) return;
+        scenarioRow.style.display = eventSelect.value ? "none" : "block";
+        const scenarioSelect = document.getElementById("id_scenario");
+        if (scenarioSelect) {
+          scenarioSelect.disabled = !!eventSelect.value;
+          if (eventSelect.value) scenarioSelect.value = "";
+        }
+      }
+      if (eventSelect) {
+        eventSelect.addEventListener("change", syncScenarioVisibility);
+        syncScenarioVisibility();
+      }
 
       rebuildLists();
       if (form.querySelector("#id_event")?.value) recalc();

@@ -14,7 +14,6 @@
     {% endif %}
     <li>Людей: {{ event.people_count }}</li>
     <li>Длительность: {{ event.duration_hours }} ч</li>
-    <li>Интенсивность: {{ event.get_intensity_display }}</li>
     {% if event.drink %}
       <li>Напиток: {{ event.drink.name }}</li>
     {% endif %}
@@ -141,9 +140,7 @@
 
     document.addEventListener("DOMContentLoaded", function () {
       const block = document.getElementById("recommendations-block");
-      if (!block) {
-        return;
-      }
+      if (!block) return;
 
       const url = "{% url 'events:event_recommendations_preview' %}";
 
@@ -153,7 +150,6 @@
       data.append("dish_id", block.dataset.dishId || "");
       data.append("people_count", "{{ event.people_count }}");
       data.append("duration_hours", "{{ event.duration_hours }}");
-      data.append("intensity", "{{ event.intensity }}");
 
       fetch(url, {
         method: "POST",
@@ -180,9 +176,7 @@
           setText("reco-water-bottles", rec.water_bottles_1500_ml);
           setText("reco-food-portions", rec.food_portions);
         })
-        .catch((err) => {
-          console.error("Ошибка обновления рекомендаций", err);
-        });
+        .catch((err) => console.error("Ошибка обновления рекомендаций", err));
     });
   </script>
   {% endif %}

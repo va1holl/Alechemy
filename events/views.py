@@ -1,10 +1,13 @@
 from decimal import ROUND_HALF_UP, Decimal
+import math
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from accounts.decorators import adult_required
+from django.views.decorators.http import require_POST
 
+from accounts.decorators import adult_required
 from .models import Scenario, Event, Dish, Drink, AlcoholLog
 from .forms import (
     ScenarioDrinkForm,
@@ -13,9 +16,6 @@ from .forms import (
     AlcoholLogForm,
 )
 
-import math
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 
 @login_required
 @adult_required
@@ -112,10 +112,9 @@ def build_recommendations_placeholder(
     dish,
     people_count=None,
     duration_hours=None,
-    intensity=None,
 ):
     """
-    Простейший калькулятор под Event.
+    Простейший калькулятор под Event (БЕЗ "интенсивности").
 
     Считает:
     - ориентировочный объём напитка на человека и всего,
@@ -129,7 +128,6 @@ def build_recommendations_placeholder(
     profile = getattr(user, "profile", None)
 
     # --- входные параметры ---
-
     try:
         people = int(people_count) if people_count else 2
     except (TypeError, ValueError):
@@ -145,49 +143,21 @@ def build_recommendations_placeholder(
     if hours < 1:
         hours = 1
 
-    # intensity приходит строкой ("low"/"medium"/"high") или None
-    intensity_code = intensity or Event.Intensity.MEDIUM
-    if isinstance(intensity_code, Event.Intensity):
-        intensity_code = intensity_code.value
-
-    # коэффициент "агрессивности" по интенсивности
-    if intensity_code == Event.Intensity.LOW:
-        intensity_factor = 0.5
-    elif intensity_code == Event.Intensity.HIGH:
-        intensity_factor = 1.5
-    else:
-        intensity_factor = 1.0
-
     # --- расчёт алкоголя ---
-
-    # базовый объём "порции" напитка в мл
-    # для вина норм взять 150 мл, сейчас у тебя всё крутится вокруг вина
-    base_serving_volume_ml = 150
-
-    servings_per_person = max(1.0, hours * intensity_factor)
+    base_serving_volume_ml = 150  # "порция" для вина/лонгдринка
+    servings_per_person = max(1.0, float(hours))  # без интенсивности: 1 порция в час (грубо)
     per_person_alcohol_ml = int(servings_per_person * base_serving_volume_ml)
     total_alcohol_ml = per_person_alcohol_ml * people
     bottles_750_ml = max(1, math.ceil(total_alcohol_ml / 750))
 
     # --- вода ---
-
-    # минимум 500 мл на человека, плюс по ~300 мл за каждый час
     per_person_water_ml = max(500, int(hours * 300))
     total_water_ml = per_person_water_ml * people
     water_bottles_1500_ml = max(1, math.ceil(total_water_ml / 1500))
 
     # --- еда ---
-
-    if intensity_code == Event.Intensity.LOW:
-        food_factor = 1.0
-    elif intensity_code == Event.Intensity.HIGH:
-        food_factor = 2.0
-    else:
-        food_factor = 1.5
-
+    food_factor = 1.5  # фикс, без "интенсивности"
     food_portions = max(1, math.ceil(people * food_factor))
-
-    # --- базовый текст ---
 
     summary = (
         f"Оценка: на {people} человек при длительности {hours} ч "
@@ -215,13 +185,9 @@ def build_recommendations_placeholder(
                 f"(очень приблизительно, не использовать для решений про вождение и здоровье)."
             )
         else:
-            summary += (
-                " Для оценки BAC нужно корректно заполнить вес/пол в профиле."
-            )
+            summary += " Для оценки BAC нужно корректно заполнить вес/пол в профиле."
     elif profile:
-        summary += (
-            " Для расчёта BAC нужен напиток с указанной крепостью и заполненные вес/пол в профиле."
-        )
+        summary += " Для расчёта BAC нужен напиток с указанной крепостью и заполненные вес/пол в профиле."
 
     return {
         "summary": summary,
@@ -248,13 +214,11 @@ def build_recovery_advice(user, drink, recommendations):
 
     bac = recommendations.get("bac_promille")
     if not bac:
-        # если не смогли посчитать BAC (нет профиля, веса и т.п.) – ничего умного не скажем
         return None
 
     if not isinstance(bac, Decimal):
         bac = Decimal(str(bac))
 
-    # Очень приблизительная скорость выведения: 0.15 ‰ в час
     elimination_rate = Decimal("0.15")
     hours_to_zero = (bac / elimination_rate).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
 
@@ -264,7 +228,7 @@ def build_recovery_advice(user, drink, recommendations):
     except (TypeError, ValueError):
         per_person_water_ml = 0
 
-    extra_water_ml = max(0, int(per_person_water_ml * 0.5))  # +50% к базовой воде
+    extra_water_ml = max(0, int(per_person_water_ml * 0.5))
 
     text = (
         f"При таком объёме напитка ориентировочный пик для тебя — около {bac} ‰. "
@@ -309,7 +273,6 @@ def event_create_from_scenario(request, slug):
         dish = get_object_or_404(Dish, id=dish_id) if dish_id else None
 
         if step == "select_dish":
-            # только что выбрали блюдо -> показываем форму параметров
             form = EventCreateFromScenarioForm()
             recommendations = build_recommendations_placeholder(
                 request.user, scenario, drink, dish
@@ -327,7 +290,6 @@ def event_create_from_scenario(request, slug):
                 },
             )
 
-        # step == "create_event" -> сохраняем
         form = EventCreateFromScenarioForm(request.POST)
         if form.is_valid() and drink and dish:
             event = form.save(commit=False)
@@ -335,18 +297,16 @@ def event_create_from_scenario(request, slug):
             event.scenario = scenario
             event.drink = drink
             event.dish = dish
-
-            # сюда потом можно писать summary/цифры по расчёту
-            # event.notes = "Автоматически рассчитанные рекомендации..."
-
             event.save()
             return redirect("events:event_list")
 
         recommendations = build_recommendations_placeholder(
-            request.user, scenario, drink, dish,
+            request.user,
+            scenario,
+            drink,
+            dish,
             people_count=request.POST.get("people_count"),
             duration_hours=request.POST.get("duration_hours"),
-            intensity=request.POST.get("intensity"),
         )
         return render(
             request,
@@ -361,7 +321,6 @@ def event_create_from_scenario(request, slug):
             },
         )
 
-    # прямой GET сюда не нужен — отправляем обратно к сценарию
     return redirect("events:scenario_detail", slug=slug)
 
 
@@ -386,7 +345,6 @@ def event_edit(request, pk):
         form.instance.dish,
         people_count=form.instance.people_count,
         duration_hours=form.instance.duration_hours,
-        intensity=form.instance.intensity,
     )
 
     return render(
@@ -400,6 +358,7 @@ def event_edit(request, pk):
         },
     )
 
+
 @login_required
 @adult_required
 def event_delete(request, pk):
@@ -412,7 +371,6 @@ def event_delete(request, pk):
         event.delete()
         return redirect("events:event_list")
 
-    # если вдруг зайдут GET-ом – просто редиректим
     return redirect("events:event_edit", pk=pk)
 
 
@@ -429,7 +387,6 @@ def event_detail(request, pk):
         dish=event.dish,
         people_count=event.people_count,
         duration_hours=event.duration_hours,
-        intensity=event.intensity,
     )
 
     recovery_advice = build_recovery_advice(
@@ -456,7 +413,7 @@ def event_detail(request, pk):
 def event_recommendations_preview(request):
     """
     AJAX-эндпоинт:
-    принимает сценарий, напиток, блюдо, people_count, duration_hours, intensity,
+    принимает сценарий, напиток, блюдо, people_count, duration_hours,
     возвращает JSON с рекомендациями.
     """
     scenario_id = request.POST.get("scenario_id")
@@ -465,7 +422,6 @@ def event_recommendations_preview(request):
 
     people_count = request.POST.get("people_count")
     duration_hours = request.POST.get("duration_hours")
-    intensity = request.POST.get("intensity")
 
     scenario = get_object_or_404(Scenario, id=scenario_id)
     drink = get_object_or_404(Drink, id=drink_id) if drink_id else None
@@ -478,7 +434,6 @@ def event_recommendations_preview(request):
         dish,
         people_count=people_count,
         duration_hours=duration_hours,
-        intensity=intensity,
     )
     return JsonResponse(rec)
 
@@ -500,6 +455,7 @@ def diary_list(request):
         "events/diary_list.html",
         {"logs": logs},
     )
+
 
 @login_required
 @adult_required
@@ -531,11 +487,9 @@ def diary_add(request, event_pk=None):
             log = form.save(commit=False)
             log.user = request.user
 
-            # Если пришли по /events/<event_pk>/... то фиксируем событие принудительно
             if event is not None:
                 log.event = event
             else:
-                # Защита от ручной подмены event id в POST
                 if log.event is not None and log.event.user_id != request.user.id:
                     form.add_error("event", "Нельзя выбрать чужое событие.")
                     return render(

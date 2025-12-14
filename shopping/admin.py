@@ -17,7 +17,7 @@ class ShoppingItemInline(admin.TabularInline):
 
 @admin.register(ShoppingList)
 class ShoppingListAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "scenario", "event", "people_count", "duration_hours", "intensity", "created_at")
-    list_filter = ("intensity", "created_at")
+    list_display = ("id", "user", "scenario", "event", "people_count", "duration_hours", "created_at")
+    list_filter = ("created_at",)
     search_fields = ("user__email", "user__username")
     inlines = [ShoppingItemInline]

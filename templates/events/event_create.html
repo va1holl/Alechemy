@@ -70,24 +70,12 @@
 
     document.addEventListener("DOMContentLoaded", function () {
       const block = document.getElementById("recommendations-block");
-      if (!block) {
-        return;
-      }
+      if (!block) return;
 
       const url = "{% url 'events:event_recommendations_preview' %}";
 
       const peopleInput = document.querySelector('input[name="people_count"]');
       const hoursInput = document.querySelector('input[name="duration_hours"]');
-
-      function getIntensityValue() {
-        const radios = document.querySelectorAll('input[name="intensity"]');
-        for (const r of radios) {
-          if (r.checked) return r.value;
-        }
-        const select = document.querySelector('select[name="intensity"]');
-        if (select) return select.value;
-        return "";
-      }
 
       function updateRecommendations() {
         const data = new URLSearchParams();
@@ -96,7 +84,6 @@
         data.append("dish_id", block.dataset.dishId || "");
         data.append("people_count", peopleInput ? peopleInput.value : "");
         data.append("duration_hours", hoursInput ? hoursInput.value : "");
-        data.append("intensity", getIntensityValue());
 
         fetch(url, {
           method: "POST",
@@ -123,17 +110,12 @@
             setText("reco-water-bottles", rec.water_bottles_1500_ml);
             setText("reco-food-portions", rec.food_portions);
           })
-          .catch((err) => {
-            console.error("Ошибка обновления рекомендаций", err);
-          });
+          .catch((err) => console.error("Ошибка обновления рекомендаций", err));
       }
 
       const handlers = [];
       if (peopleInput) handlers.push(peopleInput);
       if (hoursInput) handlers.push(hoursInput);
-
-      const intensityRadios = document.querySelectorAll('input[name="intensity"]');
-      intensityRadios.forEach((r) => handlers.push(r));
 
       handlers.forEach((el) => {
         el.addEventListener("input", updateRecommendations);

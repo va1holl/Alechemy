@@ -16,11 +16,6 @@ from .services import build_shopping_items
 
 
 def _build_result_context(form: ShoppingCalcForm):
-    """
-    Собирает всё, что нужно для красивого результата:
-    - итоговый список покупок (items + grouped)
-    - выбранные блюда + рецепты + ингридиенты под people_count
-    """
     items = None
     grouped = {}
     dish_cards = []
@@ -39,24 +34,19 @@ def _build_result_context(form: ShoppingCalcForm):
     stages = form.cleaned_data["stages"]
     people_count = form.cleaned_data["people_count"]
     duration_hours = form.cleaned_data["duration_hours"]
-    intensity = form.cleaned_data["intensity"]
 
     items = build_shopping_items(
         scenario=scenario,
         stages=stages,
         people_count=people_count,
         duration_hours=duration_hours,
-        intensity=intensity,
         dishes=dishes,
     )
 
-    # группировка для табличек
     for i in items:
         grouped.setdefault(i["category_label"], []).append(i)
 
-    # блюда: рецепт + ингредиенты под кол-во людей
     if dishes:
-        # префетчим, чтобы не было N+1
         di_qs = (
             DishIngredient.objects
             .filter(dish__in=dishes)
@@ -85,12 +75,7 @@ def _build_result_context(form: ShoppingCalcForm):
                     }
                 )
 
-            dish_cards.append(
-                {
-                    "dish": d,
-                    "ingredients": ing_rows,
-                }
-            )
+            dish_cards.append({"dish": d, "ingredients": ing_rows})
 
     return {
         "items": items,
@@ -129,7 +114,6 @@ def preview(request):
                     "scenario": ev.scenario,
                     "people_count": getattr(ev, "people_count", 4),
                     "duration_hours": getattr(ev, "duration_hours", 4),
-                    "intensity": getattr(ev, "intensity", "normal"),
                     "stages": ["prep", "during", "recovery"],
                 }
             )
@@ -158,10 +142,23 @@ def preview(request):
 @adult_required
 @require_POST
 def ajax_preview(request):
-    form = ShoppingCalcForm(request.POST, user=request.user)
+    # Ключевой фикс: если JS дергает /ajax/preview/ без ?event=...,
+    # или если <select name="event"> по какой-то причине не ушёл в POST,
+    # подхватываем event/scenario из querystring.
+    data = request.POST
 
-    if not form.is_valid():
-        return JsonResponse({"ok": False, "html": ""})
+    event_qs = request.GET.get("event")
+    scenario_qs = request.GET.get("scenario")
+
+    if event_qs and not data.get("event"):
+        data = data.copy()
+        data["event"] = event_qs
+
+    if scenario_qs and not data.get("scenario"):
+        data = data.copy()
+        data["scenario"] = scenario_qs
+
+    form = ShoppingCalcForm(data, user=request.user)
 
     ctx = _build_result_context(form)
     html = render_to_string(
@@ -169,7 +166,7 @@ def ajax_preview(request):
         {"form": form, **ctx},
         request=request,
     )
-    return JsonResponse({"ok": True, "html": html})
+    return JsonResponse({"ok": True, "html": html, "has_errors": bool(form.errors)})
 
 
 @login_required
@@ -187,7 +184,6 @@ def create_from_preview(request):
     stages = form.cleaned_data["stages"]
     people_count = form.cleaned_data["people_count"]
     duration_hours = form.cleaned_data["duration_hours"]
-    intensity = form.cleaned_data["intensity"]
     dishes = form.cleaned_data.get("dishes")
 
     items = build_shopping_items(
@@ -195,7 +191,6 @@ def create_from_preview(request):
         stages=stages,
         people_count=people_count,
         duration_hours=duration_hours,
-        intensity=intensity,
         dishes=dishes,
     )
 
@@ -205,7 +200,6 @@ def create_from_preview(request):
         scenario=scenario,
         people_count=people_count,
         duration_hours=duration_hours,
-        intensity=intensity,
         stages=stages,
     )
 

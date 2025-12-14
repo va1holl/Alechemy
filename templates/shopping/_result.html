@@ -1,3 +1,21 @@
+{% if form and form.errors %}
+  <div style="margin:12px 0; padding:10px; border:1px solid #b00; color:#b00;">
+    <strong>Форма заполнена криво (поправь и пересчитай):</strong>
+
+    {% if form.non_field_errors %}
+      <div style="margin-top:8px;">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <ul style="margin:8px 0 0 18px;">
+      {% for field in form %}
+        {% if field.errors %}
+          <li><strong>{{ field.label }}:</strong> {{ field.errors|striptags }}</li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
 {% if dish_cards %}
   <h2>Рецепты и ингредиенты</h2>
   {% for card in dish_cards %}
@@ -83,7 +101,6 @@
 
     <input type="hidden" name="people_count" value="{{ form.cleaned_data.people_count }}">
     <input type="hidden" name="duration_hours" value="{{ form.cleaned_data.duration_hours }}">
-    <input type="hidden" name="intensity" value="{{ form.cleaned_data.intensity }}">
 
     <button type="submit">Сохранить (Premium)</button>
   </form>

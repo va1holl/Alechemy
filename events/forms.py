@@ -1,5 +1,6 @@
 from django import forms
-from .models import Event, Drink, Dish, AlcoholLog
+
+from .models import AlcoholLog, Dish, Drink, Event
 
 
 class ScenarioDrinkForm(forms.Form):
@@ -27,7 +28,8 @@ class ScenarioDrinkForm(forms.Form):
 class EventCreateFromScenarioForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ["title", "date", "people_count", "duration_hours", "intensity", "notes"]
+        # intensity убрано
+        fields = ["title", "date", "people_count", "duration_hours", "notes"]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
             "notes": forms.Textarea(attrs={"rows": 3}),
@@ -37,12 +39,12 @@ class EventCreateFromScenarioForm(forms.ModelForm):
 class EventUpdateForm(forms.ModelForm):
     class Meta:
         model = Event
+        # intensity убрано
         fields = [
             "title",
             "date",
             "people_count",
             "duration_hours",
-            "intensity",
             "notes",
             "drink",
             "dish",
@@ -56,17 +58,14 @@ class EventUpdateForm(forms.ModelForm):
         scenario = kwargs.pop("scenario", None)
         super().__init__(*args, **kwargs)
 
-        # если не передали сценарий явно – берём из instance
         if scenario is None and self.instance.pk:
             scenario = self.instance.scenario
 
-        # напитки: только те, что доступны в сценарии
         if scenario is not None:
             self.fields["drink"].queryset = scenario.drinks.all().order_by("name")
         else:
             self.fields["drink"].queryset = Drink.objects.all().order_by("name")
 
-        # блюда зависят от выбранного напитка
         drink = None
         if self.is_bound:
             drink_id = self.data.get(self.add_prefix("drink"))
@@ -98,8 +97,6 @@ class AlcoholLogForm(forms.ModelForm):
 
         if "event" in self.fields:
             if user is not None and getattr(user, "is_authenticated", False):
-                self.fields["event"].queryset = (
-                    Event.objects.filter(user=user).order_by("-date", "-id")
-                )
+                self.fields["event"].queryset = Event.objects.filter(user=user).order_by("-date", "-id")
             else:
                 self.fields["event"].queryset = Event.objects.none()

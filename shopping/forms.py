@@ -2,7 +2,7 @@ from django import forms
 from django.db.models import Q
 
 from events.models import Event, Scenario, Dish
-from .models import IntensityChoices, StageChoices
+from .models import StageChoices
 
 
 class ShoppingCalcForm(forms.Form):
@@ -11,7 +11,8 @@ class ShoppingCalcForm(forms.Form):
         queryset=Scenario.objects.all().order_by("name"),
         required=False,
         label="Сценарий",
-        widget=forms.HiddenInput,  # прячем, если считаем от события
+        # По умолчанию показываем сценарий.
+        # Если выбран event, спрячем поле в __init__.
     )
 
     event = forms.ModelChoiceField(
@@ -38,7 +39,6 @@ class ShoppingCalcForm(forms.Form):
     # тоже не обязательные: если нет, подставим дефолты/значения из event
     people_count = forms.IntegerField(required=False, min_value=1, max_value=50, label="Людей")
     duration_hours = forms.IntegerField(required=False, min_value=1, max_value=48, label="Длительность, часов")
-    intensity = forms.ChoiceField(required=False, choices=IntensityChoices.choices, label="Интенсивность")
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
@@ -74,16 +74,26 @@ class ShoppingCalcForm(forms.Form):
 
         self.fields["dishes"].queryset = qs
 
+        # Если выбран event (initial или POST) — сценарий берём из него,
+        # а поле сценария прячем, чтобы не было путаницы.
+        event_value = None
+        if self.is_bound:
+            event_value = self.data.get("event") or None
+        else:
+            event_value = (self.initial or {}).get("event")
+
+        if event_value:
+            self.fields["scenario"].widget = forms.HiddenInput()
+
     def clean(self):
         cleaned = super().clean()
 
         event = cleaned.get("event")
-        scenario = cleaned.get("scenario")
 
         # если есть event — подставим всё из него
         if event:
-            if not scenario:
-                cleaned["scenario"] = event.scenario
+            # сценарий жёстко берём из event, чтобы не было рассинхрона/подмены
+            cleaned["scenario"] = event.scenario
 
             if not cleaned.get("people_count"):
                 cleaned["people_count"] = getattr(event, "people_count", 4) or 4
@@ -91,16 +101,11 @@ class ShoppingCalcForm(forms.Form):
             if not cleaned.get("duration_hours"):
                 cleaned["duration_hours"] = getattr(event, "duration_hours", 4) or 4
 
-            if not cleaned.get("intensity"):
-                cleaned["intensity"] = getattr(event, "intensity", IntensityChoices.NORMAL) or IntensityChoices.NORMAL
-
         # дефолты, если всё равно пусто
         if not cleaned.get("people_count"):
             cleaned["people_count"] = 4
         if not cleaned.get("duration_hours"):
             cleaned["duration_hours"] = 4
-        if not cleaned.get("intensity"):
-            cleaned["intensity"] = IntensityChoices.NORMAL
         if not cleaned.get("stages"):
             cleaned["stages"] = ["prep", "during", "recovery"]
 

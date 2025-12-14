@@ -40,6 +40,7 @@ class ScenarioAdmin(admin.ModelAdmin):
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
-    list_display = ("user", "scenario", "date", "people_count", "intensity")
-    list_filter = ("scenario", "intensity", "date")
+    # intensity не показываем вообще
+    list_display = ("user", "scenario", "date", "people_count", "duration_hours")
+    list_filter = ("scenario", "date")
     search_fields = ("title", "scenario__name", "user__email")
