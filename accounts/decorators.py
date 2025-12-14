@@ -30,3 +30,17 @@ def adult_required(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped
+
+
+def premium_required(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+
+        if not profile.is_premium:
+            messages.error(request, "Эта функция доступна только Premium-пользователям.")
+            return redirect("shopping:preview")
+
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped

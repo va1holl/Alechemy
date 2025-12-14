@@ -74,5 +74,7 @@ class Profile(models.Model):
         blank=True,
     )
 
+    is_premium = models.BooleanField(default=False)
+
     def __str__(self) -> str:
         return f"Профиль {self.user.email or self.user.username}"

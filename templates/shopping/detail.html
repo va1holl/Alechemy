@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Список покупок #{{ sl.id }}</h1>
+
+  <p>
+    Сценарий: {{ sl.scenario }}<br>
+    Событие: {{ sl.event|default:"-" }}<br>
+    Людей: {{ sl.people_count }}, Часов: {{ sl.duration_hours }}, Интенсивность: {{ sl.intensity }}<br>
+    Этапы: {{ sl.stages }}
+  </p>
+
+  <h2>Позиции</h2>
+  <ul>
+    {% for it in sl.items.all %}
+      <li>{{ it.name }}: {{ it.qty }} {{ it.unit }} ({{ it.category }})</li>
+    {% empty %}
+      <li>Пусто</li>
+    {% endfor %}
+  </ul>
+
+  <p><a href="{% url 'shopping:my_lists' %}">Мои списки</a></p>
+{% endblock %}

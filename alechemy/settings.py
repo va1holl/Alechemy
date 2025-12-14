@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "accounts",
     "pages",
     "events",
+    "shopping"
 ]
 
 MIDDLEWARE = [

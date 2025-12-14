@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Мои списки покупок</h1>
+
+  <ul>
+    {% for sl in lists %}
+      <li>
+        <a href="{% url 'shopping:detail' sl.id %}">#{{ sl.id }}</a>
+        ({{ sl.created_at }}) — {{ sl.scenario }} — {{ sl.event|default:"без события" }}
+      </li>
+    {% empty %}
+      <li>Пока нет списков</li>
+    {% endfor %}
+  </ul>
+
+  <p><a href="{% url 'shopping:preview' %}">Новый расчёт</a></p>
+{% endblock %}

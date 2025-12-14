@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Калькулятор и список покупок</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Посчитать</button>
+  </form>
+
+  {% if items %}
+    <hr>
+    <h2>Результат</h2>
+
+    <ul>
+      {% for i in items %}
+        <li>{{ i.name }}: {{ i.qty }} {{ i.unit }} ({{ i.category }})</li>
+      {% endfor %}
+    </ul>
+
+    <form method="post" action="{% url 'shopping:create' %}">
+      {% csrf_token %}
+      {# прокидываем те же значения, чтобы создать список #}
+      <input type="hidden" name="scenario" value="{{ form.cleaned_data.scenario.id }}">
+      {% if form.cleaned_data.event %}
+        <input type="hidden" name="event" value="{{ form.cleaned_data.event.id }}">
+      {% endif %}
+      {% for s in form.cleaned_data.stages %}
+        <input type="hidden" name="stages" value="{{ s }}">
+      {% endfor %}
+      <input type="hidden" name="people_count" value="{{ form.cleaned_data.people_count }}">
+      <input type="hidden" name="duration_hours" value="{{ form.cleaned_data.duration_hours }}">
+      <input type="hidden" name="intensity" value="{{ form.cleaned_data.intensity }}">
+
+      <button type="submit">Сохранить (Premium)</button>
+    </form>
+  {% endif %}
+{% endblock %}
