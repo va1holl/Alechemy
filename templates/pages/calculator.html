@@ -4,7 +4,7 @@
 {% block title %}{% trans "Калькулятор" %} — Alechemy{% endblock %}
 
 {% block extra_css %}
-<style nonce="{{ csp_nonce }}">
+<style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@700&family=Montserrat:wght@400;600&display=swap');
 
 .calculator-page {
@@ -569,7 +569,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
+<script>
 let selectedGender = '{{ default_gender }}';
 let selectedStomach = 'full';
 

@@ -4,7 +4,6 @@
 {% block title %}{% trans "AI-Сомельє" %} — Alechemy{% endblock %}
 
 {% block extra_css %}
-<style nonce="{{ csp_nonce }}">
 @import url('https://fonts.googleapis.com/css2?family=Sedgwick+Ave+Display&family=Montserrat:wght@500;600;700&family=Urbanist:wght@400;500&display=swap');
 
 .sommelier-page {
@@ -635,7 +634,6 @@
     </div>
 </div>
 
-<script nonce="{{ csp_nonce }}">
 function fillQuery(text) {
     document.getElementById('queryInput').value = text;
     document.getElementById('queryInput').focus();
