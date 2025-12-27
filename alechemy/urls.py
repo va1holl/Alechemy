@@ -16,13 +16,30 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from pages.views import HomeView, ProfileView
+from django.conf import settings
+from django.conf.urls.static import static
+from django_otp.admin import OTPAdminSite
+
+# Enable 2FA for admin panel
+admin.site.__class__ = OTPAdminSite
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", HomeView.as_view(), name="root"),
+    path("", include("pages.urls", namespace="pages")),  # / ведёт на pages:home
     path("accounts/", include("accounts.urls", namespace="accounts")),
-    path("pages/", include("pages.urls", namespace="pages")),
-    path("", include("events.urls", namespace="events")),
+    path("events/", include("events.urls", namespace="events")),
     path("shopping/", include("shopping.urls")),
+    path("places/", include("places.urls", namespace="places")),
+    path("recipes/", include("recipes.urls", namespace="recipes")),
+    path("social/", include("social.urls", namespace="social")),
+    path("gamification/", include("gamification.urls", namespace="gamification")),
+    path("stats/", include("stats.urls", namespace="stats")),
+    path("health/", include("health.urls")),
+    
+    # REST API endpoints
+    path("api/v1/auth/", include("accounts.api_urls", namespace="accounts_api")),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

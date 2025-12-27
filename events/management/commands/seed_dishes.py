@@ -1,194 +1,596 @@
-from decimal import Decimal
+"""
+Скрипт для заповнення бази даних стравами та закусками.
+Запуск: python manage.py seed_dishes
+"""
 from django.core.management.base import BaseCommand
-
-from events.models import Dish, Ingredient, DishIngredient, IngredientUnit, Drink, Scenario
+from decimal import Decimal
 
 
 class Command(BaseCommand):
-    help = "Сид: сценарий 'Первое свидание' + Белое сухое вино + 2 блюда с ингредиентами (для shopping)"
+    help = 'Заповнює базу даних стравами та закусками для різних напоїв'
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--reset",
-            action="store_true",
-            help="Удалить ранее созданные этим сидом объекты и создать заново",
-        )
+    def handle(self, *args, **options):
+        self.stdout.write(self.style.NOTICE('Починаємо заповнення стравами...'))
+        
+        self.create_ingredients()
+        self.create_dishes()
+        
+        self.stdout.write(self.style.SUCCESS('✅ Страви успішно створено!'))
 
-    def handle(self, *args, **kwargs):
-        reset = kwargs["reset"]
+    def create_ingredients(self):
+        """Створюємо базові інгредієнти."""
+        from events.models import Ingredient, IngredientCategory, IngredientUnit
+        
+        ingredients = [
+            # М'ясо та риба
+            ('Курка', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Свинина', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Яловичина', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Бекон', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Креветки', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Лосось', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Тунець', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Анчоуси', IngredientCategory.FOOD, IngredientUnit.G),
+            
+            # Овочі
+            ('Картопля', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Цибуля', IngredientCategory.FOOD, IngredientUnit.PCS),
+            ('Часник', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Помідори', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Огірки', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Перець болгарський', IngredientCategory.FOOD, IngredientUnit.PCS),
+            ('Оливки', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Каперси', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Авокадо', IngredientCategory.FOOD, IngredientUnit.PCS),
+            ('Салат', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Руккола', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Шпинат', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Халапеньо', IngredientCategory.FOOD, IngredientUnit.G),
+            
+            # Сири
+            ('Сир Фета', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Сир Пармезан', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Сир Моцарела', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Сир Чеддер', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Сир Камамбер', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Сир Горгонзола', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Сир Брі', IngredientCategory.FOOD, IngredientUnit.G),
+            
+            # Хліб та випічка
+            ('Багет', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Хліб тостовий', IngredientCategory.FOOD, IngredientUnit.PCS),
+            ('Чіпси тортилья', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Крекери', IngredientCategory.FOOD, IngredientUnit.G),
+            
+            # Зелень та спеції
+            ('Базилік', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Петрушка', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Кінза', IngredientCategory.FOOD, IngredientUnit.G),
+            ('М\'ята', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Розмарин', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Орегано', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Сіль', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Чорний перець', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Паприка', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Кумін', IngredientCategory.FOOD, IngredientUnit.G),
+            
+            # Соуси та олія
+            ('Оливкова олія', IngredientCategory.FOOD, IngredientUnit.ML),
+            ('Вершкове масло', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Соєвий соус', IngredientCategory.FOOD, IngredientUnit.ML),
+            ('Бальзамік', IngredientCategory.FOOD, IngredientUnit.ML),
+            ('Гірчиця', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Майонез', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Сметана', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Соус Тар-тар', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Соус BBQ', IngredientCategory.FOOD, IngredientUnit.ML),
+            ('Гуакамоле', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Сальса', IngredientCategory.FOOD, IngredientUnit.G),
+            
+            # Фрукти
+            ('Лимон', IngredientCategory.FOOD, IngredientUnit.PCS),
+            ('Лайм', IngredientCategory.FOOD, IngredientUnit.PCS),
+            ('Апельсин', IngredientCategory.FOOD, IngredientUnit.PCS),
+            ('Яблуко', IngredientCategory.FOOD, IngredientUnit.PCS),
+            ('Виноград', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Інжир', IngredientCategory.FOOD, IngredientUnit.PCS),
+            ('Манго', IngredientCategory.FOOD, IngredientUnit.PCS),
+            
+            # Горіхи
+            ('Мигдаль', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Волоські горіхи', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Арахіс', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Кеш\'ю', IngredientCategory.FOOD, IngredientUnit.G),
+            
+            # Інше
+            ('Яйця', IngredientCategory.FOOD, IngredientUnit.PCS),
+            ('Мед', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Цукор', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Вершки', IngredientCategory.FOOD, IngredientUnit.ML),
+            ('Хумус', IngredientCategory.FOOD, IngredientUnit.G),
+            ('Тахіні', IngredientCategory.FOOD, IngredientUnit.G),
+            
+            # Для коктейлів
+            ('Лід', IngredientCategory.OTHER, IngredientUnit.G),
+            ('Содова', IngredientCategory.OTHER, IngredientUnit.ML),
+            ('Тонік', IngredientCategory.OTHER, IngredientUnit.ML),
+            ('Кола', IngredientCategory.OTHER, IngredientUnit.ML),
+            ('Апельсиновий сік', IngredientCategory.OTHER, IngredientUnit.ML),
+            ('Журавлиний сік', IngredientCategory.OTHER, IngredientUnit.ML),
+        ]
+        
+        created = 0
+        for name, category, unit in ingredients:
+            obj, was_created = Ingredient.objects.get_or_create(
+                name=name,
+                defaults={'category': category, 'default_unit': unit}
+            )
+            if was_created:
+                created += 1
+        
+        self.stdout.write(f'  ✓ Інгредієнтів: {len(ingredients)} (нових: {created})')
 
-        # --- constants ---
-        WINE_SLUG = "white-dry-wine"
-        WINE_NAME = "Белое сухое вино"
-
-        SCENARIO_SLUG = "first-date"
-        SCENARIO_NAME = "Первое свидание"
-
-        DISHES = [
+    def create_dishes(self):
+        """Створюємо страви та прив'язуємо до напоїв."""
+        from events.models import Dish, DishIngredient, Ingredient, Drink, IngredientUnit
+        
+        dishes_data = [
+            # ==================== ДО ВИНА ====================
             {
-                "slug": "bruschetta-tomato-basil",
-                "name": "Брускетта с томатами и базиликом",
-                "recipe_text": (
-                    "Подсушить хлеб. Натереть чесноком. "
-                    "Смешать томаты с базиликом и маслом, посолить. Выложить на хлеб."
-                ),
-                "ingredients": [
-                    ("Багет", IngredientUnit.G, Decimal("80")),
-                    ("Помидоры", IngredientUnit.G, Decimal("150")),
-                    ("Базилик", IngredientUnit.G, Decimal("5")),
-                    ("Оливковое масло", IngredientUnit.ML, Decimal("15")),
-                    ("Чеснок", IngredientUnit.G, Decimal("2")),
-                    ("Соль", IngredientUnit.G, Decimal("2")),
+                'slug': 'greek-salad',
+                'name': 'Грецький салат',
+                'description': 'Класичний середземноморський салат з фетою, оливками та свіжими овочами',
+                'recipe_text': '''1. Наріжте помідори та огірки великими кубиками.
+2. Наріжте перець соломкою.
+3. Додайте оливки та кубики фети.
+4. Заправте оливковою олією, посоліть та поперчіть.
+5. Посипте орегано та подавайте.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Помідори', 200, IngredientUnit.G),
+                    ('Огірки', 150, IngredientUnit.G),
+                    ('Перець болгарський', 1, IngredientUnit.PCS),
+                    ('Сир Фета', 100, IngredientUnit.G),
+                    ('Оливки', 50, IngredientUnit.G),
+                    ('Цибуля', 0.5, IngredientUnit.PCS),
+                    ('Оливкова олія', 30, IngredientUnit.ML),
+                    ('Орегано', 2, IngredientUnit.G),
                 ],
+                'drinks': ['chardonnay', 'sauvignon-blanc', 'pinot-grigio', 'rose-wine'],
             },
             {
-                "slug": "garlic-shrimp",
-                "name": "Креветки в чесночном масле",
-                "recipe_text": (
-                    "Обжарить чеснок в масле, добавить креветки, быстро довести до готовности. "
-                    "Соль/перец, лимон по вкусу, зелень в конце."
-                ),
-                "ingredients": [
-                    ("Креветки", IngredientUnit.G, Decimal("150")),
-                    ("Сливочное масло", IngredientUnit.G, Decimal("20")),
-                    ("Чеснок", IngredientUnit.G, Decimal("4")),
-                    ("Лимон", IngredientUnit.PCS, Decimal("0.25")),
-                    ("Петрушка", IngredientUnit.G, Decimal("5")),
-                    ("Соль", IngredientUnit.G, Decimal("2")),
-                    ("Чёрный перец", IngredientUnit.G, Decimal("1")),
+                'slug': 'bruschetta-tomato',
+                'name': 'Брускета з томатами',
+                'description': 'Італійська закуска на хрусткому хлібі з часником та свіжими томатами',
+                'recipe_text': '''1. Наріжте багет скибочками та підсушіть у духовці.
+2. Натріть кожну скибочку часником.
+3. Наріжте помідори дрібними кубиками.
+4. Змішайте помідори з базиліком та оливковою олією.
+5. Викладіть суміш на хліб, посоліть.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Багет', 100, IngredientUnit.G),
+                    ('Помідори', 200, IngredientUnit.G),
+                    ('Часник', 5, IngredientUnit.G),
+                    ('Базилік', 10, IngredientUnit.G),
+                    ('Оливкова олія', 20, IngredientUnit.ML),
+                    ('Сіль', 2, IngredientUnit.G),
                 ],
+                'drinks': ['prosecco', 'champagne-brut', 'pinot-grigio', 'chianti'],
+            },
+            {
+                'slug': 'cheese-plate-wine',
+                'name': 'Сирна тарілка до вина',
+                'description': 'Вишукана підбірка сирів з фруктами та горіхами',
+                'recipe_text': '''1. Дістаньте сири з холодильника за 30 хв до подачі.
+2. Наріжте сири різними способами.
+3. Викладіть на дерев\'яну дошку.
+4. Додайте виноград, інжир та мед.
+5. Прикрасьте волоськими горіхами.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Сир Брі', 50, IngredientUnit.G),
+                    ('Сир Камамбер', 50, IngredientUnit.G),
+                    ('Сир Горгонзола', 40, IngredientUnit.G),
+                    ('Сир Пармезан', 40, IngredientUnit.G),
+                    ('Виноград', 100, IngredientUnit.G),
+                    ('Інжир', 2, IngredientUnit.PCS),
+                    ('Волоські горіхи', 30, IngredientUnit.G),
+                    ('Мед', 20, IngredientUnit.G),
+                ],
+                'drinks': ['cabernet-sauvignon', 'merlot', 'pinot-noir', 'chianti', 'rioja'],
+            },
+            {
+                'slug': 'carpaccio-beef',
+                'name': 'Карпачо з яловичини',
+                'description': 'Тонко нарізана сира яловичина з рукколою та пармезаном',
+                'recipe_text': '''1. Заморозьте яловичину на 30 хв для легшого нарізання.
+2. Наріжте м\'ясо тонкими слайсами.
+3. Викладіть на тарілку, додайте рукколу.
+4. Посипте стружкою пармезану.
+5. Полийте оливковою олією та бальзаміком.''',
+                'difficulty': 'medium',
+                'ingredients': [
+                    ('Яловичина', 150, IngredientUnit.G),
+                    ('Руккола', 30, IngredientUnit.G),
+                    ('Сир Пармезан', 30, IngredientUnit.G),
+                    ('Оливкова олія', 20, IngredientUnit.ML),
+                    ('Бальзамік', 10, IngredientUnit.ML),
+                    ('Каперси', 10, IngredientUnit.G),
+                ],
+                'drinks': ['barolo', 'amarone', 'cabernet-sauvignon', 'merlot'],
+            },
+            
+            # ==================== ДО ПИВА ====================
+            {
+                'slug': 'chicken-wings-bbq',
+                'name': 'Курячі крильця BBQ',
+                'description': 'Хрусткі курячі крильця в соусі барбекю',
+                'recipe_text': '''1. Замаринуйте крильця в спеціях на 1 годину.
+2. Запікайте при 200°C 40 хвилин.
+3. Полийте соусом BBQ.
+4. Запікайте ще 10 хвилин до карамелізації.
+5. Подавайте з соусом для макання.''',
+                'difficulty': 'medium',
+                'ingredients': [
+                    ('Курка', 500, IngredientUnit.G),
+                    ('Соус BBQ', 100, IngredientUnit.ML),
+                    ('Часник', 5, IngredientUnit.G),
+                    ('Паприка', 5, IngredientUnit.G),
+                    ('Сіль', 3, IngredientUnit.G),
+                    ('Чорний перець', 2, IngredientUnit.G),
+                ],
+                'drinks': ['heineken', 'corona-extra', 'stella-artois', 'budweiser', 'pilsner-urquell'],
+            },
+            {
+                'slug': 'nachos-supreme',
+                'name': 'Начос Супрім',
+                'description': 'Хрусткі тортилья чіпси з сиром, сальсою та гуакамоле',
+                'recipe_text': '''1. Викладіть чіпси на деко.
+2. Посипте тертим чеддером.
+3. Запікайте 5 хв до розплавлення сиру.
+4. Додайте сальсу, гуакамоле та сметану.
+5. Посипте халапеньо та кінзою.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Чіпси тортилья', 150, IngredientUnit.G),
+                    ('Сир Чеддер', 100, IngredientUnit.G),
+                    ('Гуакамоле', 80, IngredientUnit.G),
+                    ('Сальса', 80, IngredientUnit.G),
+                    ('Сметана', 50, IngredientUnit.G),
+                    ('Халапеньо', 20, IngredientUnit.G),
+                    ('Кінза', 10, IngredientUnit.G),
+                ],
+                'drinks': ['corona-extra', 'dos-equis', 'modelo-especial', 'tecate'],
+            },
+            {
+                'slug': 'loaded-fries',
+                'name': 'Картопля фрі з начинкою',
+                'description': 'Хрустка картопля з беконом, сиром та соусами',
+                'recipe_text': '''1. Приготуйте картоплю фрі (заморожену або свіжу).
+2. Обсмажте бекон до хрусткості.
+3. Викладіть фрі, посипте сиром.
+4. Додайте подрібнений бекон.
+5. Полийте соусами та подавайте гарячою.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Картопля', 300, IngredientUnit.G),
+                    ('Бекон', 80, IngredientUnit.G),
+                    ('Сир Чеддер', 60, IngredientUnit.G),
+                    ('Сметана', 40, IngredientUnit.G),
+                    ('Петрушка', 5, IngredientUnit.G),
+                ],
+                'drinks': ['guinness', 'heineken', 'stella-artois', 'leffe-blonde'],
+            },
+            {
+                'slug': 'beer-cheese-dip',
+                'name': 'Пивний сирний дip',
+                'description': 'Гарячий сирний соус з пивом для макання',
+                'recipe_text': '''1. Розтопіть масло на сковороді.
+2. Додайте борошно, перемішайте.
+3. Повільно влийте пиво та вершки.
+4. Додайте тертий сир, перемішуйте до однорідності.
+5. Подавайте з хлібом або кренделями.''',
+                'difficulty': 'medium',
+                'ingredients': [
+                    ('Сир Чеддер', 200, IngredientUnit.G),
+                    ('Вершки', 100, IngredientUnit.ML),
+                    ('Вершкове масло', 30, IngredientUnit.G),
+                    ('Гірчиця', 10, IngredientUnit.G),
+                    ('Багет', 150, IngredientUnit.G),
+                ],
+                'drinks': ['guinness', 'leffe-blonde', 'hoegaarden', 'paulaner-weissbier'],
+            },
+            
+            # ==================== ДО ВІСКІ ====================
+            {
+                'slug': 'smoked-salmon-toast',
+                'name': 'Тости з копченим лососем',
+                'description': 'Хрусткі тости з вершковим сиром та копченим лососем',
+                'recipe_text': '''1. Підсушіть хліб до хрусткості.
+2. Намажте вершковим сиром.
+3. Покладіть скибочки копченого лосося.
+4. Прикрасьте кропом та каперсами.
+5. Видавіть трохи лимонного соку.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Хліб тостовий', 2, IngredientUnit.PCS),
+                    ('Лосось', 100, IngredientUnit.G),
+                    ('Сметана', 40, IngredientUnit.G),
+                    ('Каперси', 10, IngredientUnit.G),
+                    ('Лимон', 0.25, IngredientUnit.PCS),
+                ],
+                'drinks': ['jameson', 'jack-daniels', 'chivas-regal', 'johnnie-walker-black'],
+            },
+            {
+                'slug': 'beef-tartare',
+                'name': 'Тартар з яловичини',
+                'description': 'Класичний тартар з сирої яловичини зі спеціями',
+                'recipe_text': '''1. Дрібно наріжте яловичину ножем.
+2. Додайте каперси, корнішони, цибулю.
+3. Заправте оливковою олією, гірчицею.
+4. Сформуйте порції, зробіть заглиблення.
+5. Покладіть яєчний жовток, подавайте з тостами.''',
+                'difficulty': 'hard',
+                'ingredients': [
+                    ('Яловичина', 200, IngredientUnit.G),
+                    ('Яйця', 1, IngredientUnit.PCS),
+                    ('Каперси', 15, IngredientUnit.G),
+                    ('Цибуля', 0.25, IngredientUnit.PCS),
+                    ('Гірчиця', 10, IngredientUnit.G),
+                    ('Оливкова олія', 15, IngredientUnit.ML),
+                    ('Хліб тостовий', 2, IngredientUnit.PCS),
+                ],
+                'drinks': ['macallan-12', 'glenfiddich-12', 'glenlivet-12', 'johnnie-walker-black'],
+            },
+            {
+                'slug': 'dark-chocolate-truffles',
+                'name': 'Шоколадні трюфелі',
+                'description': 'Домашні шоколадні трюфелі з какао',
+                'recipe_text': '''1. Розтопіть шоколад з вершками.
+2. Охолодіть до загустіння.
+3. Сформуйте кульки.
+4. Обваляйте в какао-порошку.
+5. Охолодіть перед подачею.''',
+                'difficulty': 'medium',
+                'ingredients': [
+                    ('Вершки', 100, IngredientUnit.ML),
+                    ('Вершкове масло', 20, IngredientUnit.G),
+                ],
+                'drinks': ['macallan-12', 'hennessy-vs', 'remy-martin-vsop', 'courvoisier-vs'],
+            },
+            
+            # ==================== ДО РОМУ ====================
+            {
+                'slug': 'coconut-shrimp',
+                'name': 'Креветки в кокосовій паніровці',
+                'description': 'Хрусткі креветки з тропічним соусом',
+                'recipe_text': '''1. Очистіть креветки, залиште хвостики.
+2. Обваляйте у борошні, потім у яйці.
+3. Запаніруйте в кокосовій стружці.
+4. Обсмажте у фритюрі до золотистого кольору.
+5. Подавайте з солодким чилі соусом.''',
+                'difficulty': 'medium',
+                'ingredients': [
+                    ('Креветки', 200, IngredientUnit.G),
+                    ('Яйця', 1, IngredientUnit.PCS),
+                    ('Лайм', 0.5, IngredientUnit.PCS),
+                ],
+                'drinks': ['bacardi-white', 'captain-morgan', 'havana-club-3', 'malibu'],
+            },
+            {
+                'slug': 'jerk-chicken-bites',
+                'name': 'Курка Джерк',
+                'description': 'Пікантна ямайська курка зі спеціями',
+                'recipe_text': '''1. Змішайте спеції для джерк маринаду.
+2. Замаринуйте курку на 2-4 години.
+3. Запікайте або смажте на грилі.
+4. Наріжте на шматочки.
+5. Подавайте з лаймом та свіжою зеленню.''',
+                'difficulty': 'medium',
+                'ingredients': [
+                    ('Курка', 400, IngredientUnit.G),
+                    ('Часник', 10, IngredientUnit.G),
+                    ('Халапеньо', 15, IngredientUnit.G),
+                    ('Лайм', 1, IngredientUnit.PCS),
+                    ('Кінза', 10, IngredientUnit.G),
+                ],
+                'drinks': ['captain-morgan', 'havana-club-3', 'appleton-estate'],
+            },
+            
+            # ==================== ДО ТЕКІЛИ ====================
+            {
+                'slug': 'guacamole-fresh',
+                'name': 'Свіже гуакамоле',
+                'description': 'Класичне мексиканське гуакамоле з авокадо',
+                'recipe_text': '''1. Розім\'яйте авокадо виделкою.
+2. Додайте дрібно нарізану цибулю та помідори.
+3. Додайте сік лайма та кінзу.
+4. Посоліть за смаком.
+5. Подавайте з чіпсами тортилья.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Авокадо', 2, IngredientUnit.PCS),
+                    ('Помідори', 100, IngredientUnit.G),
+                    ('Цибуля', 0.25, IngredientUnit.PCS),
+                    ('Лайм', 1, IngredientUnit.PCS),
+                    ('Кінза', 15, IngredientUnit.G),
+                    ('Халапеньо', 10, IngredientUnit.G),
+                    ('Чіпси тортилья', 100, IngredientUnit.G),
+                ],
+                'drinks': ['jose-cuervo', 'patron-silver', 'don-julio-blanco', 'olmeca-gold'],
+            },
+            {
+                'slug': 'fish-tacos',
+                'name': 'Тако з рибою',
+                'description': 'Мексиканські тако з хрусткою рибою та капустою',
+                'recipe_text': '''1. Запаніруйте рибу та обсмажте.
+2. Наріжте капусту тонкою соломкою.
+3. Приготуйте соус з майонезу та лайму.
+4. Підігрійте тортильї.
+5. Зберіть тако: тортилья, риба, капуста, соус.''',
+                'difficulty': 'medium',
+                'ingredients': [
+                    ('Тунець', 200, IngredientUnit.G),
+                    ('Салат', 100, IngredientUnit.G),
+                    ('Майонез', 40, IngredientUnit.G),
+                    ('Лайм', 1, IngredientUnit.PCS),
+                    ('Кінза', 10, IngredientUnit.G),
+                ],
+                'drinks': ['jose-cuervo', 'patron-silver', 'corona-extra', 'modelo-especial'],
+            },
+            
+            # ==================== ДО ДЖИНУ ====================
+            {
+                'slug': 'cucumber-sandwiches',
+                'name': 'Сендвічі з огірком',
+                'description': 'Елегантні англійські сендвічі для чаювання',
+                'recipe_text': '''1. Наріжте огірки тонкими слайсами.
+2. Намажте хліб вершковим сиром.
+3. Покладіть огірки, посоліть та поперчіть.
+4. Накрийте другим шматком хліба.
+5. Обріжте скоринки, наріжте на трикутники.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Хліб тостовий', 4, IngredientUnit.PCS),
+                    ('Огірки', 150, IngredientUnit.G),
+                    ('Сметана', 60, IngredientUnit.G),
+                    ('Сіль', 2, IngredientUnit.G),
+                    ('Чорний перець', 1, IngredientUnit.G),
+                ],
+                'drinks': ['tanqueray', 'bombay-sapphire', 'hendricks', 'gordons-gin'],
+            },
+            {
+                'slug': 'shrimp-cocktail',
+                'name': 'Коктейль з креветок',
+                'description': 'Класична закуска з креветок з пікантним соусом',
+                'recipe_text': '''1. Відваріть креветки, охолодіть.
+2. Приготуйте соус: кетчуп, хрін, лимон.
+3. Викладіть креветки на лід.
+4. Подавайте з соусом у центрі.
+5. Прикрасьте лимоном та зеленню.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Креветки', 250, IngredientUnit.G),
+                    ('Лимон', 0.5, IngredientUnit.PCS),
+                    ('Петрушка', 10, IngredientUnit.G),
+                ],
+                'drinks': ['tanqueray', 'bombay-sapphire', 'hendricks', 'beefeater'],
+            },
+            
+            # ==================== ДО ГОРІЛКИ ====================
+            {
+                'slug': 'pickles-assorted',
+                'name': 'Асорті солінь',
+                'description': 'Традиційна слов\'янська закуска до горілки',
+                'recipe_text': '''1. Охолодіть соління.
+2. Красиво викладіть на тарілку.
+3. Додайте маринований часник.
+4. Прикрасьте кропом.
+5. Подавайте холодним.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Огірки', 150, IngredientUnit.G),
+                    ('Помідори', 100, IngredientUnit.G),
+                    ('Часник', 20, IngredientUnit.G),
+                ],
+                'drinks': ['absolut-vodka', 'finlandia', 'grey-goose', 'belvedere', 'stolichnaya'],
+            },
+            {
+                'slug': 'salo-with-garlic',
+                'name': 'Сало з часником',
+                'description': 'Традиційна українська закуска',
+                'recipe_text': '''1. Наріжте сало тонкими скибочками.
+2. Викладіть на тарілку.
+3. Додайте подрібнений часник.
+4. Посипте чорним перцем.
+5. Подавайте з чорним хлібом.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Свинина', 150, IngredientUnit.G),
+                    ('Часник', 15, IngredientUnit.G),
+                    ('Багет', 100, IngredientUnit.G),
+                    ('Чорний перець', 2, IngredientUnit.G),
+                ],
+                'drinks': ['absolut-vodka', 'finlandia', 'nemiroff', 'khortytsia'],
+            },
+            
+            # ==================== УНІВЕРСАЛЬНІ ====================
+            {
+                'slug': 'mixed-nuts',
+                'name': 'Мікс горіхів',
+                'description': 'Асорті смажених горіхів з сіллю та спеціями',
+                'recipe_text': '''1. Змішайте різні горіхи.
+2. Підсмажте на сухій сковороді.
+3. Додайте сіль та паприку.
+4. Охолодіть.
+5. Подавайте в декоративній мисці.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Мигдаль', 50, IngredientUnit.G),
+                    ('Кеш\'ю', 50, IngredientUnit.G),
+                    ('Арахіс', 50, IngredientUnit.G),
+                    ('Сіль', 3, IngredientUnit.G),
+                    ('Паприка', 2, IngredientUnit.G),
+                ],
+                'drinks': ['jameson', 'heineken', 'corona-extra', 'jack-daniels', 'absolut-vodka'],
+            },
+            {
+                'slug': 'hummus-veggies',
+                'name': 'Хумус з овочами',
+                'description': 'Ближньосхідний хумус зі свіжими овочами',
+                'recipe_text': '''1. Викладіть хумус у глибоку тарілку.
+2. Зробіть заглиблення, налийте оливкової олії.
+3. Посипте паприкою.
+4. Наріжте овочі соломкою.
+5. Подавайте овочі навколо хумусу.''',
+                'difficulty': 'easy',
+                'ingredients': [
+                    ('Хумус', 150, IngredientUnit.G),
+                    ('Огірки', 100, IngredientUnit.G),
+                    ('Перець болгарський', 1, IngredientUnit.PCS),
+                    ('Оливкова олія', 15, IngredientUnit.ML),
+                    ('Паприка', 2, IngredientUnit.G),
+                ],
+                'drinks': ['sauvignon-blanc', 'rose-wine', 'tanqueray', 'aperol'],
             },
         ]
-
-        # --- reset (аккуратно, только то, что этот сид создаёт) ---
-        if reset:
-            dish_slugs = [d["slug"] for d in DISHES]
-
-            # удаляем ингредиенты блюд (связи), потом блюда, потом сценарий/вино
-            DishIngredient.objects.filter(dish__slug__in=dish_slugs).delete()
-            Dish.objects.filter(slug__in=dish_slugs).delete()
-
-            # сценарий (может быть связан с Event, поэтому delete может быть запрещён)
-            try:
-                Scenario.objects.filter(slug=SCENARIO_SLUG).delete()
-            except Exception:
-                pass
-
-            Drink.objects.filter(slug=WINE_SLUG).delete()
-
-            # удаляем ингредиенты только если они нигде больше не используются
-            names = {name for d in DISHES for (name, _, _) in d["ingredients"]}
-            for n in names:
-                try:
-                    ing = Ingredient.objects.get(name=n)
-                except Ingredient.DoesNotExist:
-                    continue
-                if not DishIngredient.objects.filter(ingredient=ing).exists():
-                    ing.delete()
-
-            self.stdout.write(self.style.WARNING("RESET: удалены объекты этого сида."))
-
-        # --- wine ---
-        wine, _ = Drink.objects.update_or_create(
-            slug=WINE_SLUG,
-            defaults={"name": WINE_NAME},
-        )
-
-        # если у Drink есть поле крепости/ABV или тип, попробуем заполнить (без фанатизма)
-        for field, value in [
-            ("abv", Decimal("12.0")),
-            ("strength", Decimal("12.0")),
-            ("kind", "wine"),
-        ]:
-            if hasattr(wine, field):
-                try:
-                    setattr(wine, field, value)
-                    wine.save(update_fields=[field])
-                except Exception:
-                    pass
-
-        # --- scenario ---
-        scenario_defaults = {
-            "name": SCENARIO_NAME,
-            "prep_text": "Лёгкий план: музыка, простые закуски, вода рядом. Не усложняй.",
-            "during_text": "Держи темп спокойным, чередуй алкоголь с водой, не играй в героя.",
-            "after_text": "Вода, лёгкая еда, сон. Утром никаких подвигов.",
-            "description": "Сценарий для спокойного вечера без лишней суеты.",
-        }
-
-        scenario, _ = Scenario.objects.update_or_create(
-            slug=SCENARIO_SLUG,
-            defaults=scenario_defaults,
-        )
-
-        # привязка вина к сценарию (если у Scenario есть M2M drinks)
-        if hasattr(scenario, "drinks"):
-            try:
-                scenario.drinks.add(wine)
-            except Exception:
-                pass
-
-        # --- helper: поставить difficulty, если поле есть и требует choices ---
-        def pick_difficulty_value():
-            if not hasattr(Dish, "difficulty"):
-                return None
-            try:
-                f = Dish._meta.get_field("difficulty")
-            except Exception:
-                return None
-            choices = list(getattr(f, "choices", []) or [])
-            if not choices:
-                return None
-
-            preferred = ["simple", "easy", "medium", "normal", "hard", "1", "2", "3"]
-            values = [c[0] for c in choices]
-
-            for p in preferred:
-                if p in values:
-                    return p
-            return values[0] if values else None
-
-        default_difficulty = pick_difficulty_value()
-
-        # --- dishes + ingredients ---
-        for d in DISHES:
-            dish_defaults = {"name": d["name"], "recipe_text": d["recipe_text"]}
-
-            if default_difficulty is not None and hasattr(Dish, "difficulty"):
-                dish_defaults["difficulty"] = default_difficulty
-
-            dish, _ = Dish.objects.update_or_create(
-                slug=d["slug"],
-                defaults=dish_defaults,
+        
+        created = 0
+        updated = 0
+        
+        for dish_data in dishes_data:
+            ingredients = dish_data.pop('ingredients')
+            drink_slugs = dish_data.pop('drinks')
+            
+            dish, was_created = Dish.objects.update_or_create(
+                slug=dish_data['slug'],
+                defaults=dish_data
             )
-
-            # привязка блюда к вину (поддержим M2M и FK)
-            if hasattr(dish, "drinks"):
+            
+            if was_created:
+                created += 1
+            else:
+                updated += 1
+            
+            # Очищаємо та додаємо інгредієнти
+            DishIngredient.objects.filter(dish=dish).delete()
+            for ing_name, qty, unit in ingredients:
                 try:
-                    dish.drinks.add(wine)
-                except Exception:
-                    pass
-            elif hasattr(dish, "drink_id"):
-                try:
-                    dish.drink = wine
-                    dish.save(update_fields=["drink"])
-                except Exception:
-                    pass
-
-            # ингредиенты (qty_per_person)
-            for name, unit, qty in d["ingredients"]:
-                ing, _ = Ingredient.objects.get_or_create(
-                    name=name,
-                    defaults={"default_unit": unit},
-                )
-
-                DishIngredient.objects.update_or_create(
-                    dish=dish,
-                    ingredient=ing,
-                    unit=unit,
-                    defaults={"qty_per_person": qty},
-                )
-
-        self.stdout.write(
-            self.style.SUCCESS("Готово: сценарий 'Первое свидание', Белое сухое вино и 2 блюда с ингредиентами добавлены.")
-        )
+                    ingredient = Ingredient.objects.get(name=ing_name)
+                    DishIngredient.objects.create(
+                        dish=dish,
+                        ingredient=ingredient,
+                        qty_per_person=Decimal(str(qty)),
+                        unit=unit
+                    )
+                except Ingredient.DoesNotExist:
+                    self.stdout.write(
+                        self.style.WARNING(f'  ⚠ Інгредієнт не знайдено: {ing_name}')
+                    )
+            
+            # Прив'язуємо напої
+            drinks = Drink.objects.filter(slug__in=drink_slugs)
+            dish.drinks.set(drinks)
+        
+        self.stdout.write(f'  ✓ Страв: {len(dishes_data)} (нових: {created}, оновлено: {updated})')

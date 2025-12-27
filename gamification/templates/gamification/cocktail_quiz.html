@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Вгадай коктейль" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+.quiz-page {
+    padding: 30px 40px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #34A853;
+    margin-bottom: 10px;
+}
+
+.page-subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 16px;
+}
+
+/* Score Bar */
+.score-bar {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 30px;
+}
+
+.score-item {
+    text-align: center;
+}
+
+.score-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #34A853;
+}
+
+.score-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 4px;
+}
+
+/* Question Card */
+.question-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.question-label {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.ingredients-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.ingredient-tag {
+    background: rgba(52, 168, 83, 0.15);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: #34A853;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.question-description {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 15px;
+    font-style: italic;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+/* Options */
+.options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 30px;
+}
+
+.option-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.option-btn:hover:not(:disabled) {
+    border-color: rgba(52, 168, 83, 0.5);
+    background: rgba(52, 168, 83, 0.1);
+    transform: translateY(-2px);
+}
+
+.option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.option-btn.correct {
+    background: rgba(52, 168, 83, 0.2);
+    border-color: #34A853;
+    color: #34A853;
+}
+
+.option-btn.wrong {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: #FF6B6B;
+    color: #FF6B6B;
+}
+
+/* Result */
+.result-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.result-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.result-card {
+    background: rgba(10, 15, 12, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px 60px;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+}
+
+.result-overlay.active .result-card {
+    transform: scale(1);
+}
+
+.result-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.result-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.result-title.correct {
+    color: #34A853;
+}
+
+.result-title.wrong {
+    color: #FF6B6B;
+}
+
+.result-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    margin-bottom: 24px;
+}
+
+.result-points {
+    font-size: 20px;
+    color: #FFC538;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
+.next-btn {
+    background: linear-gradient(135deg, #34A853 0%, #2d8f47 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 14px 40px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.next-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 168, 83, 0.4);
+}
+
+/* Loading */
+.loading {
+    text-align: center;
+    padding: 60px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(52, 168, 83, 0.3);
+    border-top-color: #34A853;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .quiz-page {
+        padding: 20px 16px;
+    }
+    
+    .question-card {
+        padding: 24px;
+    }
+    
+    .options-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .score-bar {
+        gap: 24px;
+    }
+    
+    .score-value {
+        font-size: 28px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="quiz-page">
+    <div class="page-header">
+        <h1 class="page-title">🍹 {% trans "Вгадай коктейль" %}</h1>
+        <p class="page-subtitle">{% trans "Вгадай назву коктейлю за інгредієнтами та отримай бали!" %}</p>
+    </div>
+    
+    <div class="score-bar">
+        <div class="score-item">
+            <div class="score-value" id="score">0</div>
+            <div class="score-label">{% trans "Бали" %}</div>
+        </div>
+        <div class="score-item">
+            <div class="score-value" id="streak">0</div>
+            <div class="score-label">{% trans "Серія" %}</div>
+        </div>
+        <div class="score-item">
+            <div class="score-value" id="total">0</div>
+            <div class="score-label">{% trans "Відповідей" %}</div>
+        </div>
+    </div>
+    
+    <div class="question-card" id="question-card">
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>{% trans "Завантаження питання..." %}</p>
+        </div>
+        
+        <div id="question-content" style="display: none;">
+            <div class="question-label">{% trans "Які інгредієнти?" %}</div>
+            <div class="ingredients-list" id="ingredients"></div>
+            <div class="question-description" id="description" style="display: none;"></div>
+            <div class="options-grid" id="options"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Overlay -->
+<div class="result-overlay" id="result-overlay">
+    <div class="result-card">
+        <div class="result-icon" id="result-icon">🎉</div>
+        <div class="result-title" id="result-title">{% trans "Правильно!" %}</div>
+        <div class="result-subtitle" id="result-subtitle"></div>
+        <div class="result-points" id="result-points"></div>
+        <button class="next-btn" id="next-btn">{% trans "Наступне питання" %} →</button>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('DOMContentLoaded', function() {
+    let currentQuestion = null;
+    let score = 0;
+    let streak = 0;
+    let total = 0;
+    
+    const loading = document.getElementById('loading');
+    const questionContent = document.getElementById('question-content');
+    const ingredientsEl = document.getElementById('ingredients');
+    const descriptionEl = document.getElementById('description');
+    const optionsEl = document.getElementById('options');
+    const resultOverlay = document.getElementById('result-overlay');
+    const resultIcon = document.getElementById('result-icon');
+    const resultTitle = document.getElementById('result-title');
+    const resultSubtitle = document.getElementById('result-subtitle');
+    const resultPoints = document.getElementById('result-points');
+    const nextBtn = document.getElementById('next-btn');
+    
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+    
+    function loadQuestion() {
+        loading.style.display = 'block';
+        questionContent.style.display = 'none';
+        
+        fetch('{% url "gamification:cocktail_quiz_question" %}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    ingredientsEl.innerHTML = `<p style="color: #FF6B6B;">${data.error}</p>`;
+                    loading.style.display = 'none';
+                    questionContent.style.display = 'block';
+                    return;
+                }
+                
+                currentQuestion = data;
+                
+                // Show ingredients
+                ingredientsEl.innerHTML = data.ingredients.map(
+                    ing => `<span class="ingredient-tag">${ing}</span>`
+                ).join('');
+                
+                // Show description if available
+                if (data.description) {
+                    descriptionEl.textContent = data.description + '...';
+                    descriptionEl.style.display = 'block';
+                } else {
+                    descriptionEl.style.display = 'none';
+                }
+                
+                // Show options
+                optionsEl.innerHTML = data.options.map(opt => `
+                    <button class="option-btn" data-id="${opt.id}">${opt.name}</button>
+                `).join('');
+                
+                // Add click handlers
+                document.querySelectorAll('.option-btn').forEach(btn => {
+                    btn.addEventListener('click', handleAnswer);
+                });
+                
+                loading.style.display = 'none';
+                questionContent.style.display = 'block';
+            })
+            .catch(err => {
+                console.error('Error loading question:', err);
+                loading.innerHTML = `<p style="color: #FF6B6B;">{% trans "Помилка завантаження" %}</p>`;
+            });
+    }
+    
+    function handleAnswer(e) {
+        const answerId = e.target.dataset.id;
+        
+        // Disable all buttons
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.disabled = true;
+            if (parseInt(btn.dataset.id) === currentQuestion.correct_id) {
+                btn.classList.add('correct');
+            } else if (btn.dataset.id === answerId) {
+                btn.classList.add('wrong');
+            }
+        });
+        
+        // Send answer
+        fetch('{% url "gamification:cocktail_quiz_answer" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+                answer_id: answerId,
+                correct_id: currentQuestion.correct_id,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            total++;
+            document.getElementById('total').textContent = total;
+            
+            if (data.is_correct) {
+                score += data.points_earned;
+                streak++;
+                document.getElementById('score').textContent = score;
+                document.getElementById('streak').textContent = streak;
+                
+                resultIcon.textContent = '🎉';
+                resultTitle.textContent = '{% trans "Правильно!" %}';
+                resultTitle.className = 'result-title correct';
+                resultSubtitle.textContent = `{% trans "Це був" %} ${data.correct_name}`;
+                resultPoints.textContent = `+${data.points_earned} {% trans "балів" %}`;
+                resultPoints.style.display = 'block';
+            } else {
+                streak = 0;
+                document.getElementById('streak').textContent = streak;
+                
+                resultIcon.textContent = '😔';
+                resultTitle.textContent = '{% trans "Неправильно" %}';
+                resultTitle.className = 'result-title wrong';
+                resultSubtitle.textContent = `{% trans "Правильна відповідь:" %} ${data.correct_name}`;
+                resultPoints.style.display = 'none';
+            }
+            
+            resultOverlay.classList.add('active');
+        })
+        .catch(err => console.error('Error submitting answer:', err));
+    }
+    
+    nextBtn.addEventListener('click', function() {
+        resultOverlay.classList.remove('active');
+        loadQuestion();
+    });
+    
+    // Load first question
+    loadQuestion();
+});
+</script>
+{% endblock %}

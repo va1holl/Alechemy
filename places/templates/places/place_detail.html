@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ place.name }} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+.place-detail-page {
+    padding: 30px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 32px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 16px;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: #34A853;
+}
+
+.place-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.place-type {
+    background: rgba(52, 168, 83, 0.15);
+    color: #34A853;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Info Grid */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.info-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.info-card h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 16px;
+}
+
+.info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+.info-content {
+    flex: 1;
+}
+
+.info-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.info-value {
+    color: #fff;
+    font-size: 14px;
+}
+
+.info-value a {
+    color: #34A853;
+    text-decoration: none;
+}
+
+.info-value a:hover {
+    text-decoration: underline;
+}
+
+/* Map Card */
+.map-card {
+    grid-column: 1 / -1;
+}
+
+.mini-map {
+    width: 100%;
+    height: 250px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Promotions */
+.promos-section {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 28px;
+}
+
+.section-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #34A853;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.promo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.promo-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.promo-title {
+    color: #fff;
+    font-weight: 500;
+}
+
+.promo-date {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-state span {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 12px;
+}
+
+/* Actions */
+.action-row {
+    margin-top: 24px;
+    display: flex;
+    gap: 16px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #34A853, #2d8f47);
+    color: #fff;
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(52, 168, 83, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: #34A853;
+    border: 1px solid #34A853;
+}
+
+.btn-outline:hover {
+    background: rgba(52, 168, 83, 0.1);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .place-detail-page {
+        padding: 20px 16px;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .place-title {
+        font-size: 24px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .action-row {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('DOMContentLoaded', function() {
+    const lat = {{ place.lat|default:"50.4501" }};
+    const lon = {{ place.lon|default:"30.5234" }};
+    
+    const map = L.map('mini-map').setView([lat, lon], 16);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    const icon = L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="background: #34A853; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 16px;">📍</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 32]
+    });
+    
+    L.marker([lat, lon], { icon: icon }).addTo(map)
+        .bindPopup('<b>{{ place.name|escapejs }}</b>')
+        .openPopup();
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="place-detail-page">
+    <div class="page-header">
+        <a href="{% url 'places:map' %}" class="back-link">
+            ← {% trans "Назад до карти" %}
+        </a>
+        <h1 class="place-title">
+            {% if place.kind == 'bar' %}🍸{% elif place.kind == 'shop' %}🛒{% elif place.kind == 'club' %}🎉{% else %}📍{% endif %}
+            {{ place.name }}
+            <span class="place-type">{{ place.get_kind_display }}</span>
+        </h1>
+    </div>
+    
+    <div class="info-grid">
+        <div class="info-card">
+            <h3>📋 {% trans "Інформація" %}</h3>
+            
+            <div class="info-row">
+                <span class="info-icon">🏙️</span>
+                <div class="info-content">
+                    <div class="info-label">{% trans "Місто" %}</div>
+                    <div class="info-value">{{ place.city }}</div>
+                </div>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-icon">📍</span>
+                <div class="info-content">
+                    <div class="info-label">{% trans "Адреса" %}</div>
+                    <div class="info-value">{{ place.address }}</div>
+                </div>
+            </div>
+            
+            {% if place.url %}
+            <div class="info-row">
+                <span class="info-icon">🌐</span>
+                <div class="info-content">
+                    <div class="info-label">{% trans "Сайт" %}</div>
+                    <div class="info-value"><a href="{{ place.url }}" target="_blank">{{ place.url }}</a></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="info-card">
+            <h3>🗺️ {% trans "Координати" %}</h3>
+            <div class="info-row">
+                <span class="info-icon">📐</span>
+                <div class="info-content">
+                    <div class="info-label">{% trans "Широта / Довгота" %}</div>
+                    <div class="info-value">{{ place.lat }}, {{ place.lon }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-card map-card">
+            <h3>🗺️ {% trans "На карті" %}</h3>
+            <div id="mini-map" class="mini-map"></div>
+        </div>
+    </div>
+    
+    <div class="promos-section">
+        <h2 class="section-title">🎁 {% trans "Акції" %}</h2>
+        
+        <div class="promo-list">
+            {% for promo in place.promotions.all %}
+                <div class="promo-item">
+                    <span class="promo-title">{{ promo.title }}</span>
+                    <span class="promo-date">{% trans "до" %} {{ promo.valid_to|date:"d.m.Y" }}</span>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <span>🤷</span>
+                    {% trans "Зараз немає активних акцій" %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="action-row">
+        <a href="https://www.google.com/maps/dir/?api=1&destination={{ place.lat }},{{ place.lon }}" target="_blank" class="btn btn-primary">
+            🚗 {% trans "Прокласти маршрут" %}
+        </a>
+        <a href="{% url 'places:map' %}" class="btn btn-outline">
+            🗺️ {% trans "Всі заклади" %}
+        </a>
+    </div>
+</div>
+{% endblock %}

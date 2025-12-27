@@ -1,0 +1,608 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{% trans "База коктейлів" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Montserrat:wght@400;500;600&family=Roboto:wght@500&display=swap');
+
+.recipes-page {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 45px 50px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.back-btn {
+    position: absolute;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-5px);
+}
+
+.back-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 23px;
+}
+
+/* AI Banner */
+.ai-banner {
+    background: rgba(52, 168, 83, 0.3);
+    border-radius: 11px;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s;
+}
+
+.ai-banner:hover {
+    background: rgba(52, 168, 83, 0.4);
+}
+
+.ai-banner span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.ai-banner .go-btn {
+    padding: 8px 16px;
+    background: #34A853;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Search Bar */
+.search-bar {
+    height: 54px;
+    background: #000000;
+    border: 2px solid rgba(230, 235, 242, 0.3);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    gap: 16px;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    stroke: rgba(255, 255, 255, 0.5);
+    fill: none;
+}
+
+.search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Filters Section */
+.filters-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.filter-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #34A853 transparent;
+}
+
+.filter-group::-webkit-scrollbar {
+    height: 4px;
+}
+
+.filter-group::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+}
+
+.filter-group::-webkit-scrollbar-thumb {
+    background: #34A853;
+    border-radius: 2px;
+}
+
+.filter-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.filter-btn:hover {
+    background: rgba(52, 168, 83, 0.2);
+    border-color: rgba(52, 168, 83, 0.4);
+}
+
+.filter-btn.active {
+    background: #34A853;
+    border-color: #34A853;
+    color: #fff;
+}
+
+/* Recipes Section */
+.recipes-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.see-all {
+    font-size: 14px;
+    font-weight: 600;
+    color: #34A853;
+    text-decoration: none;
+    transition: opacity 0.3s;
+}
+
+.see-all:hover {
+    opacity: 0.8;
+}
+
+/* Recipes Carousel */
+.recipes-carousel {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #34A853 transparent;
+}
+
+.recipes-carousel::-webkit-scrollbar {
+    height: 6px;
+}
+
+.recipes-carousel::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.recipes-carousel::-webkit-scrollbar-thumb {
+    background: #34A853;
+    border-radius: 3px;
+}
+
+/* Recipe Card */
+.recipe-card {
+    flex-shrink: 0;
+    width: 100px;
+    height: 136px;
+    background: #000000;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(52, 168, 83, 0.3);
+    border-color: #34A853;
+}
+
+.recipe-card img {
+    width: 84px;
+    height: 84px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #1a3a1a 0%, #0d1f0d 100%);
+}
+
+.recipe-card .placeholder-img {
+    width: 84px;
+    height: 84px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1a3a1a 0%, #0d1f0d 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.recipe-card .placeholder-img svg {
+    width: 32px;
+    height: 32px;
+    stroke: rgba(255, 255, 255, 0.3);
+}
+
+.recipe-card p {
+    font-size: 13px;
+    font-weight: 500;
+    color: #ffffff;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0;
+}
+
+/* History Section */
+.history-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 10px;
+}
+
+.history-title {
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-item {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    color: #ffffff;
+}
+
+.history-item:hover {
+    background: rgba(52, 168, 83, 0.1);
+    border-color: rgba(52, 168, 83, 0.3);
+    transform: translateX(5px);
+}
+
+.history-item span {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.arrow-icon {
+    width: 20px;
+    height: 20px;
+    stroke: #34A853;
+    fill: none;
+    transition: transform 0.3s;
+}
+
+.history-item:hover .arrow-icon {
+    transform: translateX(5px);
+}
+
+/* Premium CTA */
+.premium-cta {
+    margin-top: 20px;
+}
+
+.premium-cta p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    text-align: center;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.premium-link {
+    color: #34A853;
+    text-decoration: underline;
+    transition: opacity 0.3s;
+}
+
+.premium-link:hover {
+    opacity: 0.8;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-state svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    stroke: currentColor;
+    fill: none;
+}
+
+/* Animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.recipe-card {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.history-item {
+    animation: fadeInUp 0.5s ease-out forwards;
+    opacity: 0;
+}
+
+.history-item:nth-child(1) { animation-delay: 0.1s; }
+.history-item:nth-child(2) { animation-delay: 0.15s; }
+.history-item:nth-child(3) { animation-delay: 0.2s; }
+.history-item:nth-child(4) { animation-delay: 0.25s; }
+.history-item:nth-child(5) { animation-delay: 0.3s; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .recipes-page {
+        padding: 24px 20px;
+    }
+
+    .page-title {
+        font-size: 18px;
+    }
+
+    .recipes-carousel {
+        gap: 12px;
+    }
+
+    .recipe-card {
+        width: 90px;
+        height: 120px;
+    }
+
+    .recipe-card img,
+    .recipe-card .placeholder-img {
+        width: 74px;
+        height: 74px;
+    }
+
+    .premium-cta p {
+        font-size: 14px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="recipes-page">
+    <header class="header">
+        <a href="{% url 'pages:home' %}" class="back-btn">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="page-title">{% trans "База коктейлів" %}</h1>
+    </header>
+
+    <main class="content">
+        <!-- AI Sommelier Banner -->
+        <a href="{% url 'recipes:ai_sommelier' %}" class="ai-banner">
+            <span>{% trans "Отримати пораду від AI-сомельє" %}</span>
+            <span class="go-btn">{% trans "Перейти" %} →</span>
+        </a>
+
+        <!-- Search Bar -->
+        <form method="get" class="search-bar">
+            <svg class="search-icon" viewBox="0 0 24 24" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="text" name="q" class="search-input" placeholder="{% trans 'Пошук коктейлів...' %}" value="{{ q }}">
+            <input type="hidden" name="alcohol" value="{{ alcohol }}">
+            <input type="hidden" name="rating" value="{{ min_rating }}">
+        </form>
+        
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <span class="filter-label">{% trans "Алкоголь:" %}</span>
+                <a href="?q={{ q }}&rating={{ min_rating }}&category={{ category }}&strength={{ strength }}" class="filter-btn{% if not alcohol %} active{% endif %}">{% trans "Усі" %}</a>
+                <a href="?q={{ q }}&alcohol=with&rating={{ min_rating }}&category={{ category }}&strength={{ strength }}" class="filter-btn{% if alcohol == 'with' %} active{% endif %}">{% trans "З алкоголем" %}</a>
+                <a href="?q={{ q }}&alcohol=without&rating={{ min_rating }}&category={{ category }}&strength={{ strength }}" class="filter-btn{% if alcohol == 'without' %} active{% endif %}">{% trans "Безалкогольні" %}</a>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">{% trans "Тип:" %}</span>
+                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&strength={{ strength }}" class="filter-btn{% if not category %} active{% endif %}">{% trans "Усі" %}</a>
+                {% for cat_value, cat_label in categories %}
+                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ cat_value }}&strength={{ strength }}" class="filter-btn{% if category == cat_value %} active{% endif %}">{{ cat_label }}</a>
+                {% endfor %}
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">{% trans "Міцність:" %}</span>
+                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ category }}" class="filter-btn{% if not strength %} active{% endif %}">{% trans "Усі" %}</a>
+                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ category }}&strength=light" class="filter-btn{% if strength == 'light' %} active{% endif %}">🍃 {% trans "Легкий" %}</a>
+                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ category }}&strength=medium" class="filter-btn{% if strength == 'medium' %} active{% endif %}">⭐ {% trans "Середній" %}</a>
+                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ category }}&strength=strong" class="filter-btn{% if strength == 'strong' %} active{% endif %}">🔥 {% trans "Міцний" %}</a>
+                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ category }}&strength=very_strong" class="filter-btn{% if strength == 'very_strong' %} active{% endif %}">💀 {% trans "Дуже міцний" %}</a>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">{% trans "Рейтинг:" %}</span>
+                <a href="?q={{ q }}&alcohol={{ alcohol }}&category={{ category }}&strength={{ strength }}" class="filter-btn{% if not min_rating %} active{% endif %}">{% trans "Усі" %}</a>
+                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating=4&category={{ category }}&strength={{ strength }}" class="filter-btn{% if min_rating == '4' %} active{% endif %}">4+ ⭐</a>
+                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating=5&category={{ category }}&strength={{ strength }}" class="filter-btn{% if min_rating == '5' %} active{% endif %}">5 ⭐</a>
+            </div>
+        </div>
+
+        <!-- Cocktails Section -->
+        {% if cocktails %}
+        <section class="recipes-section">
+            <div class="section-header">
+                <h2>{% if q %}{% trans "Результати пошуку" %}{% else %}{% trans "Популярні" %}{% endif %}</h2>
+                <a href="?all=1" class="see-all">{% trans "Усі" %}</a>
+            </div>
+            <div class="recipes-carousel">
+                {% for c in cocktails %}
+                <a href="{% url 'recipes:cocktail_detail' c.slug %}" class="recipe-card">
+                    {% if c.image %}
+                    <img src="{{ c.image.url }}" alt="{{ c.name }}">
+                    {% else %}
+                    <div class="placeholder-img">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+                            <path d="M8 2v4M16 2v4M6 10l4 4-4 4"/>
+                            <path d="M18 6H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/>
+                        </svg>
+                    </div>
+                    {% endif %}
+                    <p>{{ c.name|truncatechars:12 }}</p>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% else %}
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" stroke-width="1.5">
+                <path d="M9.5 3.5v0c0 2.07-1.68 3.75-3.75 3.75H3.75M14.5 3.5v0c0 2.07 1.68 3.75 3.75 3.75h2"/>
+                <path d="M8.75 7.25L4.25 20.75h15.5l-4.5-13.5"/>
+            </svg>
+            <p>{% trans "Коктейлів не знайдено" %}</p>
+        </div>
+        {% endif %}
+
+        <!-- History Section -->
+        <section class="history-section">
+            <h2 class="history-title">{% trans "Історія" %}</h2>
+            <div class="history-list">
+                {% for c in cocktails|slice:":5" %}
+                <a href="{% url 'recipes:cocktail_detail' c.slug %}" class="history-item">
+                    <span>{{ c.name }}</span>
+                    <svg class="arrow-icon" viewBox="0 0 24 24" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                {% empty %}
+                <div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">
+                    {% trans "Історія порожня" %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Premium CTA -->
+        {% if request.user.is_authenticated and not request.user.profile.is_premium %}
+        <div class="premium-cta">
+            <p>{% trans "Підпишіться на" %} <a href="{% url 'pages:plan_choice' %}" class="premium-link">Alechemy Premium</a> {% trans "для отримання ексклюзивних функцій!" %}</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth drag scroll for carousels
+    const carousels = document.querySelectorAll('.recipes-carousel');
+    carousels.forEach(carousel => {
+        let isDown = false, startX, scrollLeft;
+
+        carousel.addEventListener('mousedown', e => {
+            isDown = true;
+            startX = e.pageX - carousel.offsetLeft;
+            scrollLeft = carousel.scrollLeft;
+            carousel.style.cursor = 'grabbing';
+        });
+
+        carousel.addEventListener('mouseleave', () => { isDown = false; carousel.style.cursor = 'grab'; });
+        carousel.addEventListener('mouseup', () => { isDown = false; carousel.style.cursor = 'grab'; });
+
+        carousel.addEventListener('mousemove', e => {
+            if (!isDown) return;
+            e.preventDefault();
+            carousel.scrollLeft = scrollLeft - (e.pageX - carousel.offsetLeft - startX) * 2;
+        });
+    });
+});
+</script>
+{% endblock %}

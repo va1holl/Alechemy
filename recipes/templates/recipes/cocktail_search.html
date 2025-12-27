@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Пошук за інгредієнтами" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+.cocktail-search-page {
+    padding: 30px 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 32px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 16px;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: #34A853;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+}
+
+.page-subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 8px;
+}
+
+/* Search Form */
+.search-form {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 32px;
+}
+
+.form-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.ingredients-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.ingredient-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ingredient-option:hover {
+    background: rgba(52, 168, 83, 0.1);
+}
+
+.ingredient-option input {
+    accent-color: #34A853;
+    width: 18px;
+    height: 18px;
+}
+
+.ingredient-option label {
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.ingredient-option.selected {
+    background: rgba(52, 168, 83, 0.2);
+    border: 1px solid rgba(52, 168, 83, 0.5);
+}
+
+.form-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.btn {
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #34A853, #2d8f47);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(52, 168, 83, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-outline:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.selected-count {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+/* Results */
+.results-section {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 28px;
+}
+
+.section-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #34A853;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.results-count {
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.cocktails-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.cocktail-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 20px;
+    text-decoration: none;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.cocktail-card:hover {
+    background: rgba(52, 168, 83, 0.1);
+    transform: translateY(-4px);
+}
+
+.cocktail-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.2), rgba(52, 168, 83, 0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 12px;
+}
+
+.cocktail-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state span {
+    font-size: 60px;
+    display: block;
+    margin-bottom: 16px;
+}
+
+.empty-state p {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 16px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .cocktail-search-page {
+        padding: 20px 16px;
+    }
+    
+    .ingredients-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .cocktails-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.ingredient-option input[type="checkbox"]');
+    const countEl = document.querySelector('.selected-count');
+    
+    function updateCount() {
+        const count = document.querySelectorAll('.ingredient-option input:checked').length;
+        countEl.textContent = `{% trans "Обрано:" %} ${count}`;
+    }
+    
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            this.closest('.ingredient-option').classList.toggle('selected', this.checked);
+            updateCount();
+        });
+        
+        // Initial state
+        if (cb.checked) {
+            cb.closest('.ingredient-option').classList.add('selected');
+        }
+    });
+    
+    updateCount();
+    
+    // Clear all button
+    document.querySelector('.btn-outline')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+            cb.closest('.ingredient-option').classList.remove('selected');
+        });
+        updateCount();
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="cocktail-search-page">
+    <div class="page-header">
+        <a href="{% url 'recipes:cocktail_list' %}" class="back-link">
+            ← {% trans "До списку коктейлів" %}
+        </a>
+        <h1 class="page-title">🔍 {% trans "Пошук за інгредієнтами" %}</h1>
+        <p class="page-subtitle">{% trans "Оберіть інгредієнти, які є у вас, і знайдіть коктейлі" %}</p>
+    </div>
+    
+    <form method="get" class="search-form">
+        <label class="form-label">{% trans "Оберіть інгредієнти:" %}</label>
+        
+        <div class="ingredients-grid">
+            {% for ing in ingredients %}
+                <div class="ingredient-option">
+                    <input type="checkbox" 
+                           name="ingredients" 
+                           value="{{ ing.id }}" 
+                           id="ing-{{ ing.id }}"
+                           {% if ing.id|stringformat:'s' in selected %}checked{% endif %}>
+                    <label for="ing-{{ ing.id }}">{{ ing.name }}</label>
+                </div>
+            {% empty %}
+                <p style="color: rgba(255,255,255,0.5); grid-column: 1/-1; text-align: center;">
+                    {% trans "Інгредієнтів не знайдено" %}
+                </p>
+            {% endfor %}
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                🔍 {% trans "Шукати" %}
+            </button>
+            <button type="button" class="btn btn-outline">
+                ✕ {% trans "Очистити" %}
+            </button>
+            <span class="selected-count">{% trans "Обрано:" %} 0</span>
+        </div>
+    </form>
+    
+    {% if cocktails %}
+    <div class="results-section">
+        <h2 class="section-title">
+            🍹 {% trans "Результати" %}
+            <span class="results-count">{{ cocktails|length }}</span>
+        </h2>
+        
+        <div class="cocktails-grid">
+            {% for c in cocktails %}
+                <a href="{% url 'recipes:cocktail_detail' c.slug %}" class="cocktail-card">
+                    <div class="cocktail-icon">🍸</div>
+                    <span class="cocktail-name">{{ c.name }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% elif selected %}
+    <div class="results-section">
+        <div class="empty-state">
+            <span>🤷</span>
+            <p>{% trans "На жаль, коктейлів з такими інгредієнтами не знайдено" %}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

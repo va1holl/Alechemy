@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}@{{ target_profile.unique_tag }} - Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+.user-profile-page {
+    padding: 24px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.back-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.back-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
+}
+
+.page-title {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Profile Card */
+.profile-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #34A853, #1a5a2a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: 600;
+    color: white;
+    margin: 0 auto 20px;
+}
+
+.profile-name {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.profile-tag {
+    color: #34A853;
+    font-size: 16px;
+    margin-bottom: 16px;
+}
+
+.friend-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(52, 168, 83, 0.2);
+    border-radius: 20px;
+    color: #34A853;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.friend-badge svg {
+    width: 16px;
+    height: 16px;
+}
+
+.add-friend-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: #34A853;
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.add-friend-btn:hover {
+    background: #2d9046;
+    transform: translateY(-2px);
+}
+
+.add-friend-btn.pending {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    cursor: default;
+}
+
+.add-friend-btn.pending:hover {
+    transform: none;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="user-profile-page">
+    <div class="page-header">
+        <a href="{% url 'social:friends_list' %}" class="back-btn">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="page-title">{% trans "Профіль" %}</h1>
+    </div>
+    
+    <!-- Profile Card -->
+    <div class="profile-card">
+        <div class="profile-avatar">
+            {{ target_profile.user.email|first|upper }}
+        </div>
+        <div class="profile-name">
+            {% if target_profile.user.first_name %}
+            {{ target_profile.user.first_name }} {{ target_profile.user.last_name }}
+            {% else %}
+            {% trans "Користувач" %}
+            {% endif %}
+        </div>
+        {% if target_profile.unique_tag %}
+        <div class="profile-tag">@{{ target_profile.unique_tag }}</div>
+        {% endif %}
+        
+        {% if is_friend %}
+        <div class="friend-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="8.5" cy="7" r="4"/>
+                <polyline points="17 11 19 13 23 9"/>
+            </svg>
+            {% trans "Друг" %}
+        </div>
+        {% elif pending_request %}
+        <div class="add-friend-btn pending">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            {% trans "Запит надіслано" %}
+        </div>
+        {% elif target_profile.user.id != request.user.id %}
+        <form method="post" action="{% url 'social:send_friend_request' target_profile.user.id %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="add-friend-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+                {% trans "Додати в друзі" %}
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ rank_info.rank_icon }}</div>
+            <div class="stat-label">{{ rank_info.rank_name }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ user_score.points_total|default:0 }}</div>
+            <div class="stat-label">{% trans "Очок" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ achievements_count }}</div>
+            <div class="stat-label">{% trans "Досягнень" %}</div>
+        </div>
+    </div>
+    
+    <!-- Progress to next rank -->
+    {% if rank_info.next_rank %}
+    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="color: rgba(255,255,255,0.7); font-size: 14px;">{% trans "До рангу" %} {{ rank_info.next_rank }}</span>
+            <span style="color: #34A853; font-size: 14px; font-weight: 600;">{{ rank_info.progress_to_next }}%</span>
+        </div>
+        <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+            <div style="height: 100%; width: {{ rank_info.progress_to_next }}%; background: linear-gradient(90deg, #34A853, #4ade80); border-radius: 4px;"></div>
+        </div>
+        <div style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 6px;">
+            {{ rank_info.points }} / {{ rank_info.next_rank_points }} {% trans "очок" %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Events count -->
+    <div class="stats-grid" style="grid-template-columns: 1fr;">
+        <div class="stat-card" style="display: flex; align-items: center; gap: 16px; text-align: left;">
+            <span style="font-size: 32px;">🎉</span>
+            <div>
+                <div class="stat-value" style="font-size: 24px;">{{ events_count }}</div>
+                <div class="stat-label">{% trans "Подій створено" %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

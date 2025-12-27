@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Видалити акаунт" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap');
+
+.delete-page {
+    background: transparent;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+}
+
+.delete-card {
+    background: rgba(255, 59, 48, 0.1);
+    border: 2px solid rgba(255, 59, 48, 0.3);
+    border-radius: 32px;
+    padding: 48px 40px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+}
+
+.delete-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    background: rgba(255, 59, 48, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-icon svg {
+    width: 40px;
+    height: 40px;
+    color: #FF3B30;
+}
+
+.delete-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #FF3B30;
+    margin-bottom: 16px;
+}
+
+.delete-description {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.warning-list {
+    background: rgba(255, 59, 48, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 32px;
+    text-align: left;
+}
+
+.warning-list h4 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #FF3B30;
+    margin-bottom: 12px;
+}
+
+.warning-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.warning-list li {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    padding: 8px 0;
+    padding-left: 24px;
+    position: relative;
+}
+
+.warning-list li::before {
+    content: "✗";
+    position: absolute;
+    left: 0;
+    color: #FF3B30;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-cancel {
+    width: 100%;
+    height: 56px;
+    background: #34A853;
+    border: none;
+    border-radius: 50px;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-cancel:hover {
+    background: #2d9046;
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    width: 100%;
+    height: 56px;
+    background: transparent;
+    border: 2px solid #FF3B30;
+    border-radius: 50px;
+    color: #FF3B30;
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-delete:hover {
+    background: #FF3B30;
+    color: #ffffff;
+}
+
+.delete-form {
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.form-group label strong {
+    color: #FF3B30;
+}
+
+.form-group input {
+    width: 100%;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 0 16px;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    transition: all 0.3s;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #34A853;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.error-message {
+    background: rgba(255, 59, 48, 0.15);
+    border: 1px solid rgba(255, 59, 48, 0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    color: #FF3B30;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.error-message svg {
+    flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+    .delete-card {
+        padding: 32px 24px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-page">
+    <div class="delete-card">
+        <div class="delete-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+        </div>
+
+        <h1 class="delete-title">{% trans "Видалити акаунт?" %}</h1>
+        <p class="delete-description">
+            {% trans "Ця дія незворотна. Після видалення акаунту всі ваші дані будуть втрачені назавжди." %}
+        </p>
+
+        <div class="warning-list">
+            <h4>{% trans "Що буде видалено:" %}</h4>
+            <ul>
+                <li>{% trans "Всі ваші події та сценарії" %}</li>
+                <li>{% trans "Списки покупок" %}</li>
+                <li>{% trans "Історія та статистика" %}</li>
+                <li>{% trans "Premium підписка (без повернення)" %}</li>
+                <li>{% trans "Всі персональні дані" %}</li>
+            </ul>
+        </div>
+
+        <form method="post" class="delete-form">
+            {% csrf_token %}
+            
+            {% if error %}
+            <div class="error-message">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="password">{% trans "Введіть ваш пароль" %}</label>
+                <input type="password" name="password" id="password" 
+                       placeholder="{% trans 'Ваш поточний пароль' %}" required autocomplete="current-password">
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_text">{% trans "Для підтвердження введіть" %} <strong>{% trans "видалити" %}</strong></label>
+                <input type="text" name="confirm_text" id="confirm_text" 
+                       placeholder="{% trans 'видалити' %}" required autocomplete="off">
+            </div>
+            
+            <div class="button-group">
+                <a href="{% url 'pages:me' %}" class="btn-cancel">
+                    {% trans "Скасувати" %}
+                </a>
+                <button type="submit" class="btn-delete">
+                    {% trans "Так, видалити акаунт" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

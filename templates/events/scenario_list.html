@@ -1,37 +1,167 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Сценарии — Alechmy{% endblock %}
+{% block title %}{% trans "Сценарії" %} — Alechemy{% endblock %}
 
 {% block content %}
-  <h1>Сценарии</h1>
+<style nonce="{{ csp_nonce }}">
+  .scenarios-page { background: transparent; min-height: 100vh; padding: 40px 24px; }
+  .scenarios-shell { max-width: 1100px; margin: 0 auto; }
+  .scenarios-header { text-align: center; margin-bottom: 32px; }
+  .scenarios-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 28px; color: #34a853; margin-bottom: 8px; }
+  .scenarios-sub { color: rgba(255,255,255,0.7); font-family: 'Inter', sans-serif; }
 
-  {% if favorite_scenarios %}
-    <h2>Избранные</h2>
-    <ul>
-      {% for s in favorite_scenarios %}
-        <li>
-          <a href="{% url 'events:scenario_detail' s.slug %}">{{ s.name }}</a>
-          (<a href="{% url 'events:toggle_favorite' s.slug %}">убрать из избранного</a>)
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+  /* Filters */
+  .filters-bar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 32px; }
+  .filter-btn {
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 24px;
+    color: rgba(255,255,255,0.7);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { background: rgba(52,168,83,0.15); border-color: rgba(52,168,83,0.4); color: #fff; }
+  .filter-btn.active { background: #34a853; border-color: #34a853; color: #fff; }
 
-  <h2>Все сценарии</h2>
-  {% if scenarios %}
-    <ul>
-      {% for s in scenarios %}
-        <li>
-          <a href="{% url 'events:scenario_detail' s.slug %}">{{ s.name }}</a>
-          {% if s.id in favorite_ids %}
-            ★
-          {% else %}
-            (<a href="{% url 'events:toggle_favorite' s.slug %}">в избранное</a>)
-          {% endif %}
-        </li>
+  /* Grid */
+  .scenarios-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
+  .scenario-card {
+    background: linear-gradient(145deg, rgba(52,168,83,0.06), rgba(0,0,0,0.35));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .scenario-card:hover { transform: translateY(-4px); border-color: rgba(52,168,83,0.4); }
+  .scenario-card.favorite { border-color: #ffc107; }
+
+  .scenario-icon { font-size: 40px; text-align: center; }
+  .scenario-name { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px; color: #fff; text-align: center; margin: 0; }
+  .scenario-category { text-align: center; font-size: 12px; color: rgba(255,255,255,0.5); }
+  .scenario-desc { color: rgba(255,255,255,0.65); font-size: 14px; line-height: 1.5; text-align: center; }
+
+  .scenario-actions { display: flex; gap: 10px; margin-top: auto; }
+  .btn-scenario {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .btn-primary { background: #34a853; color: #fff; border: none; }
+  .btn-primary:hover { background: #2d8f47; }
+  .btn-outline { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); cursor: pointer; }
+  .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+  .section-title { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 20px; color: #ffc107; margin: 32px 0 16px; display: flex; align-items: center; gap: 8px; }
+  .section-title svg { width: 24px; height: 24px; }
+
+  .no-scenarios { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.5); }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .scenarios-page { padding: 24px 16px; }
+    .scenarios-title { font-size: 22px; }
+    .scenarios-grid { grid-template-columns: 1fr; gap: 16px; }
+    .scenario-card { padding: 16px; }
+    .scenario-icon { font-size: 32px; }
+    .scenario-name { font-size: 16px; }
+    .filters-bar { gap: 8px; justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
+    .filters-bar::-webkit-scrollbar { display: none; }
+    .filter-btn { flex-shrink: 0; white-space: nowrap; padding: 8px 14px; font-size: 13px; }
+    .scenario-actions { flex-direction: column; gap: 8px; }
+    .btn-scenario { padding: 10px; font-size: 13px; }
+    .section-title { font-size: 18px; margin: 24px 0 12px; }
+  }
+
+  @media (max-width: 480px) {
+    .scenarios-sub { font-size: 14px; }
+    .scenario-desc { font-size: 13px; }
+  }
+</style>
+
+<div class="scenarios-page">
+  <div class="scenarios-shell">
+    <div class="scenarios-header">
+      <h1 class="scenarios-title">🎭 {% trans "Сценарії" %}</h1>
+      <p class="scenarios-sub">{% trans "Обери сценарій для своєї події" %}</p>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="filters-bar">
+      <a href="{% url 'events:scenario_list' %}" class="filter-btn {% if not current_category %}active{% endif %}">{% trans "Усі" %}</a>
+      {% for cat_value, cat_label in categories %}
+        <a href="?category={{ cat_value }}" class="filter-btn {% if current_category == cat_value %}active{% endif %}">{{ cat_label }}</a>
       {% endfor %}
-    </ul>
-  {% else %}
-    <p>Сценариев пока нет.</p>
-  {% endif %}
+    </div>
+
+    {% if favorite_scenarios %}
+      <h2 class="section-title">
+        <svg viewBox="0 0 24 24" fill="#ffc107"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+        {% trans "Улюблені" %}
+      </h2>
+      <div class="scenarios-grid">
+        {% for s in favorite_scenarios %}
+          <div class="scenario-card favorite">
+            <div class="scenario-icon">{{ s.icon|default:"🎉" }}</div>
+            <h3 class="scenario-name">{{ s.name }}</h3>
+            <div class="scenario-category">{{ s.get_category_display }}</div>
+            {% if s.description %}
+              <p class="scenario-desc">{{ s.description|truncatewords:15 }}</p>
+            {% endif %}
+            <div class="scenario-actions">
+              <a href="{% url 'events:scenario_detail' s.slug %}" class="btn-scenario btn-primary">{% trans "Обрати" %}</a>
+              <form method="post" action="{% url 'events:toggle_favorite' s.slug %}" style="flex:1;display:flex;">
+                {% csrf_token %}
+                <button type="submit" class="btn-scenario btn-outline" style="width:100%;">★</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if other_scenarios %}
+      <h2 class="section-title">{% if favorite_scenarios %}{% trans "Інші сценарії" %}{% else %}{% trans "Усі сценарії" %}{% endif %}</h2>
+      <div class="scenarios-grid">
+        {% for s in other_scenarios %}
+          <div class="scenario-card">
+            <div class="scenario-icon">{{ s.icon|default:"🎉" }}</div>
+            <h3 class="scenario-name">{{ s.name }}</h3>
+            <div class="scenario-category">{{ s.get_category_display }}</div>
+            {% if s.description %}
+              <p class="scenario-desc">{{ s.description|truncatewords:15 }}</p>
+            {% endif %}
+            <div class="scenario-actions">
+              <a href="{% url 'events:scenario_detail' s.slug %}" class="btn-scenario btn-primary">{% trans "Обрати" %}</a>
+              <form method="post" action="{% url 'events:toggle_favorite' s.slug %}" style="flex:1;display:flex;">
+                {% csrf_token %}
+                <button type="submit" class="btn-scenario btn-outline" style="width:100%;">☆</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if not scenarios %}
+      <div class="no-scenarios">
+        <p>{% trans "Сценаріїв за цим фільтром не знайдено" %}</p>
+        <a href="{% url 'events:scenario_list' %}" class="filter-btn" style="display:inline-block;margin-top:16px;">{% trans "Показати всі" %}</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

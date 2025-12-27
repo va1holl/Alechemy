@@ -1,0 +1,863 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% load uk_dates %}
+
+{% block title %}{% trans "Головна" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+.dashboard {
+    background: transparent;
+    min-height: 100vh;
+    padding: 40px 50px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #34A853;
+    text-align: center;
+    margin-bottom: 40px;
+    letter-spacing: -0.24px;
+}
+
+/* Main Layout */
+.main-layout {
+    display: flex;
+    gap: 40px;
+}
+
+/* Filter Panel */
+.filter-panel {
+    width: 280px;
+    min-width: 280px;
+}
+
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.filter-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.filter-icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.filter-icon:hover {
+    opacity: 1;
+}
+
+.filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.filter-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filter-label {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.filter-value {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.date-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.date-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.date-value {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.divider {
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 8px 0;
+}
+
+.location-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.location-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.location-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.location-text {
+    font-size: 14px;
+    color: #ffffff;
+}
+
+.filter-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.btn {
+    width: 100%;
+    height: 50px;
+    border-radius: 50px;
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: #34A853;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #2d9046;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: rgba(52, 168, 83, 0.3);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: rgba(52, 168, 83, 0.5);
+}
+
+/* Content Area */
+.content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Search Bar */
+.search-bar {
+    height: 54px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    gap: 14px;
+    transition: border-color 0.3s;
+}
+
+.search-bar:focus-within {
+    border-color: #34A853;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 0.5;
+}
+
+.search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Cocktail Button */
+.cocktail-btn {
+    height: 50px;
+    background: #34A853;
+    border-radius: 12px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.cocktail-btn:hover {
+    background: #2d9046;
+    transform: translateY(-2px);
+}
+
+.cocktail-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cocktail-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.cocktail-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.arrow-icon {
+    width: 24px;
+    height: 24px;
+    transform: rotate(180deg);
+}
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.section-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.section-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.section-text.rating {
+    color: #FFC538;
+}
+
+.section-text.events {
+    color: #ffffff;
+}
+
+.section-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: inherit;
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.section-link:hover {
+    opacity: 1;
+}
+
+/* Month Section */
+.month-section {
+    margin: 10px 0;
+}
+
+.month-section h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+.month-section p {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Events Grid */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.event-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.event-card:hover {
+    transform: translateY(-4px);
+    border-color: #34A853;
+    box-shadow: 0 8px 24px rgba(52, 168, 83, 0.15);
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.avatars {
+    display: flex;
+    align-items: center;
+}
+
+.avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid #030604;
+    margin-left: -8px;
+    background: linear-gradient(135deg, #34A853, #1e7e34);
+}
+
+.avatar:first-child {
+    margin-left: 0;
+}
+
+.avatar-count {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    margin-left: -8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ffffff;
+    border: 2px solid #030604;
+}
+
+.menu-dots {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+}
+
+.menu-dots:hover {
+    opacity: 1;
+}
+
+.event-image {
+    width: 100%;
+    height: 160px;
+    border-radius: 16px;
+    object-fit: cover;
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.3), rgba(0, 0, 0, 0.3));
+}
+
+.event-image-placeholder {
+    width: 100%;
+    height: 160px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.2), rgba(0, 0, 0, 0.3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.event-image-placeholder svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.3;
+}
+
+.event-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.event-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: #34A853;
+}
+
+.event-details {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.event-time {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.event-location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.event-location-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+}
+
+.event-location-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Recommendations */
+.recommendations-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 24px 0 16px;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.recommendation-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: all 0.3s;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.rec-image {
+    width: 100%;
+    height: 150px;
+    border-radius: 16px;
+    object-fit: cover;
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.2), rgba(0, 0, 0, 0.3));
+}
+
+.rec-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #34A853;
+}
+
+.rec-details {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+}
+
+.empty-state svg {
+    width: 64px;
+    height: 64px;
+    opacity: 0.3;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    color: #ffffff;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 20px;
+}
+
+.empty-state .btn {
+    width: auto;
+    display: inline-flex;
+    padding: 0 32px;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .main-layout {
+        flex-direction: column;
+    }
+    
+    .filter-panel {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    
+    .filter-buttons {
+        flex-direction: row;
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        padding: 24px 16px;
+    }
+    
+    .page-title {
+        font-size: 22px;
+        margin-bottom: 24px;
+    }
+    
+    .events-grid,
+    .recommendations-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-panel {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .search-bar {
+        padding: 0 14px;
+        height: 48px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard {
+        padding: 20px 12px;
+    }
+    
+    .btn {
+        height: 44px;
+        font-size: 14px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1 class="page-title">{% trans "Головна" %}</h1>
+
+    <div class="main-layout">
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <div class="filter-header">
+                <h3 class="filter-title">{% trans "Фільтрація" %}</h3>
+                <svg class="filter-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-row">
+                    <span class="filter-label">{% trans "Вік" %}</span>
+                    <span class="filter-value">{% if profile.age %}{{ profile.age }}+{% else %}18+{% endif %}</span>
+                </div>
+
+                <div class="date-section">
+                    <p class="date-label">{% trans "Дата" %}</p>
+                    <p class="date-value">{{ today|uk_date_short }}</p>
+                    <div class="divider"></div>
+                </div>
+
+                <div class="location-section">
+                    <p class="date-label">{% trans "Локація" %}</p>
+                    <div class="location-row">
+                        <svg class="location-icon" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                        <span class="location-text">{% trans "Україна" %}</span>
+                    </div>
+                    <div class="divider"></div>
+                </div>
+            </div>
+
+            <div class="filter-buttons">
+                <a href="{% url 'events:scenario_list' %}" class="btn btn-primary">{% trans "Новий сценарій" %}</a>
+                <a href="{% url 'events:event_list' %}" class="btn btn-secondary">{% trans "Мої події" %}</a>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Search Bar -->
+            <form method="get" action="{% url 'events:event_list' %}" class="search-bar">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input type="text" name="q" class="search-input" placeholder="{% trans "Пошук подій..." %}" />
+            </form>
+
+            <!-- Cocktail Database Button -->
+            <a href="{% url 'recipes:cocktail_list' %}" class="cocktail-btn">
+                <div class="cocktail-left">
+                    <svg class="cocktail-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                    </svg>
+                    <span class="cocktail-text">{% trans "База коктейлів" %}</span>
+                </div>
+                <svg class="arrow-icon" viewBox="0 0 24 24" fill="white">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+            </a>
+
+            <!-- Rating Section -->
+            <div class="section-header">
+                <div class="section-title-wrap">
+                    <svg class="section-icon" viewBox="0 0 24 24" fill="#FFC538">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span class="section-text rating">{% trans "Рейтинг" %}</span>
+                </div>
+                <a href="{% url 'gamification:leaderboard' %}" class="section-link" style="color: #FFC538;">
+                    {% trans "Дивитись" %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Month Section -->
+            <div class="month-section">
+                <h2>{{ today|uk_month }}</h2>
+                <p>{% trans "Заплановано заходів:" %} {{ events_count }}</p>
+            </div>
+
+            <!-- My Events Section -->
+            <div class="section-header">
+                <span class="section-text events">{% trans "Мої заходи" %}</span>
+                <a href="{% url 'events:event_list' %}" class="section-link">
+                    {% trans "Усі" %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </a>
+            </div>
+
+            {% if events %}
+                <div class="events-grid">
+                    {% for event in events %}
+                        <a href="{% url 'events:event_detail' event.id %}" class="event-card">
+                            <div class="event-header">
+                                <div class="avatars">
+                                    <div class="avatar"></div>
+                                    {% if event.guests > 1 %}
+                                        <div class="avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
+                                    {% endif %}
+                                    {% if event.guests > 2 %}
+                                        <div class="avatar-count">+{{ event.guests|add:"-2" }}</div>
+                                    {% endif %}
+                                </div>
+                                <svg class="menu-dots" viewBox="0 0 24 24" fill="white">
+                                    <circle cx="12" cy="5" r="2"/>
+                                    <circle cx="12" cy="12" r="2"/>
+                                    <circle cx="12" cy="19" r="2"/>
+                                </svg>
+                            </div>
+
+                            <div class="event-image-placeholder">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                            </div>
+
+                            <div class="event-info">
+                                <h3 class="event-title">{{ event.title }}</h3>
+                                <div class="event-details">
+                                    <span class="event-time">{{ event.date|uk_day_month }}</span>
+                                    {% if event.location %}
+                                        <div class="event-location">
+                                            <svg class="event-location-icon" viewBox="0 0 24 24" fill="white">
+                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                                            </svg>
+                                            <span class="event-location-text">{{ event.location }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <h3>{% trans "Подій поки немає" %}</h3>
+                    <p>{% trans "Створіть свою першу подію, обравши сценарій!" %}</p>
+                    <a href="{% url 'events:scenario_list' %}" class="btn btn-primary">{% trans "Обрати сценарій" %}</a>
+                </div>
+            {% endif %}
+
+            <!-- Recommendations Section -->
+            <h3 class="recommendations-title">{% trans "Рекомендації" %}</h3>
+            
+            <div class="recommendations-grid">
+                <a href="{% url 'recipes:ai_sommelier' %}" class="recommendation-card">
+                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(52, 168, 83, 0.4), rgba(0, 100, 50, 0.6));display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size: 48px;">🍷</span>
+                    </div>
+                    <h4 class="rec-title">{% trans "AI-Сомельє" %}</h4>
+                    <div class="rec-details">
+                        <span>{% trans "Персональні рекомендації" %}</span>
+                    </div>
+                </a>
+
+                <a href="{% url 'pages:calculator' %}" class="recommendation-card">
+                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(200, 150, 0, 0.4));display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size: 48px;">🧮</span>
+                    </div>
+                    <h4 class="rec-title">{% trans "BAC Калькулятор" %}</h4>
+                    <div class="rec-details">
+                        <span>{% trans "Розрахунок рівня алкоголю" %}</span>
+                    </div>
+                </a>
+
+                <a href="{% url 'shopping:my_lists' %}" class="recommendation-card">
+                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(156, 39, 176, 0.3), rgba(100, 20, 120, 0.4));display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size: 48px;">🛒</span>
+                    </div>
+                    <h4 class="rec-title">{% trans "Списки покупок" %}</h4>
+                    <div class="rec-details">
+                        <span>{% trans "Керуйте покупками" %}</span>
+                    </div>
+                </a>
+
+                <a href="{% url 'pages:plan_choice' %}" class="recommendation-card">
+                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(200, 150, 0, 0.4));display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size: 48px;">⭐</span>
+                    </div>
+                    <h4 class="rec-title" style="color: #FFD700;">Premium</h4>
+                    <div class="rec-details">
+                        <span>{% trans "Розблокуйте всі функції" %}</span>
+                    </div>
+                </a>
+
+                <a href="{% url 'gamification:cocktail_quiz' %}" class="recommendation-card">
+                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(233, 30, 99, 0.3), rgba(180, 20, 80, 0.4));display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size: 48px;">🎯</span>
+                    </div>
+                    <h4 class="rec-title">{% trans "Коктейльна вікторина" %}</h4>
+                    <div class="rec-details">
+                        <span>{% trans "Перевір свої знання" %}</span>
+                    </div>
+                </a>
+
+                <a href="{% url 'recipes:cocktail_search_by_ingredients' %}" class="recommendation-card">
+                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(0, 188, 212, 0.3), rgba(0, 130, 150, 0.4));display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size: 48px;">🔍</span>
+                    </div>
+                    <h4 class="rec-title">{% trans "Пошук за інгредієнтами" %}</h4>
+                    <div class="rec-details">
+                        <span>{% trans "Знайди коктейль" %}</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

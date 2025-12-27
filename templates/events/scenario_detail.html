@@ -1,85 +1,1478 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}{{ scenario.name }} — Alechmy{% endblock %}
+{% block title %}{{ scenario.name }} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+.scenario-page {
+    padding: 30px 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Header */
+.scenario-header {
+    margin-bottom: 30px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 16px;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: #34A853;
+}
+
+.back-link svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+}
+
+.scenario-header h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #34A853;
+    margin: 0 0 12px 0;
+}
+
+.scenario-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(52, 168, 83, 0.15);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 50px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: #34A853;
+}
+
+.scenario-badge svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 12px 20px;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.action-btn:hover {
+    background: rgba(52, 168, 83, 0.15);
+    border-color: rgba(52, 168, 83, 0.4);
+    color: #34A853;
+}
+
+.action-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+}
+
+/* Cards */
+.info-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.card-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #34A853;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-title svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+}
+
+.card-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+/* Profile Card */
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.profile-item {
+    text-align: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 14px;
+}
+
+.profile-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #34A853;
+    margin-bottom: 4px;
+}
+
+.profile-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Section Cards Grid */
+.sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.section-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px;
+}
+
+.section-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(52, 168, 83, 0.15);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.section-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: #34A853;
+    fill: none;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 8px;
+}
+
+.section-text {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.6;
+}
+
+/* Form Styling */
+.form-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.form-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Tabs for drink selection */
+.selection-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px;
+    border-radius: 14px;
+    width: fit-content;
+}
+
+.selection-tab {
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: rgba(255, 255, 255, 0.6);
+    border: none;
+    background: transparent;
+}
+
+.selection-tab:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.selection-tab.active {
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+}
+
+/* Compact selection panel */
+.selection-panel {
+    display: none;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.selection-panel.active {
+    display: block;
+}
+
+/* Scrollbar styling */
+.selection-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.selection-panel::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.selection-panel::-webkit-scrollbar-thumb {
+    background: rgba(52, 168, 83, 0.4);
+    border-radius: 3px;
+}
+
+/* Category accordion */
+.category-group {
+    margin-bottom: 12px;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.category-header:hover {
+    background: rgba(52, 168, 83, 0.1);
+    border-color: rgba(52, 168, 83, 0.3);
+}
+
+.category-header.expanded {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+}
+
+.category-header svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s;
+}
+
+.category-header.expanded svg {
+    transform: rotate(180deg);
+}
+
+.category-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.category-items {
+    display: none;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+}
+
+.category-items.expanded {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+}
+
+/* Compact drink cards */
+.drink-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    position: relative;
+    min-height: 70px;
+}
+
+.drink-option:hover {
+    background: rgba(52, 168, 83, 0.08);
+    border-color: rgba(52, 168, 83, 0.3);
+}
+
+.drink-option.selected {
+    background: rgba(52, 168, 83, 0.15);
+    border-color: #34A853;
+}
+
+.drink-option input {
+    display: none;
+}
+
+.drink-option .check-circle {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.drink-option.selected .check-circle {
+    background: #34A853;
+    border-color: #34A853;
+}
+
+.drink-option.selected .check-circle::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+}
+
+/* Checkbox style */
+.drink-option .check-box {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.drink-option.selected .check-box {
+    background: #34A853;
+    border-color: #34A853;
+}
+
+.drink-option.selected .check-box::after {
+    content: "✓";
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.drink-option .card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+}
+
+.drink-option .name {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.drink-option .strength-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: auto;
+    align-self: flex-start;
+}
+
+.drink-option.recommended {
+    background: rgba(52, 168, 83, 0.1);
+    border-color: rgba(52, 168, 83, 0.3);
+}
+
+.drink-option .abv-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: auto;
+    align-self: flex-start;
+}
+
+.drinks-scrollable {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.drinks-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.drinks-scrollable::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.drinks-scrollable::-webkit-scrollbar-thumb {
+    background: rgba(52, 168, 83, 0.4);
+    border-radius: 3px;
+}
+
+/* Parameters row */
+.params-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    margin-top: 16px;
+}
+
+.param-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.param-group label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.param-input {
+    width: 80px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    text-align: center;
+}
+
+.param-input:focus {
+    outline: none;
+    border-color: #34A853;
+}
+
+/* Selected items counter */
+.selection-counter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(52, 168, 83, 0.1);
+    border-radius: 20px;
+    font-size: 13px;
+    color: #34A853;
+    margin-bottom: 12px;
+}
+
+.selection-counter .count {
+    font-weight: 700;
+    background: #34A853;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+/* Calculations section */
+.calculations-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.calc-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.calc-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #34A853;
+    margin: 0;
+}
+
+.calc-params {
+    display: flex;
+    gap: 16px;
+    margin-left: auto;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.calc-params span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.calc-params strong {
+    color: white;
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.calc-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.calc-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.calc-item-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.calc-item-type {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(52, 168, 83, 0.15);
+    color: #34A853;
+    margin-left: auto;
+}
+
+.calc-item-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.calc-stat {
+    text-align: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+}
+
+.calc-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #34A853;
+}
+
+.calc-stat-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 2px;
+}
+
+/* Form field labels */
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 12px;
+}
+
+/* Difficulty buttons */
+.difficulty-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.difficulty-option {
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.difficulty-option:hover {
+    background: rgba(52, 168, 83, 0.08);
+    border-color: rgba(52, 168, 83, 0.3);
+}
+
+.difficulty-option.selected {
+    background: rgba(52, 168, 83, 0.15);
+    border-color: #34A853;
+    color: #34A853;
+}
+
+.difficulty-option input {
+    display: none;
+}
+
+/* Radio Cards */
+.radio-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.radio-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.radio-card:hover {
+    border-color: rgba(52, 168, 83, 0.4);
+    background: rgba(52, 168, 83, 0.05);
+}
+
+.radio-card input[type="radio"] {
+    accent-color: #34A853;
+    width: 20px;
+    height: 20px;
+}
+
+.radio-card span {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.radio-card .difficulty {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-left: auto;
+}
+
+/* Submit Button */
+.submit-btn {
+    background: linear-gradient(135deg, #34A853 0%, #2d8f47 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 16px 32px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(52, 168, 83, 0.3);
+    width: fit-content;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(52, 168, 83, 0.4);
+}
+
+/* Dishes Selection */
+.dishes-section {
+    margin-top: 24px;
+}
+
+.drink-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(52, 168, 83, 0.2);
+    border-radius: 50px;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: #34A853;
+    margin-bottom: 16px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .scenario-page {
+        padding: 20px 16px;
+    }
+    
+    .profile-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    
+    .profile-item {
+        padding: 12px;
+    }
+    
+    .profile-value {
+        font-size: 18px;
+    }
+    
+    .scenario-header h1 {
+        font-size: 24px;
+    }
+    
+    /* Tabs scrollable */
+    .selection-tabs {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        display: flex;
+        flex-wrap: nowrap;
+    }
+    
+    .selection-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .selection-tab {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    /* Sections */
+    .sections-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .section-card {
+        padding: 16px;
+    }
+    
+    /* Categories */
+    .category-items.expanded {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Calc grid */
+    .calc-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .calc-params {
+        flex-direction: column;
+        gap: 8px;
+        margin-left: 0;
+        margin-top: 12px;
+    }
+    
+    .calc-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    /* Params row */
+    .params-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .param-group {
+        width: 100%;
+    }
+    
+    .param-input {
+        width: 100%;
+    }
+    
+    /* Form fields */
+    .radio-group {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Quick actions */
+    .quick-actions {
+        flex-direction: column;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Submit button */
+    .submit-btn {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    /* Cards */
+    .info-card,
+    .form-card,
+    .calculations-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+    
+    /* Selection panel */
+    .selection-panel {
+        max-height: 350px;
+    }
+    
+    /* Drink options */
+    .drink-option {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .profile-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+    }
+    
+    .profile-value {
+        order: 2;
+    }
+    
+    .profile-label {
+        order: 1;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-  <h1>{{ scenario.name }}</h1>
+<div class="scenario-page">
+    <!-- Header -->
+    <div class="scenario-header">
+        <a href="{% url 'events:scenario_list' %}" class="back-link">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            {% trans "Сценарії" %}
+        </a>
+        <h1>{{ scenario.name }}</h1>
+        <span class="scenario-badge">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            {% trans "Сценарій" %}
+        </span>
+    </div>
 
-  <p>
-    <a href="{% url 'shopping:preview' %}?scenario={{ scenario.id }}">Посчитать покупки по сценарию</a>
-  </p>
-
-
-  <section>
-    <h2>Подготовка</h2>
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{% url 'shopping:preview' %}?scenario={{ scenario.id }}" class="action-btn">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            {% trans "Розрахувати покупки" %}
+        </a>
+    </div>
 
     {% if profile %}
-      <p>
-        <strong>Твои данные профиля:</strong><br>
-        Возраст: {{ profile.age|default:"-" }}<br>
-        Вес: {{ profile.weight_kg|default:"-" }} кг<br>
-        Рост: {{ profile.height_cm|default:"-" }} см
-      </p>
+    <!-- Profile Info -->
+    <div class="info-card">
+        <div class="card-title">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+            {% trans "Твій профіль" %}
+        </div>
+        <div class="profile-grid">
+            <div class="profile-item">
+                <div class="profile-value">{{ profile.age|default:"-" }}</div>
+                <div class="profile-label">{% trans "Вік" %}</div>
+            </div>
+            <div class="profile-item">
+                <div class="profile-value">{{ profile.weight_kg|default:"-" }}</div>
+                <div class="profile-label">{% trans "Вага (кг)" %}</div>
+            </div>
+            <div class="profile-item">
+                <div class="profile-value">{{ profile.height_cm|default:"-" }}</div>
+                <div class="profile-label">{% trans "Зріст (см)" %}</div>
+            </div>
+        </div>
+    </div>
     {% endif %}
 
-    {% if scenario.prep_text %}
-      <p>{{ scenario.prep_text }}</p>
-    {% elif scenario.description %}
-      <p>{{ scenario.description }}</p>
-    {% else %}
-      <p>Пока нет подробного описания подготовки для этого сценария.</p>
+    <!-- Scenario Sections -->
+    <div class="sections-grid">
+        <div class="section-card">
+            <div class="section-icon">
+                <svg viewBox="0 0 24 24" stroke-width="2">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
+            </div>
+            <div class="section-title">{% trans "Підготовка" %}</div>
+            <div class="section-text">
+                {% if scenario.prep_text %}
+                    {{ scenario.prep_text }}
+                {% elif scenario.description %}
+                    {{ scenario.description }}
+                {% else %}
+                    {% trans "Опис підготовки буде додано пізніше" %}
+                {% endif %}
+            </div>
+        </div>
+
+        {% if scenario.during_text %}
+        <div class="section-card">
+            <div class="section-icon">
+                <svg viewBox="0 0 24 24" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+            </div>
+            <div class="section-title">{% trans "Під час події" %}</div>
+            <div class="section-text">{{ scenario.during_text }}</div>
+        </div>
+        {% endif %}
+
+        {% if scenario.after_text %}
+        <div class="section-card">
+            <div class="section-icon">
+                <svg viewBox="0 0 24 24" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <div class="section-title">{% trans "Відновлення" %}</div>
+            <div class="section-text">{{ scenario.after_text }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Drink & Cocktail Selection -->
+    <div class="form-card">
+        <div class="card-title">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <path d="M17 8h1a4 4 0 1 1 0 8h-1"/>
+                <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
+                <line x1="6" y1="2" x2="6" y2="4"/>
+                <line x1="10" y1="2" x2="10" y2="4"/>
+                <line x1="14" y1="2" x2="14" y2="4"/>
+            </svg>
+            {% trans "Вибір напоїв" %}
+        </div>
+        
+        <form method="post" id="drink-selection-form">
+            {% csrf_token %}
+            
+            <!-- Selection Counter -->
+            <div class="selection-counter" id="selection-counter" style="display: none;">
+                <span class="count" id="selection-count">0</span>
+                <span>{% trans "обрано напоїв" %}</span>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="selection-tabs">
+                <button type="button" class="selection-tab active" data-tab="drinks">
+                    🍷 {% trans "Алкоголь" %}
+                </button>
+                <button type="button" class="selection-tab" data-tab="cocktails">
+                    🍹 {% trans "Коктейлі" %}
+                </button>
+                <button type="button" class="selection-tab" data-tab="dishes">
+                    🍽️ {% trans "Страви" %}
+                </button>
+            </div>
+            
+            <!-- Drinks Panel -->
+            <div class="selection-panel active" id="drinks-panel">
+                {% if recommended_drink_ids %}
+                <div class="form-label">⭐ {% trans "Рекомендовані для цього сценарію:" %}</div>
+                <div class="category-items expanded">
+                    {% for drink in all_drinks %}
+                        {% if drink.id in recommended_drink_ids %}
+                        <label class="drink-option recommended" data-id="drink-{{ drink.id }}">
+                            <input type="checkbox" name="drinks" value="{{ drink.id }}" 
+                                   {% if drink in selected_drinks %}checked{% endif %}>
+                            <div class="card-top">
+                                <span class="check-box"></span>
+                                <span class="name">{{ drink.name }}</span>
+                            </div>
+                            {% if drink.abv %}<span class="abv-badge">{{ drink.abv }}%</span>{% endif %}
+                        </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="form-label" style="margin-top: 20px;">📋 {% trans "Всі напої:" %}</div>
+                <div class="category-items expanded drinks-scrollable">
+                    {% for drink in all_drinks %}
+                        {% if drink.id not in recommended_drink_ids %}
+                        <label class="drink-option" data-id="drink-{{ drink.id }}">
+                            <input type="checkbox" name="drinks" value="{{ drink.id }}" 
+                                   {% if drink in selected_drinks %}checked{% endif %}>
+                            <div class="card-top">
+                                <span class="check-box"></span>
+                                <span class="name">{{ drink.name }}</span>
+                            </div>
+                            {% if drink.abv %}<span class="abv-badge">{{ drink.abv }}%</span>{% endif %}
+                        </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Cocktails Panel -->
+            <div class="selection-panel" id="cocktails-panel">
+                <div class="form-label">{% trans "Оберіть коктейлі (можна декілька):" %}</div>
+                {% for category, items in cocktail_categories.items %}
+                <div class="category-group">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                        {{ category }}
+                        <span class="category-count">{{ items|length }}</span>
+                    </div>
+                    <div class="category-items">
+                        {% for cocktail in items %}
+                        <label class="drink-option" data-id="cocktail-{{ cocktail.id }}">
+                            <input type="checkbox" name="cocktails" value="{{ cocktail.id }}"
+                                   {% if cocktail in selected_cocktails %}checked{% endif %}>
+                            <div class="card-top">
+                                <span class="check-box"></span>
+                                <span class="name">{{ cocktail.name }}</span>
+                            </div>
+                            {% if cocktail.strength %}
+                            <span class="strength-badge">{{ cocktail.get_strength_display }}</span>
+                            {% endif %}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">{% trans "Немає коктейлів в базі" %}</div>
+                {% endfor %}
+            </div>
+            
+            <!-- Dishes Panel -->
+            <div class="selection-panel" id="dishes-panel">
+                {% if recommended_dish_ids %}
+                <div class="form-label">⭐ {% trans "Рекомендовані до обраних напоїв:" %}</div>
+                <div class="category-items expanded">
+                    {% for dish in all_dishes %}
+                        {% if dish.id in recommended_dish_ids %}
+                        <label class="drink-option recommended" data-id="dish-{{ dish.id }}">
+                            <input type="checkbox" name="dishes" value="{{ dish.id }}" 
+                                   {% if dish in selected_dishes %}checked{% endif %}>
+                            <div class="card-top">
+                                <span class="check-box"></span>
+                                <span class="name">{{ dish.name }}</span>
+                            </div>
+                            <span class="strength-badge">{{ dish.get_difficulty_display }}</span>
+                        </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="form-label" style="margin-top: 20px;">📋 {% trans "Всі страви:" %}</div>
+                <div class="category-items expanded drinks-scrollable">
+                    {% for dish in all_dishes %}
+                        {% if dish.id not in recommended_dish_ids %}
+                        <label class="drink-option" data-id="dish-{{ dish.id }}">
+                            <input type="checkbox" name="dishes" value="{{ dish.id }}" 
+                                   {% if dish in selected_dishes %}checked{% endif %}>
+                            <div class="card-top">
+                                <span class="check-box"></span>
+                                <span class="name">{{ dish.name }}</span>
+                            </div>
+                            <span class="strength-badge">{{ dish.get_difficulty_display }}</span>
+                        </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Parameters -->
+            <div class="params-row">
+                <div class="param-group">
+                    <label>👥 {% trans "Людей" %}</label>
+                    <input type="number" name="people_count" class="param-input" 
+                           value="{{ people_count|default:2 }}" min="1" max="100">
+                </div>
+                <div class="param-group">
+                    <label>⏱️ {% trans "Годин" %}</label>
+                    <input type="number" name="duration_hours" class="param-input" 
+                           value="{{ duration_hours|default:3 }}" min="1" max="24">
+                </div>
+                <div class="param-group">
+                    <label>🔥 {% trans "Темп" %}</label>
+                    <div class="difficulty-options" style="flex-direction: row; margin-top: 0;">
+                        <label class="difficulty-option {% if intensity == 'low' %}selected{% endif %}" style="padding: 8px 12px;">
+                            <input type="radio" name="intensity" value="low" {% if intensity == 'low' %}checked{% endif %}>
+                            🐢 {% trans "Спокійно" %}
+                        </label>
+                        <label class="difficulty-option {% if intensity == 'medium' or not intensity %}selected{% endif %}" style="padding: 8px 12px;">
+                            <input type="radio" name="intensity" value="medium" {% if intensity == 'medium' or not intensity %}checked{% endif %}>
+                            🎉 {% trans "Нормально" %}
+                        </label>
+                        <label class="difficulty-option {% if intensity == 'high' %}selected{% endif %}" style="padding: 8px 12px;">
+                            <input type="radio" name="intensity" value="high" {% if intensity == 'high' %}checked{% endif %}>
+                            🔥 {% trans "Жорстко" %}
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="calculate-btn" style="margin-top: 20px;">
+                <span class="btn-text">{% trans "Розрахувати" %}</span>
+                <span class="btn-loading" style="display: none;">⏳ {% trans "Обчислення..." %}</span>
+            </button>
+        </form>
+    </div>
+    
+    <!-- Results Container (for AJAX) -->
+    <div id="results-container">
+    {% if drink_calculations %}
+    <!-- Calculations Results -->
+    <div class="calculations-card">
+        <div class="calc-header">
+            <svg viewBox="0 0 24 24" stroke="#34A853" fill="none" stroke-width="2" width="24" height="24">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                <path d="M9 9h6M9 13h6M9 17h4"/>
+            </svg>
+            <h3>{% trans "Розрахунок напоїв" %}</h3>
+            <div class="calc-params">
+                <span>👥 <strong>{{ people_count }}</strong> {% trans "осіб" %}</span>
+                <span>⏱️ <strong>{{ duration_hours }}</strong> {% trans "год" %}</span>
+                <span>
+                    {% if intensity == 'low' %}🐢{% elif intensity == 'high' %}🔥{% else %}🎉{% endif %}
+                    <strong>{% if intensity == 'low' %}{% trans "Спокійно" %}{% elif intensity == 'high' %}{% trans "Жорстко" %}{% else %}{% trans "Нормально" %}{% endif %}</strong>
+                </span>
+            </div>
+        </div>
+        
+        <div class="calc-grid">
+            {% for calc in drink_calculations %}
+            <div class="calc-item">
+                <div class="calc-item-header">
+                    <span class="calc-item-name">{{ calc.name }}</span>
+                    <span class="calc-item-type">
+                        {% if calc.type == 'cocktail' %}🍹{% else %}🍷{% endif %}
+                        {{ calc.strength }}
+                    </span>
+                </div>
+                <div class="calc-item-stats">
+                    <div class="calc-stat">
+                        <div class="calc-stat-value">{{ calc.portions_per_person }}</div>
+                        <div class="calc-stat-label">{% trans "порцій/особу" %}</div>
+                    </div>
+                    <div class="calc-stat">
+                        <div class="calc-stat-value">{{ calc.total_portions }}</div>
+                        <div class="calc-stat-label">{% trans "всього порцій" %}</div>
+                    </div>
+                    <div class="calc-stat">
+                        <div class="calc-stat-value">{{ calc.portion_ml }}мл</div>
+                        <div class="calc-stat-label">{{ calc.portion_name }}</div>
+                    </div>
+                    <div class="calc-stat">
+                        <div class="calc-stat-value">{{ calc.total_ml }}мл</div>
+                        <div class="calc-stat-label">{% trans "всього" %}</div>
+                    </div>
+                    {% if calc.bottles %}
+                    <div class="calc-stat">
+                        <div class="calc-stat-value">{{ calc.bottles }}</div>
+                        <div class="calc-stat-label">{% trans "пляшок" %} (0.75л)</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
     {% endif %}
-  </section>
 
-  {% if scenario.during_text %}
-    <section>
-      <h2>Во время события</h2>
-      <p>{{ scenario.during_text }}</p>
-    </section>
-  {% endif %}
+    {% if selected_drinks or selected_cocktails %}
+            {% if dishes %}
+    <!-- Dish Selection -->
+    <div class="form-card dishes-section">
+        <div class="card-title">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+            </svg>
+            {% trans "Рекомендовані страви" %}
+        </div>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+            {% for drink in selected_drinks %}
+            <div class="drink-badge">🍷 {{ drink.name }}</div>
+            {% endfor %}
+            {% for cocktail in selected_cocktails %}
+            <div class="drink-badge">🍹 {{ cocktail.name }}</div>
+            {% endfor %}
+        </div>
 
-  {% if scenario.after_text %}
-    <section>
-      <h2>Восстановление</h2>
-      <p>{{ scenario.after_text }}</p>
-    </section>
-  {% endif %}
+        <form method="post" action="{% url 'events:event_create_from_scenario' scenario.slug %}">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="select_dish">
+            {% for drink in selected_drinks %}
+            <input type="hidden" name="drink_ids" value="{{ drink.id }}">
+            {% endfor %}
+            {% for cocktail in selected_cocktails %}
+            <input type="hidden" name="cocktail_ids" value="{{ cocktail.id }}">
+            {% endfor %}
+            <input type="hidden" name="people_count" value="{{ people_count }}">
+            <input type="hidden" name="duration_hours" value="{{ duration_hours }}">
+            <input type="hidden" name="difficulty" value="{{ selected_difficulty }}">
 
-  <section>
-    <h2>Выбор напитка и сложности блюда</h2>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Показать подходящие блюда</button>
-    </form>
-  </section>
 
-  {% if selected_drink and dishes %}
-    <section>
-      <h2>Выбор блюда</h2>
-      <p>Напиток: {{ selected_drink.name }}</p>
+            <div class="radio-group">
+                {% for dish in dishes %}
+                <label class="radio-card">
+                    <input type="checkbox" name="dish_ids" value="{{ dish.id }}">
+                    <span>{{ dish.name }}</span>
+                    <span class="difficulty">{{ dish.get_difficulty_display }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <div style="margin-top: 10px; color: #888; font-size: 0.95em;">
+                {% trans "Можна не вибирати страви зараз — додати їх можна буде у деталях події." %}
+            </div>
 
-      <form method="post" action="{% url 'events:event_create_from_scenario' scenario.slug %}">
-        {% csrf_token %}
-        <input type="hidden" name="step" value="select_dish">
-        <input type="hidden" name="drink_id" value="{{ selected_drink.id }}">
-        <input type="hidden" name="difficulty" value="{{ selected_difficulty }}">
-
-        {% for dish in dishes %}
-          <p>
-            <label>
-              <input type="radio" name="dish_id" value="{{ dish.id }}" required>
-              {{ dish.name }} ({{ dish.get_difficulty_display }})
-            </label>
-          </p>
-        {% endfor %}
-
-        <button type="submit">Перейти к параметрам события</button>
-      </form>
-    </section>
-  {% elif selected_drink and not dishes %}
-    <p>К этому напитку пока нет блюд в базе.</p>
-  {% endif %}
-
-  <p><a href="{% url 'events:scenario_list' %}">К списку сценариев</a></p>
+            <button type="submit" class="submit-btn" style="margin-top: 20px;">{% trans "Створити подію" %}</button>
+        </form>
+    </div>
+        {% else %}
+    <div class="info-card">
+        <div class="empty-state">
+            {% trans "Для обраних напоїв підійдуть будь-які закуски" %}
+        </div>
+    </div>
+            <form method="post" action="{% url 'events:event_create_from_scenario' scenario.slug %}" style="text-align:center; margin-top: 24px;">
+                {% csrf_token %}
+                <input type="hidden" name="step" value="select_dish">
+                {% for drink in selected_drinks %}
+                    <input type="hidden" name="drink_ids" value="{{ drink.id }}">
+                {% endfor %}
+                {% for cocktail in selected_cocktails %}
+                    <input type="hidden" name="cocktail_ids" value="{{ cocktail.id }}">
+                {% endfor %}
+                <input type="hidden" name="people_count" value="{{ people_count }}">
+                <input type="hidden" name="duration_hours" value="{{ duration_hours }}">
+                <input type="hidden" name="difficulty" value="{{ selected_difficulty }}">
+                <button type="submit" class="submit-btn" style="margin-top: 20px;">{% trans "Створити подію без страви" %}</button>
+            </form>
+        {% endif %}
+    {% endif %}
+    </div><!-- end results-container -->
+    
+    <script nonce="{{ csp_nonce }}">
+    // Tab switching
+    document.querySelectorAll('.selection-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.selection-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            const tabName = this.dataset.tab;
+            document.querySelectorAll('.selection-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(tabName + '-panel').classList.add('active');
+        });
+    });
+    
+    // Checkbox selection with visual feedback
+    document.querySelectorAll('.drink-option input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', function() {
+            const option = this.closest('.drink-option');
+            if (this.checked) {
+                option.classList.add('selected');
+            } else {
+                option.classList.remove('selected');
+            }
+            updateSelectionCounter();
+        });
+        
+        // Initial state
+        if (input.checked) {
+            input.closest('.drink-option').classList.add('selected');
+        }
+    });
+    
+    // Difficulty selection
+    document.querySelectorAll('.difficulty-option input').forEach(input => {
+        input.addEventListener('change', function() {
+            document.querySelectorAll('.difficulty-option').forEach(o => o.classList.remove('selected'));
+            this.closest('.difficulty-option').classList.add('selected');
+        });
+    });
+    
+    // Update counter
+    function updateSelectionCounter() {
+        const count = document.querySelectorAll('.drink-option input[type="checkbox"]:checked').length;
+        const counter = document.getElementById('selection-counter');
+        const countEl = document.getElementById('selection-count');
+        
+        if (count > 0) {
+            counter.style.display = 'flex';
+            countEl.textContent = count;
+        } else {
+            counter.style.display = 'none';
+        }
+    }
+    updateSelectionCounter();
+    
+    // Category accordion
+    function toggleCategory(header) {
+        const items = header.nextElementSibling;
+        const isExpanded = header.classList.contains('expanded');
+        
+        if (isExpanded) {
+            header.classList.remove('expanded');
+            items.classList.remove('expanded');
+        } else {
+            header.classList.add('expanded');
+            items.classList.add('expanded');
+        }
+    }
+    
+    // AJAX form submission
+    const form = document.getElementById('drink-selection-form');
+    const resultsContainer = document.getElementById('results-container');
+    const calculateBtn = document.getElementById('calculate-btn');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const btnText = calculateBtn.querySelector('.btn-text');
+        const btnLoading = calculateBtn.querySelector('.btn-loading');
+        
+        // Show loading state
+        btnText.style.display = 'none';
+        btnLoading.style.display = 'inline';
+        calculateBtn.disabled = true;
+        
+        const formData = new FormData(form);
+        
+        fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            resultsContainer.innerHTML = html;
+            // Smooth scroll to results
+            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            resultsContainer.innerHTML = '<div class="error-message">Помилка при розрахунку. Спробуйте ще раз.</div>';
+        })
+        .finally(() => {
+            // Reset button state
+            btnText.style.display = 'inline';
+            btnLoading.style.display = 'none';
+            calculateBtn.disabled = false;
+        });
+    });
+    </script>
+</div>
 {% endblock %}

@@ -1,73 +1,646 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Алко-дневник — Alechmy{% endblock %}
+{% block title %}{% trans "Алко-щоденник" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style nonce="{{ csp_nonce }}">
+.diary-page {
+    padding: 30px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.add-btn {
+    background: #34A853;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.add-btn:hover {
+    background: #2d9046;
+    transform: translateY(-2px);
+}
+
+/* Stats Cards Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-value {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #34A853;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.stat-sublabel {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 4px;
+}
+
+/* Charts Section */
+.charts-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 1100px) {
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chart-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px;
+}
+
+.chart-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-title svg {
+    width: 20px;
+    height: 20px;
+    color: #34A853;
+}
+
+.chart-container {
+    height: 250px;
+    position: relative;
+}
+
+/* Logs Table */
+.logs-section {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px;
+}
+
+.section-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.logs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.logs-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logs-table td {
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 14px;
+}
+
+.logs-table tr:hover {
+    background: rgba(52, 168, 83, 0.05);
+}
+
+.log-link {
+    color: #34A853;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.log-link:hover {
+    text-decoration: underline;
+}
+
+.bac-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.bac-low { background: rgba(52, 168, 83, 0.2); color: #34A853; }
+.bac-medium { background: rgba(255, 193, 7, 0.2); color: #FFC107; }
+.bac-high { background: rgba(255, 152, 0, 0.2); color: #FF9800; }
+.bac-danger { background: rgba(244, 67, 54, 0.2); color: #F44336; }
+
+.drink-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-state svg {
+    width: 80px;
+    height: 80px;
+    opacity: 0.3;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+/* Top Drinks */
+.top-drinks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.top-drink-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+}
+
+.top-drink-name {
+    font-weight: 500;
+    color: #fff;
+}
+
+.top-drink-count {
+    color: #34A853;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .diary-page {
+        padding: 20px 16px;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .logs-table {
+        font-size: 12px;
+    }
+    
+    .logs-table th, .logs-table td {
+        padding: 10px 8px;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-  <h1>Алко-дневник</h1>
+<div class="diary-page">
+    <div class="page-header">
+        <h1 class="page-title">
+            📊 {% trans "Алко-щоденник" %}
+        </h1>
+        <a href="{% url 'events:diary_add' %}" class="add-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            {% trans "Додати запис" %}
+        </a>
+    </div>
 
-  <p><a href="{% url 'events:diary_add' %}">Добавить запись</a></p>
+    {% if stats %}
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total_logs }}</div>
+            <div class="stat-label">{% trans "Всього записів" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total_volume_ml|floatformat:0 }}</div>
+            <div class="stat-label">{% trans "мл загалом" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{% if stats.avg_bac %}{{ stats.avg_bac|floatformat:2 }}‰{% else %}—{% endif %}</div>
+            <div class="stat-label">{% trans "Середній BAC" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{% if stats.max_bac %}{{ stats.max_bac|floatformat:2 }}‰{% else %}—{% endif %}</div>
+            <div class="stat-label">{% trans "Макс BAC" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.week_logs }}</div>
+            <div class="stat-label">{% trans "За тиждень" %}</div>
+            <div class="stat-sublabel">{{ stats.week_volume|floatformat:0 }} {% trans "мл" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.month_logs }}</div>
+            <div class="stat-label">{% trans "За місяць" %}</div>
+            <div class="stat-sublabel">{{ stats.month_volume|floatformat:0 }} {% trans "мл" %}</div>
+        </div>
+    </div>
 
-  {% if logs %}
-    <table border="1" cellpadding="4">
-      <thead>
-        <tr>
-          <th>Когда</th>
-          <th>Событие</th>
-          <th>Напиток</th>
-          <th>Объём, мл</th>
-          <th>Крепость, %</th>
-          <th>Оценка BAC, ‰</th>
-          <th>Заметка</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for log in logs %}
-          <tr>
-            <td>
-              <a href="{% url 'events:diary_detail' log.pk %}">
-                {{ log.taken_at }}
-              </a>
-            </td>
-            <td>
-              {% if log.event %}
-                <a href="{% url 'events:event_detail' log.event.pk %}">
-                  {{ log.event.scenario.name }} ({{ log.event.date }})
-                </a>
-              {% else %}
-                —
-              {% endif %}
-            </td>
-            <td>
-              {% if log.drink %}
-                {{ log.drink.name }}
-              {% else %}
-                —
-              {% endif %}
-            </td>
-            <td>{{ log.volume_ml }}</td>
-            <td>
-              {% if log.abv %}
-                {{ log.abv }}
-              {% elif log.drink and log.drink.abv %}
-                {{ log.drink.abv }}
-              {% else %}
-                —
-              {% endif %}
-            </td>
-            <td>
-              {% if log.bac_estimate %}
-                {{ log.bac_estimate }}
-              {% else %}
-                —
-              {% endif %}
-            </td>
-            <td>{{ log.note }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>Записей пока нет.</p>
-  {% endif %}
+    <!-- Charts -->
+    <div class="charts-section">
+        <!-- BAC Chart -->
+        <div class="chart-card">
+            <h3 class="chart-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline>
+                </svg>
+                {% trans "BAC за останні 14 днів" %}
+            </h3>
+            <div class="chart-container">
+                <canvas id="bacChart"></canvas>
+            </div>
+        </div>
 
+        <!-- Volume Chart -->
+        <div class="chart-card">
+            <h3 class="chart-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+                {% trans "Об'єм споживання (мл)" %}
+            </h3>
+            <div class="chart-container">
+                <canvas id="volumeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Hourly Distribution -->
+        <div class="chart-card">
+            <h3 class="chart-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12,6 12,12 16,14"></polyline>
+                </svg>
+                {% trans "Розподіл за годинами" %}
+            </h3>
+            <div class="chart-container">
+                <canvas id="hourlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Weekday Distribution -->
+        <div class="chart-card">
+            <h3 class="chart-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                {% trans "Розподіл за днями тижня" %}
+            </h3>
+            <div class="chart-container">
+                <canvas id="weekdayChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Drinks -->
+    {% if stats.top_drinks %}
+    <div class="chart-card" style="margin-bottom: 30px;">
+        <h3 class="chart-title">
+            🍹 {% trans "Топ напоїв" %}
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="top-drinks-list">
+                {% for drink in stats.top_drinks %}
+                <div class="top-drink-item">
+                    <span class="top-drink-name">{{ drink.drink__name }}</span>
+                    <span class="top-drink-count">{{ drink.count }}x ({{ drink.total_volume }} {% trans "мл" %})</span>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="chart-container" style="height: 200px;">
+                <canvas id="topDrinksChart"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Logs Table -->
+    <div class="logs-section">
+        <h2 class="section-title">📝 {% trans "Записи" %}</h2>
+
+        {% if logs %}
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>{% trans "Дата і час" %}</th>
+                    <th>{% trans "Напій" %}</th>
+                    <th>{% trans "Об'єм" %}</th>
+                    <th>{% trans "Міцність" %}</th>
+                    <th>{% trans "BAC" %}</th>
+                    <th>{% trans "Подія" %}</th>
+                    <th>{% trans "Нотатка" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>
+                        <a href="{% url 'events:diary_detail' log.pk %}" class="log-link">
+                            {{ log.taken_at|date:"d.m.Y H:i" }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if log.drink %}
+                        <span class="drink-badge">
+                            🍷 {{ log.drink.name }}
+                        </span>
+                        {% else %}
+                        <span style="color: rgba(255,255,255,0.4);">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.volume_ml }} {% trans "мл" %}</td>
+                    <td>
+                        {% if log.abv %}
+                            {{ log.abv }}%
+                        {% elif log.drink and log.drink.abv %}
+                            {{ log.drink.abv }}%
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.bac_estimate %}
+                            <span class="bac-badge {% if log.bac_estimate < 0.3 %}bac-low{% elif log.bac_estimate < 0.8 %}bac-medium{% elif log.bac_estimate < 1.5 %}bac-high{% else %}bac-danger{% endif %}">
+                                {{ log.bac_estimate|floatformat:2 }}‰
+                            </span>
+                        {% else %}
+                            <span style="color: rgba(255,255,255,0.4);">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.event %}
+                        <a href="{% url 'events:event_detail' log.event.pk %}" class="log-link">
+                            {{ log.event.scenario.name }}
+                        </a>
+                        {% else %}
+                        <span style="color: rgba(255,255,255,0.4);">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {{ log.note|default:"—" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+            </svg>
+            <h3>{% trans "Записів поки немає" %}</h3>
+            <p>{% trans "Додайте свій перший запис, щоб почати відстежувати споживання" %}</p>
+            <a href="{% url 'events:diary_add' %}" class="add-btn" style="display: inline-flex; margin-top: 16px;">
+                {% trans "Додати запис" %}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if stats %}
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('DOMContentLoaded', function() {
+    const chartColors = {
+        green: 'rgba(52, 168, 83, 1)',
+        greenLight: 'rgba(52, 168, 83, 0.3)',
+        yellow: 'rgba(255, 193, 7, 1)',
+        yellowLight: 'rgba(255, 193, 7, 0.3)',
+        red: 'rgba(244, 67, 54, 1)',
+        redLight: 'rgba(244, 67, 54, 0.3)',
+        white: 'rgba(255, 255, 255, 0.7)',
+        grid: 'rgba(255, 255, 255, 0.1)'
+    };
+
+    const defaultOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: chartColors.white }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: chartColors.white },
+                grid: { color: chartColors.grid }
+            },
+            y: {
+                ticks: { color: chartColors.white },
+                grid: { color: chartColors.grid }
+            }
+        }
+    };
+
+    // BAC Chart
+    const bacCtx = document.getElementById('bacChart');
+    if (bacCtx) {
+        new Chart(bacCtx, {
+            type: 'line',
+            data: {
+                labels: {{ stats.bac_chart_labels|safe }},
+                datasets: [{
+                    label: '{% trans "Середній BAC" %}',
+                    data: {{ stats.bac_chart_avg|safe }},
+                    borderColor: chartColors.green,
+                    backgroundColor: chartColors.greenLight,
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: '{% trans "Макс BAC" %}',
+                    data: {{ stats.bac_chart_max|safe }},
+                    borderColor: chartColors.yellow,
+                    backgroundColor: 'transparent',
+                    tension: 0.4,
+                    borderDash: [5, 5]
+                }]
+            },
+            options: defaultOptions
+        });
+    }
+
+    // Volume Chart
+    const volumeCtx = document.getElementById('volumeChart');
+    if (volumeCtx) {
+        new Chart(volumeCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ stats.volume_chart_labels|safe }},
+                datasets: [{
+                    label: "{% trans "Об'єм (мл)" %}",
+                    data: {{ stats.volume_chart_data|safe }},
+                    backgroundColor: chartColors.green,
+                    borderRadius: 8
+                }]
+            },
+            options: defaultOptions
+        });
+    }
+
+    // Hourly Chart
+    const hourlyCtx = document.getElementById('hourlyChart');
+    if (hourlyCtx) {
+        new Chart(hourlyCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ stats.hourly_labels|safe }},
+                datasets: [{
+                    label: '{% trans "Кількість записів" %}',
+                    data: {{ stats.hourly_data|safe }},
+                    backgroundColor: chartColors.greenLight,
+                    borderColor: chartColors.green,
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                ...defaultOptions,
+                plugins: {
+                    ...defaultOptions.plugins,
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    // Weekday Chart
+    const weekdayCtx = document.getElementById('weekdayChart');
+    if (weekdayCtx) {
+        new Chart(weekdayCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ stats.weekday_labels|safe }},
+                datasets: [{
+                    label: '{% trans "Записів" %}',
+                    data: {{ stats.weekday_count|safe }},
+                    backgroundColor: chartColors.green,
+                    borderRadius: 8
+                }]
+            },
+            options: defaultOptions
+        });
+    }
+
+    // Top Drinks Doughnut
+    const topDrinksCtx = document.getElementById('topDrinksChart');
+    if (topDrinksCtx) {
+        new Chart(topDrinksCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ stats.top_drinks_labels|safe }},
+                datasets: [{
+                    data: {{ stats.top_drinks_data|safe }},
+                    backgroundColor: [
+                        'rgba(52, 168, 83, 0.8)',
+                        'rgba(255, 193, 7, 0.8)',
+                        'rgba(156, 39, 176, 0.8)',
+                        'rgba(33, 150, 243, 0.8)',
+                        'rgba(255, 87, 34, 0.8)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: chartColors.white }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endif %}
 {% endblock %}

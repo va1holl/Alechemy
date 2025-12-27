@@ -1,53 +1,104 @@
-<!doctype html>
-<html lang="ru">
+{% load static i18n %}<!doctype html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>{% block title %}Alechmy{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Alechemy{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+  <link rel="stylesheet" href="{% static 'css/index.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+  {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% if request.user.is_authenticated %}has-rail{% endif %}" style="background:#030604;">
+<style nonce="{{ csp_nonce }}">
+  /* Messages styles */
+  .messages-container {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 100%;
+    max-width: 600px;
+    padding: 16px;
+  }
+  .messages {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .messages .message {
+    background: rgba(220, 53, 69, 0.95);
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4);
+    animation: slideDown 0.3s ease-out;
+  }
+  .messages .message.success {
+    background: rgba(52, 168, 83, 0.95);
+    box-shadow: 0 4px 20px rgba(52, 168, 83, 0.4);
+  }
+  .messages .message.warning {
+    background: rgba(255, 193, 7, 0.95);
+    color: #000;
+    box-shadow: 0 4px 20px rgba(255, 193, 7, 0.4);
+  }
+  .messages .message.info {
+    background: rgba(23, 162, 184, 0.95);
+    box-shadow: 0 4px 20px rgba(23, 162, 184, 0.4);
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .side-rail { position: fixed; left: 0; top: 0; width: 144px; min-height: 100vh; background: #040b07; display: flex; flex-direction: column; align-items: center; padding: 24px 0; gap: 48px; border-right: 1px solid rgba(255,255,255,0.08); z-index: 40; }
+  .side-rail__logo-link { display: block; }
+  .side-rail__logo-img { width: 48px; height: auto; border-radius: 8px; box-shadow: 0 0 18px rgba(52,168,83,0.35); transition: transform 0.3s; }
+  .side-rail__logo-img:hover { transform: scale(1.05); }
+  .side-rail__nav { display: flex; flex-direction: column; align-items: center; gap: 32px; }
+  .side-rail__item { width: 32px; height: 32px; opacity: 0.65; transition: opacity .2s ease, transform .2s ease; display: flex; align-items: center; justify-content: center; color: #fff; }
+  .side-rail__item:hover { opacity: 1; transform: scale(1.05); }
+  .side-rail__item.active { opacity: 1; }
+  .side-rail__premium { opacity: 1; }
+  .side-rail__premium svg { filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6)); }
+  .side-rail__premium:hover svg { filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.9)); }
+  body.has-rail main { margin-left: 170px; width: calc(100% - 170px); }
+  body.has-rail header { margin-left: 170px; width: calc(100% - 170px); }
+  @media (max-width: 900px) {
+    .side-rail { display: none; }
+    body.has-rail main, body.has-rail header { margin-left: 0; }
+  }
+</style>
 <header>
-  <nav>
-    <a href="{% url 'pages:home' %}">Главная</a>
-
-    {% if request.user.is_authenticated %}
-      |
-      <a href="{% url 'pages:me' %}">Мой профиль</a>
-      |
-      <a href="{% url 'events:scenario_list' %}">Сценарии</a>
-      |
-      <a href="{% url 'events:event_list' %}">Мои события</a>
-      |
-      <a href="{% url 'events:diary_list' %}">Алко-дневник</a>
-      |
-      <a href="{% url 'shopping:preview' %}">Покупки</a>
-      |
-      <a href="{% url 'shopping:my_lists' %}">Мои списки</a>
-
-      |
-      <form action="{% url 'accounts:logout' %}" method="post" style="display:inline">
-        {% csrf_token %}
-        <button type="submit">Выйти</button>
-      </form>
-    {% else %}
-      |
-      <a href="{% url 'accounts:login' %}">Войти</a>
-      |
-      <a href="{% url 'accounts:signup' %}">Регистрация</a>
-    {% endif %}
-  </nav>
-
   {% if messages %}
-    <ul>
-      {% for m in messages %}
-        <li>{{ m }}</li>
-      {% endfor %}
-    </ul>
+    <div class="messages-container">
+      <ul class="messages">
+        {% for m in messages %}
+          <li class="message {% if m.tags %}{{ m.tags }}{% endif %}">{{ m }}</li>
+        {% endfor %}
+      </ul>
+    </div>
   {% endif %}
 </header>
+
+{% if request.user.is_authenticated %}
+  {% include "partials/side_rail.html" %}
+  {% include "partials/mobile_nav.html" %}
+{% endif %}
 
 <main>
   {% block content %}{% endblock %}
 </main>
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

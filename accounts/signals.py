@@ -9,11 +9,9 @@ User = get_user_model()
 
 @receiver(post_save, sender=User)
 def create_profile_for_new_user(sender, instance, created, **kwargs):
+    """Створює профіль тільки для нового користувача."""
     if created:
         Profile.objects.get_or_create(user=instance)
 
-
-@receiver(post_save, sender=User)
-def save_profile_for_user(sender, instance, **kwargs):
-    if hasattr(instance, "profile"):
-        instance.profile.save()
+# Прибрано save_profile_for_user - він створював зайві UPDATE при кожному User.save()
+# Профіль зберігається окремо через profile.save() де потрібно

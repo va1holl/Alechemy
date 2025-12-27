@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Сповіщення" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@700&display=swap');
+
+.notifications-page {
+    background: transparent;
+    min-height: 100vh;
+    padding: 45px 52px 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #34A853;
+    text-align: center;
+    margin-bottom: 40px;
+    letter-spacing: -0.24px;
+}
+
+.notifications-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.notification-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    padding: 0 24px;
+    color: #fff;
+}
+
+.notification-card {
+    display: flex;
+    gap: 12px;
+    padding: 0 24px;
+}
+
+.avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.avatar-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.avatar-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.avatar-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.avatar-4 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.avatar-system { background: linear-gradient(135deg, #34A853 0%, #1e6b35 100%); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+
+.avatar-group {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+}
+
+.avatar-group .avatar {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-group .avatar:first-child {
+    top: 0;
+    left: 24px;
+    z-index: 2;
+}
+
+.avatar-group .avatar:last-child {
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 48px;
+    height: 48px;
+}
+
+.notification-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 400px;
+}
+
+.notification-text {
+    font-size: 14px;
+    line-height: 20px;
+    color: #ffffff;
+}
+
+.notification-text .bold {
+    font-weight: 600;
+    color: #34A853;
+}
+
+.notification-time {
+    font-size: 12px;
+    line-height: 20px;
+    color: #ffffff;
+    opacity: 0.7;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.btn-outline,
+.btn-primary-notif {
+    height: 40px;
+    padding: 8px 16px;
+    border-radius: 24px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #34A853;
+    color: #34A853;
+}
+
+.btn-outline:hover {
+    background: rgba(52, 168, 83, 0.1);
+}
+
+.btn-primary-notif {
+    background: #34A853;
+    color: #ffffff;
+}
+
+.btn-primary-notif:hover {
+    background: #2d9046;
+}
+
+.response-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.response-badge.accepted {
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+    border: 1px solid rgba(52, 168, 83, 0.3);
+}
+
+.response-badge.declined {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    width: calc(100% - 48px);
+    margin: 8px 24px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-state svg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+}
+
+@media (max-width: 768px) {
+    .notifications-page {
+        padding: 30px 20px;
+    }
+
+    .notification-card {
+        padding: 0 16px;
+    }
+
+    .section-title {
+        padding: 0 16px;
+    }
+
+    .divider {
+        width: calc(100% - 32px);
+        margin: 8px 16px;
+    }
+
+    .notification-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .btn-outline,
+    .btn-primary-notif {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-page">
+    <h1 class="page-title">{% trans "Сповіщення" %}</h1>
+
+    <div class="notifications-container">
+        {% if today_notifications %}
+        <div class="notification-section">
+            <h2 class="section-title">{% trans "Сьогодні" %}</h2>
+            
+            {% for n in today_notifications %}
+            <div class="notification-card" data-id="{{ n.id }}">
+                {% if n.related_user %}
+                <div class="avatar avatar-{{ forloop.counter|add:0|divisibleby:4|yesno:'4,1' }}"></div>
+                {% else %}
+                <div class="avatar avatar-system">
+                    {% if n.notification_type == 'achievement' %}🏆{% elif n.notification_type == 'challenge' %}🎯{% else %}🔔{% endif %}
+                </div>
+                {% endif %}
+                <div class="notification-content">
+                    <p class="notification-text">
+                        {% if n.related_user %}<span class="bold">{{ n.related_user.profile.get_display_name }}</span> {% endif %}{{ n.title }}
+                    </p>
+                    <p class="notification-time">{{ n.created_at|timesince }} {% trans "тому" %}</p>
+                    {% if n.action_required %}
+                        {% if n.response_action == 'accepted' %}
+                        <div class="response-badge accepted">✓ {% trans "Прийнято" %}</div>
+                        {% elif n.response_action == 'declined' %}
+                        <div class="response-badge declined">✕ {% trans "Відхилено" %}</div>
+                        {% else %}
+                        <div class="notification-actions">
+                            <a href="{% url 'pages:notification_action' n.id 'decline' %}" class="btn-outline">{% trans "Відхилити" %}</a>
+                            <a href="{% url 'pages:notification_action' n.id 'accept' %}" class="btn-primary-notif">{% trans "Прийняти" %}</a>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="divider"></div>
+        {% endif %}
+
+        {% if yesterday_notifications %}
+        <div class="notification-section">
+            <h2 class="section-title">{% trans "Вчора" %}</h2>
+            
+            {% for n in yesterday_notifications %}
+            <div class="notification-card" data-id="{{ n.id }}">
+                {% if n.related_user %}
+                <div class="avatar avatar-{{ forloop.counter|divisibleby:2|yesno:'2,3' }}"></div>
+                {% else %}
+                <div class="avatar avatar-system">
+                    {% if n.notification_type == 'achievement' %}🏆{% elif n.notification_type == 'challenge' %}🎯{% else %}🔔{% endif %}
+                </div>
+                {% endif %}
+                <div class="notification-content">
+                    <p class="notification-text">
+                        {% if n.related_user %}<span class="bold">{{ n.related_user.username }}</span> {% endif %}{{ n.title }}
+                    </p>
+                    <p class="notification-time">{{ n.created_at|time:"H:i" }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="divider"></div>
+        {% endif %}
+
+        {% for date_key, notifications in older_notifications.items %}
+        <div class="notification-section">
+            <h2 class="section-title">{{ date_key }}</h2>
+            
+            {% for n in notifications %}
+            <div class="notification-card" data-id="{{ n.id }}">
+                {% if n.related_user %}
+                <div class="avatar avatar-{{ forloop.counter|divisibleby:3|yesno:'1,4' }}"></div>
+                {% else %}
+                <div class="avatar avatar-system">🔔</div>
+                {% endif %}
+                <div class="notification-content">
+                    <p class="notification-text">
+                        {% if n.related_user %}<span class="bold">{{ n.related_user.username }}</span> {% endif %}{{ n.title }}
+                    </p>
+                    <p class="notification-time">{{ n.created_at|time:"H:i" }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if not forloop.last %}<div class="divider"></div>{% endif %}
+        {% empty %}
+        {% if not today_notifications and not yesterday_notifications %}
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+            </svg>
+            <p>{% trans "Немає сповіщень" %}</p>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,22 +1,535 @@
 {% extends "base.html" %}
+{% load i18n %}
+{% load uk_dates %}
+
+{% block title %}{% trans "Список покупок" %} #{{ sl.id }} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+.shopping-detail-page {
+    padding: 30px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Header */
+.detail-header {
+    margin-bottom: 30px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 16px;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: #34A853;
+}
+
+.back-link svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+}
+
+.detail-header h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+    margin: 0 0 8px 0;
+}
+
+.list-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(52, 168, 83, 0.15);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: #34A853;
+}
+
+/* Info Card */
+.info-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Progress Bar */
+.progress-section {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.progress-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.progress-count {
+    font-size: 14px;
+    color: #34A853;
+    font-weight: 600;
+}
+
+.progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #34A853 0%, #4ade80 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+/* Items List */
+.items-section {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px;
+}
+
+.section-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #34A853;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+}
+
+.category-group {
+    margin-bottom: 24px;
+}
+
+.category-group:last-child {
+    margin-bottom: 0;
+}
+
+.category-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 12px;
+}
+
+.item-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.item-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.item-card.bought {
+    opacity: 0.5;
+}
+
+.item-card.bought .item-name {
+    text-decoration: line-through;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Custom Checkbox */
+.item-checkbox {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.item-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.checkbox-custom {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkbox-custom svg {
+    width: 14px;
+    height: 14px;
+    stroke: #ffffff;
+    stroke-width: 3;
+    fill: none;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s;
+}
+
+.item-checkbox input:checked + .checkbox-custom {
+    background: #34A853;
+    border-color: #34A853;
+}
+
+.item-checkbox input:checked + .checkbox-custom svg {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.item-checkbox input:hover + .checkbox-custom {
+    border-color: #34A853;
+}
+
+.item-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.item-name {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s;
+}
+
+.item-qty {
+    font-size: 14px;
+    font-weight: 500;
+    color: #34A853;
+    white-space: nowrap;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-state svg {
+    width: 60px;
+    height: 60px;
+    stroke: rgba(255, 255, 255, 0.2);
+    fill: none;
+    margin-bottom: 16px;
+}
+
+.empty-state p {
+    font-size: 15px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .shopping-detail-page {
+        padding: 20px 16px;
+    }
+    
+    .info-card {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .detail-header h1 {
+        font-size: 22px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .item-row {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+    
+    .item-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 480px) {
+    .info-card {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-  <h1>Список покупок #{{ sl.id }}</h1>
+<div class="shopping-detail-page">
+    <!-- Header -->
+    <div class="detail-header">
+        <a href="{% url 'shopping:my_lists' %}" class="back-link">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            {% trans "Мої списки" %}
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <h1>{% trans "Список покупок" %} #{{ sl.id }}</h1>
+            <button type="button" class="delete-list-btn" onclick="showDeleteModal()" style="background: rgba(255, 107, 107, 0.15); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 12px; padding: 10px 18px; color: #FF6B6B; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.3s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                {% trans "Видалити" %}
+            </button>
+        </div>
+        <span class="list-badge">
+            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" width="14" height="14">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            {{ sl.created_at|uk_day_month_year }}
+        </span>
+    </div>
 
-  <p>
-    Сценарий: {{ sl.scenario }}<br>
-    Событие: {{ sl.event|default:"-" }}<br>
-    Людей: {{ sl.people_count }}, Часов: {{ sl.duration_hours }}<br>
-    Этапы: {{ sl.stages }}
-  </p>
+    <!-- Info Card -->
+    <div class="info-card">
+        <div class="info-item">
+            <span class="info-label">{% trans "Сценарій" %}</span>
+            <span class="info-value">{{ sl.scenario.name|default:"-" }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">{% trans "Подія" %}</span>
+            <span class="info-value">{{ sl.event.title|default:"-" }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">{% trans "Людей" %}</span>
+            <span class="info-value">{{ sl.people_count }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">{% trans "Годин" %}</span>
+            <span class="info-value">{{ sl.duration_hours }}</span>
+        </div>
+    </div>
 
-  <h2>Позиции</h2>
-  <ul>
-    {% for it in sl.items.all %}
-      <li>{{ it.name }}: {{ it.qty }} {{ it.unit }} ({{ it.category }})</li>
-    {% empty %}
-      <li>Пусто</li>
-    {% endfor %}
-  </ul>
+    <!-- Progress -->
+    <div class="progress-section">
+        <div class="progress-header">
+            <span class="progress-title">{% trans "Прогрес покупок" %}</span>
+            <span class="progress-count" id="progress-count">0 / {{ sl.items.count }}</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+        </div>
+    </div>
 
-  <p><a href="{% url 'shopping:my_lists' %}">Мои списки</a></p>
+    <!-- Items -->
+    <div class="items-section">
+        <div class="section-title">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            {% trans "Позиції" %}
+        </div>
+
+        {% regroup sl.items.all by get_category_display as items_by_category %}
+        {% for category in items_by_category %}
+        <div class="category-group">
+            <div class="category-header">{{ category.grouper }}</div>
+            {% for item in category.list %}
+            <div class="item-card {% if item.is_bought %}bought{% endif %}" data-item-id="{{ item.id }}">
+                <label class="item-checkbox">
+                    <input type="checkbox" {% if item.is_bought %}checked{% endif %} data-item-id="{{ item.id }}">
+                    <span class="checkbox-custom">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </span>
+                </label>
+                <div class="item-info">
+                    <span class="item-name">{{ item.name }}</span>
+                    <span class="item-qty">{{ item.qty|floatformat:"-1" }} {{ item.get_unit_display }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            <p>{% trans "Список порожній" %}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+(function() {
+    const items = document.querySelectorAll('.item-card');
+    const total = items.length;
+    const progressCount = document.getElementById('progress-count');
+    const progressFill = document.getElementById('progress-fill');
+    
+    function updateProgress() {
+        const bought = document.querySelectorAll('.item-card.bought').length;
+        const percent = total > 0 ? Math.round((bought / total) * 100) : 0;
+        progressCount.textContent = bought + ' / ' + total;
+        progressFill.style.width = percent + '%';
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    items.forEach(card => {
+        const checkbox = card.querySelector('input[type="checkbox"]');
+        if (!checkbox) return;
+        
+        checkbox.addEventListener('change', async function() {
+            const itemId = this.dataset.itemId;
+            const isBought = this.checked;
+            
+            card.classList.toggle('bought', isBought);
+            updateProgress();
+            
+            // Save to server
+            try {
+                await fetch('{% url "shopping:toggle_item" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({ item_id: itemId, is_bought: isBought })
+                });
+            } catch (e) {
+                console.error('Failed to save:', e);
+            }
+        });
+    });
+    
+    updateProgress();
+})();
+</script>
+
+<!-- Delete Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: #0a0f0c; border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 20px; padding: 32px; max-width: 400px; text-align: center; margin: 20px;">
+        <h3 style="font-family: 'Poppins', sans-serif; color: #FF6B6B; margin-bottom: 16px;">🗑️ {% trans "Видалити список?" %}</h3>
+        <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 24px;">{% trans "Ви впевнені, що хочете видалити цей список покупок? Цю дію неможливо скасувати." %}</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button type="button" onclick="hideDeleteModal()" style="padding: 14px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15);">{% trans "Скасувати" %}</button>
+            <form action="{% url 'shopping:delete_list' sl.pk %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" style="padding: 14px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; background: rgba(255, 107, 107, 0.15); color: #FF6B6B; border: 1px solid rgba(255, 107, 107, 0.3);">{% trans "Видалити" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+function showDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+function hideDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) hideDeleteModal();
+});
+</script>
 {% endblock %}

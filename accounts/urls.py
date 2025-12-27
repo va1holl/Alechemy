@@ -1,18 +1,23 @@
 # accounts/urls.py
 from django.urls import path
+
 from .views import (
     SignUpView, EmailLoginView, EmailLogoutView,
     MyPasswordChangeView, MyPasswordChangeDoneView,
     MyPasswordResetView, MyPasswordResetDoneView,
     MyPasswordResetConfirmView, MyPasswordResetCompleteView
 )
+from django.views.generic import TemplateView
 
 app_name = "accounts"
 
 urlpatterns = [
+    path("start/", TemplateView.as_view(template_name="registration/start.html"), name="start"),
     path("signup/", SignUpView.as_view(), name="signup"),
     path("login/", EmailLoginView.as_view(), name="login"),
     path("logout/", EmailLogoutView.as_view(), name="logout"),
+
+    path("welcome/", TemplateView.as_view(template_name="registration/welcome.html"), name="welcome"),
 
     path("password_change/", MyPasswordChangeView.as_view(), name="password_change"),
     path("password_change/done/", MyPasswordChangeDoneView.as_view(), name="password_change_done"),

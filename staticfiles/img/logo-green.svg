@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" role="img" aria-labelledby="title">
+  <title id="title">Alechemy</title>
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00ff99"/>
+      <stop offset="100%" stop-color="#2e9b50"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="8" width="24" height="44" rx="6" fill="none" stroke="#00ff99" stroke-width="4"/>
+  <rect x="16" y="4" width="12" height="8" rx="3" fill="#00ff99"/>
+  <path d="M14 22h16v8c0 6-4 11-8 11s-8-5-8-11z" fill="#00ff99" opacity="0.35"/>
+  <text x="50" y="38" font-family="'Poppins', 'Inter', system-ui, sans-serif" font-size="26" font-weight="700" fill="url(#g)">Alechemy</text>
+</svg>

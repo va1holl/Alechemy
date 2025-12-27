@@ -7,8 +7,17 @@ from accounts.models import Profile
 
 
 def adult_required(view_func):
+    """
+    Decorator that ensures user is authenticated, has GDPR consent,
+    and is confirmed 18+ before accessing the view.
+    """
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
+        # First check authentication
+        if not request.user.is_authenticated:
+            messages.error(request, "Потрібно увійти в акаунт.")
+            return redirect("accounts:login")
+        
         profile, _ = Profile.objects.get_or_create(user=request.user)
 
         if not profile.gdpr_consent:
@@ -33,13 +42,21 @@ def adult_required(view_func):
 
 
 def premium_required(view_func):
+    """
+    Decorator that ensures user is authenticated and has premium subscription.
+    """
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
+        # First check authentication
+        if not request.user.is_authenticated:
+            messages.error(request, "Потрібно увійти в акаунт.")
+            return redirect("accounts:login")
+        
         profile, _ = Profile.objects.get_or_create(user=request.user)
 
         if not profile.is_premium:
-            messages.error(request, "Эта функция доступна только Premium-пользователям.")
-            return redirect("shopping:preview")
+            messages.warning(request, "Ця функція доступна тільки Premium-користувачам.")
+            return redirect("pages:plan_choice")
 
         return view_func(request, *args, **kwargs)
 

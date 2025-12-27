@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Вибір плану" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+@import url('https://fonts.googleapis.com/css2?family=Sedgwick+Ave+Display&family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+.premium-page {
+    background: transparent;
+    min-height: 100vh;
+    padding: 45px 50px;
+}
+
+.premium-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header */
+.premium-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-bottom: 60px;
+}
+
+.back-btn {
+    position: absolute;
+    left: 0;
+    width: 39px;
+    height: 39px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    background: none;
+    border: none;
+}
+
+.back-btn:hover {
+    transform: translateX(-5px);
+}
+
+.back-btn svg {
+    width: 100%;
+    height: 100%;
+}
+
+.premium-logo {
+    font-family: 'Sedgwick Ave Display', cursive;
+    color: #34A853;
+    font-size: 32px;
+    margin: 0;
+}
+
+/* Plans Container */
+.plans-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+}
+
+/* Plan Card */
+.plan-card {
+    background: rgba(52, 168, 83, 0.15);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 40px;
+    padding: 40px 30px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s, border-color 0.3s;
+}
+
+.plan-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(52, 168, 83, 0.5);
+}
+
+.plan-card.premium {
+    background: rgba(52, 168, 83, 0.25);
+    border-color: #34A853;
+}
+
+.plan-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.plan-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 34px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.best-value-badge {
+    background: #34A853;
+    color: #ffffff;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.premium-description {
+    font-size: 16px;
+    line-height: 1.4;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.premium-description .highlight {
+    color: #34A853;
+    font-weight: 600;
+}
+
+/* Divider */
+.divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(52, 168, 83, 0.5), transparent);
+    margin: 20px 0;
+}
+
+/* Pricing */
+.pricing {
+    margin: 20px 0;
+}
+
+.price {
+    font-size: 42px;
+    font-weight: 700;
+    color: #34A853;
+    margin: 0 0 10px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.cancel-note {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+
+/* Features List */
+.features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    margin: 20px 0;
+}
+
+.feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.feature-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.feature span {
+    font-size: 15px;
+    line-height: 1.4;
+    color: #ffffff;
+}
+
+.feature.excluded span {
+    color: rgba(255, 255, 255, 0.4);
+    text-decoration: line-through;
+}
+
+/* Buttons */
+.buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.select-button {
+    width: 100%;
+    height: 56px;
+    border-radius: 50px;
+    border: 2px solid #34A853;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.free-button {
+    background: rgba(0, 0, 0, 0.5);
+    color: #34A853;
+}
+
+.free-button:hover {
+    background: rgba(52, 168, 83, 0.2);
+    transform: translateY(-2px);
+}
+
+.premium-button {
+    background: #34A853;
+    color: #ffffff;
+    border-color: #34A853;
+}
+
+.premium-button:hover {
+    background: #2d9046;
+    transform: translateY(-2px);
+}
+
+.trial-button {
+    width: 100%;
+    height: 56px;
+    border-radius: 50px;
+    border: 2px solid #34A853;
+    background: rgba(0, 0, 0, 0.5);
+    color: #34A853;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.trial-button:hover {
+    background: rgba(52, 168, 83, 0.2);
+    transform: translateY(-2px);
+}
+
+.trial-note {
+    font-size: 13px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+}
+
+/* Already Premium */
+.already-premium {
+    text-align: center;
+    padding: 40px;
+    background: rgba(52, 168, 83, 0.2);
+    border-radius: 24px;
+    margin-top: 40px;
+}
+
+.already-premium h2 {
+    color: #34A853;
+    margin-bottom: 16px;
+}
+
+.already-premium p {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .plans-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .premium-page {
+        padding: 30px 20px;
+    }
+
+    .plan-card {
+        padding: 30px 24px;
+    }
+
+    .plan-title {
+        font-size: 28px;
+    }
+
+    .price {
+        font-size: 32px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="premium-page">
+    <div class="premium-container">
+        <!-- Header -->
+        <div class="premium-header">
+            <button class="back-btn" onclick="history.back()">
+                <svg viewBox="0 0 39 39" fill="white">
+                    <path d="M15 19.5C15 19.64 15.03 19.78 15.08 19.9C15.14 20.03 15.23 20.15 15.34 20.26L22.23 26.71C22.43 26.9 22.67 27 22.96 27C23.15 27 23.33 26.95 23.48 26.86C23.64 26.78 23.76 26.66 23.86 26.51C23.95 26.36 24 26.2 24 26.02C24 25.75 23.89 25.51 23.67 25.3L17.47 19.5L23.67 13.69C23.89 13.49 24 13.25 24 12.98C24 12.8 23.95 12.63 23.86 12.48C23.76 12.34 23.64 12.22 23.48 12.14C23.33 12.05 23.15 12 22.96 12C22.67 12 22.43 12.09 22.23 12.28L15.34 18.73C15.23 18.85 15.14 18.97 15.08 19.09C15.03 19.21 15 19.35 15 19.5Z"/>
+                </svg>
+            </button>
+            <h1 class="premium-logo">Alechemy</h1>
+        </div>
+
+        {% if profile.is_premium %}
+        <!-- Already Premium -->
+        <div class="already-premium">
+            <h2>🎉 {% trans "Ви вже маєте Premium!" %}</h2>
+            <p>{% trans "Дякуємо за підтримку! Усі преміум-функції вже доступні для вас." %}</p>
+            <a href="{% url 'pages:home' %}" class="select-button premium-button" style="max-width: 300px; margin: 20px auto 0;">
+                {% trans "На головну" %}
+            </a>
+        </div>
+        {% else %}
+        <!-- Plans Container -->
+        <div class="plans-container">
+            <!-- Free Plan -->
+            <div class="plan-card">
+                <div class="plan-content">
+                    <div class="plan-header">
+                        <h2 class="plan-title">Free</h2>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="features-list">
+                        <div class="feature included">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#34A853">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "Перегляд рецептів коктейлів" %}</span>
+                        </div>
+                        <div class="feature included">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#34A853">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "Створення святкових подій" %}</span>
+                        </div>
+                        <div class="feature included">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#34A853">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "Базовий калькулятор BAC" %}</span>
+                        </div>
+                        <div class="feature excluded">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#666">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "Реклама присутня" %}</span>
+                        </div>
+                        <div class="feature excluded">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#666">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "Генерація списку покупок" %}</span>
+                        </div>
+                        <div class="feature excluded">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#666">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "AI-сомельє" %}</span>
+                        </div>
+                        <div class="feature excluded">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#666">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "PDF-звіти" %}</span>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'pages:home' %}" class="select-button free-button">
+                        {% trans "Продовжити безкоштовно" %}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Premium Plan -->
+            <div class="plan-card premium">
+                <div class="plan-content">
+                    <div class="plan-header">
+                        <h2 class="plan-title">Premium</h2>
+                        <span class="best-value-badge">Best Value</span>
+                    </div>
+
+                    <p class="premium-description">
+                        <span class="highlight">Alechemy Premium</span> — {% trans "забудь про обмеження! Відчуй переваги разом із новим функціоналом" %}
+                    </p>
+
+                    <div class="divider"></div>
+
+                    <div class="pricing">
+                        <h3 class="price">99 UAH/{% trans "міс" %}</h3>
+                        <p class="cancel-note">{% trans "Ви можете скасувати підписку будь-коли" %}</p>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="features-list">
+                        <div class="feature included">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#34A853">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "Перегляд рецептів коктейлів" %}</span>
+                        </div>
+                        <div class="feature included">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#34A853">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "Створення святкових подій" %}</span>
+                        </div>
+                        <div class="feature included">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#34A853">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "Розширений калькулятор BAC" %}</span>
+                        </div>
+                        <div class="feature included">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#34A853">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>🚫 {% trans "Без реклами" %}</span>
+                        </div>
+                        <div class="feature included">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#34A853">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "Генерація списку покупок для заходу" %}</span>
+                        </div>
+                        <div class="feature included">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#34A853">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "AI-сомельє — допомога з вибором напоїв" %}</span>
+                        </div>
+                        <div class="feature included">
+                            <svg class="feature-icon" viewBox="0 0 20 20" fill="#34A853">
+                                <path d="M10 0L12.24 7.76L20 10L12.24 12.24L10 20L7.76 12.24L0 10L7.76 7.76L10 0Z"/>
+                            </svg>
+                            <span>{% trans "PDF-звіти та експорт даних" %}</span>
+                        </div>
+                    </div>
+
+                    <div class="buttons">
+                        <a href="{% url 'pages:payment_form' %}" class="select-button premium-button">
+                            {% trans "Обрати Premium" %}
+                        </a>
+                        <a href="{% url 'pages:payment_form' %}?trial=1" class="trial-button">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="#34A853">
+                                <path d="M8 0L9.5 5.5L15 7L9.5 8.5L8 14L6.5 8.5L1 7L6.5 5.5L8 0Z"/>
+                            </svg>
+                            {% trans "Спробуй 3 дні безкоштовно" %}
+                        </a>
+                        <p class="trial-note">{% trans "Після пробного періоду — 99 UAH/місяць" %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
