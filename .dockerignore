@@ -1,0 +1,62 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+env/
+.eggs
+*.egg-info/
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Documentation
+docs/_build/
+*.md
+!README.md
+
+# Docker
+Dockerfile
+Dockerfile.prod
+docker-compose*.yml
+.docker/
+
+# Local files
+.env
+.env.local
+*.log
+logs/
+*.sqlite3
+db.sqlite3
+
+# Static/Media (will be collected/uploaded separately)
+staticfiles/
+mediafiles/
+
+# Misc
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Verstka folder (design files)
+verstca/

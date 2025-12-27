@@ -19,17 +19,17 @@ class ProfileForm(forms.ModelForm):
             "weight_kg": forms.NumberInput(attrs={"min": 0, "step": "0.1"}),
         }
         labels = {
-            "age": "Возраст",
-            "sex": "Пол",
-            "height_cm": "Рост, см",
-            "weight_kg": "Вес, кг",
-            "is_adult_confirmed": "Мне есть 18 лет",
-            "gdpr_consent": "Согласие на обработку данных",
+            "age": "Вік",
+            "sex": "Стать",
+            "height_cm": "Зріст, см",
+            "weight_kg": "Вага, кг",
+            "is_adult_confirmed": "Мені є 18 років",
+            "gdpr_consent": "Згода на обробку даних",
         }
         help_texts = {
-            "weight_kg": "Нужен для расчёта BAC в алко-дневнике.",
-            "is_adult_confirmed": "Приложение рассчитано на пользователей 18+.",
-            "gdpr_consent": "Нужно, чтобы хранить профиль и дневник.",
+            "weight_kg": "Потрібно для розрахунку BAC в алко-щоденнику.",
+            "is_adult_confirmed": "Додаток розрахований на користувачів 18+.",
+            "gdpr_consent": "Потрібно для зберігання профілю і щоденника.",
         }
 
     def clean(self):
@@ -40,14 +40,14 @@ class ProfileForm(forms.ModelForm):
         gdpr_consent = cleaned.get("gdpr_consent")
 
         if not gdpr_consent:
-            self.add_error("gdpr_consent", "Нужно согласиться на обработку данных.")
+            self.add_error("gdpr_consent", "Потрібно погодитись на обробку даних.")
 
         if not is_adult_confirmed:
-            self.add_error("is_adult_confirmed", "Нужно подтвердить, что тебе 18+.")
+            self.add_error("is_adult_confirmed", "Потрібно підтвердити, що тобі 18+.")
 
         if age is None:
-            self.add_error("age", "Укажи возраст (приложение 18+).")
+            self.add_error("age", "Вкажи вік (додаток 18+).")
         elif age < 18:
-            self.add_error("age", "Доступ только для пользователей 18+.")
+            self.add_error("age", "Доступ тільки для користувачів 18+.")
 
         return cleaned

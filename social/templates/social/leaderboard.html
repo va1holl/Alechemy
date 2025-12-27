@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Рейтинг друзів" %} - Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+.leaderboard-page {
+    padding: 24px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.back-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.back-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
+}
+
+.page-title {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Period Tabs */
+.period-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.tab {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.tab.active {
+    background: #34A853;
+    border-color: #34A853;
+    color: #ffffff;
+}
+
+/* Your Position */
+.your-position {
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.2), rgba(26, 90, 42, 0.2));
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.your-rank {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.rank-number {
+    width: 48px;
+    height: 48px;
+    background: #34A853;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+}
+
+.rank-label {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.rank-sublabel {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+}
+
+.your-points {
+    text-align: right;
+}
+
+.points-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #34A853;
+}
+
+.points-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+}
+
+/* Leaderboard List */
+.leaderboard-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.leaderboard-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaderboard-title {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.3s;
+}
+
+.leaderboard-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.leaderboard-item:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-item.is-me {
+    background: rgba(52, 168, 83, 0.1);
+}
+
+.item-rank {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    margin-right: 16px;
+}
+
+.rank-1 { color: #FFD700; font-size: 20px; }
+.rank-2 { color: #C0C0C0; font-size: 18px; }
+.rank-3 { color: #CD7F32; font-size: 16px; }
+
+.item-avatar {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #34A853, #1a5a2a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    margin-right: 16px;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-name {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.item-tag {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+}
+
+.item-score {
+    text-align: right;
+}
+
+.score-value {
+    color: #34A853;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.score-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+}
+
+/* Medal icons for top 3 */
+.medal {
+    font-size: 24px;
+}
+
+.no-data {
+    text-align: center;
+    padding: 48px;
+    color: rgba(255, 255, 255, 0.5);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="leaderboard-page">
+    <div class="page-header">
+        <a href="{% url 'social:friends_list' %}" class="back-btn">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="page-title">{% trans "Рейтинг" %}</h1>
+    </div>
+    
+    <!-- Period Tabs -->
+    <div class="period-tabs">
+        <a href="?period=week" class="tab {% if period == 'week' %}active{% endif %}">{% trans "Тиждень" %}</a>
+        <a href="?period=month" class="tab {% if period == 'month' %}active{% endif %}">{% trans "Місяць" %}</a>
+        <a href="?period=all" class="tab {% if period == 'all' %}active{% endif %}">{% trans "Весь час" %}</a>
+    </div>
+    
+    <!-- Your Position -->
+    {% if user_rank %}
+    <div class="your-position">
+        <div class="your-rank">
+            <div class="rank-number">{{ user_rank }}</div>
+            <div>
+                <div class="rank-label">{% trans "Твоя позиція" %}</div>
+                <div class="rank-sublabel">{{ user_rank_info.rank_icon }} {{ user_rank_info.rank_name }} · {% trans "серед" %} {{ friends_count }} {% trans "друзів" %}</div>
+            </div>
+        </div>
+        <div class="your-points">
+            <div class="points-value">{{ user_rank_info.points }}</div>
+            <div class="points-label">{% trans "очок" %}</div>
+            {% if user_rank_info.next_rank %}
+            <div class="rank-sublabel" style="margin-top:4px;">{{ user_rank_info.progress_to_next }}% → {{ user_rank_info.next_rank }}</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Leaderboard -->
+    <div class="leaderboard-section">
+        <div class="leaderboard-header">
+            <h2 class="leaderboard-title">{% trans "Топ друзів" %}</h2>
+        </div>
+        
+        {% if leaderboard %}
+        {% for item in leaderboard %}
+        <a href="{% url 'social:user_profile_by_tag' item.score.user.profile.unique_tag|default:item.score.user.id %}" 
+           class="leaderboard-item {% if item.score.user_id == request.user.id %}is-me{% endif %}" 
+           style="text-decoration: none;">
+            <div class="item-rank rank-{{ item.position }}">
+                {% if item.position == 1 %}
+                <span class="medal">🥇</span>
+                {% elif item.position == 2 %}
+                <span class="medal">🥈</span>
+                {% elif item.position == 3 %}
+                <span class="medal">🥉</span>
+                {% else %}
+                {{ item.position }}
+                {% endif %}
+            </div>
+            <div class="item-avatar">
+                {{ item.score.user.email|first|upper }}
+            </div>
+            <div class="item-info">
+                <div class="item-name">
+                    {% if item.score.user_id == request.user.id %}
+                    {% trans "Ви" %}
+                    {% elif item.score.user.first_name %}
+                    {{ item.score.user.first_name }} {{ item.score.user.last_name }}
+                    {% else %}
+                    {{ item.score.user.email|truncatechars:20 }}
+                    {% endif %}
+                    <span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:6px;">{{ item.rank_info.rank_icon }} {{ item.rank_info.rank_name }}</span>
+                </div>
+                {% if item.score.user.profile.unique_tag %}
+                <div class="item-tag">@{{ item.score.user.profile.unique_tag }}</div>
+                {% endif %}
+            </div>
+            <div class="item-score">
+                <div class="score-value">{{ item.score.points_total }}</div>
+                <div class="score-label">{% trans "очок" %}</div>
+            </div>
+        </a>
+        {% endfor %}
+        {% else %}
+        <div class="no-data">
+            <p>{% trans "Поки що немає даних для рейтингу" %}</p>
+            <p style="font-size: 14px;">{% trans "Додайте друзів та заробляйте очки!" %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

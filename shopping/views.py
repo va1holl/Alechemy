@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods, require_POST
+from django.utils.translation import gettext as _
 
 from accounts.decorators import adult_required, premium_required
 from events.models import DishIngredient, Event, Scenario
@@ -107,7 +108,19 @@ def preview(request):
         scenario_id = request.GET.get("scenario")
 
         if event_id:
-            ev = get_object_or_404(Event, pk=event_id, user=request.user)
+            from events.models import EventParticipant
+            ev = get_object_or_404(Event, pk=event_id)
+            # Перевірка доступу: власник або прийнятий учасник
+            is_owner = ev.user == request.user
+            is_participant = EventParticipant.objects.filter(
+                event=ev,
+                participant=request.user,
+                status=EventParticipant.Status.ACCEPTED
+            ).exists()
+            if not is_owner and not is_participant:
+                from django.contrib import messages
+                messages.error(request, "У вас немає доступу до цієї події.")
+                return redirect("events:event_list")
             initial.update(
                 {
                     "event": ev,
@@ -142,9 +155,9 @@ def preview(request):
 @adult_required
 @require_POST
 def ajax_preview(request):
-    # Ключевой фикс: если JS дергает /ajax/preview/ без ?event=...,
-    # или если <select name="event"> по какой-то причине не ушёл в POST,
-    # подхватываем event/scenario из querystring.
+    # Важливий фікс: якщо JS викликає /ajax/preview/ без ?event=...,
+    # або якщо <select name="event"> з якоїсь причини не передався в POST,
+    # підхоплюємо event/scenario з querystring.
     data = request.POST
 
     event_qs = request.GET.get("event")
@@ -176,7 +189,7 @@ def ajax_preview(request):
 def create_from_preview(request):
     form = ShoppingCalcForm(request.POST, user=request.user)
     if not form.is_valid():
-        messages.error(request, "Не получилось сохранить список: проверь форму.")
+        messages.error(request, _("Не вдалося зберегти список: перевір форму."))
         return redirect("shopping:preview")
 
     scenario = form.cleaned_data["scenario"]
@@ -220,7 +233,7 @@ def create_from_preview(request):
         ]
     )
 
-    messages.success(request, "Список покупок сохранён.")
+    messages.success(request, _("Список покупок збережено."))
     return redirect("shopping:detail", pk=sl.pk)
 
 
@@ -241,3 +254,38 @@ def my_lists(request):
 def detail(request, pk: int):
     sl = get_object_or_404(ShoppingList, pk=pk, user=request.user)
     return render(request, "shopping/detail.html", {"sl": sl})
+
+
+@login_required
+@require_POST
+def toggle_item(request):
+    """Toggle is_bought status for a shopping item via AJAX."""
+    import json
+    
+    try:
+        data = json.loads(request.body)
+        item_id = data.get("item_id")
+        is_bought = data.get("is_bought", False)
+        
+        item = get_object_or_404(
+            ShoppingItem, 
+            pk=item_id, 
+            shopping_list__user=request.user
+        )
+        item.is_bought = is_bought
+        item.save(update_fields=["is_bought"])
+        
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+
+
+@login_required
+@adult_required
+@require_POST
+def delete_list(request, pk: int):
+    """Видалення списку покупок."""
+    sl = get_object_or_404(ShoppingList, pk=pk, user=request.user)
+    sl.delete()
+    messages.success(request, _("Список покупок видалено."))
+    return redirect("shopping:my_lists")

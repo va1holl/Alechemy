@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Учасники - {{ event.title|default:event.scenario.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.participants-page {
+    padding: 24px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.back-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.back-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
+}
+
+.page-title {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Invite Section */
+.invite-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.section-title {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.invite-form {
+    display: flex;
+    gap: 12px;
+}
+
+.invite-input {
+    flex: 1;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 0 16px;
+    color: #ffffff;
+    font-size: 15px;
+}
+
+.invite-input:focus {
+    outline: none;
+    border-color: #34A853;
+}
+
+.invite-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .participants-page {
+        padding: 16px;
+    }
+    
+    .page-title {
+        font-size: 20px;
+    }
+    
+    .invite-section {
+        padding: 16px;
+    }
+    
+    .invite-form {
+        flex-direction: column;
+    }
+    
+    .invite-input {
+        width: 100%;
+    }
+    
+    .invite-btn {
+        width: 100%;
+    }
+    
+    .participant-item {
+        padding: 12px;
+    }
+}
+
+.invite-btn {
+    height: 48px;
+    padding: 0 24px;
+    background: #34A853;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.invite-btn:hover {
+    background: #2d9046;
+}
+
+/* Friends Quick Select */
+.friends-section {
+    margin-top: 20px;
+}
+
+.friends-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.friends-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.friend-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    color: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.friend-chip:hover {
+    background: rgba(52, 168, 83, 0.2);
+    border-color: #34A853;
+}
+
+.friend-avatar {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #34A853, #1a5a2a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Participants List */
+.participants-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.participant {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.participant:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.participant-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.participant-avatar {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #34A853, #1a5a2a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.participant-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.participant-name {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.participant-tag {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+}
+
+.participant-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: #FFC107;
+}
+
+.status-accepted {
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+}
+
+.status-declined {
+    background: rgba(255, 59, 48, 0.2);
+    color: #FF3B30;
+}
+
+.status-maybe {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.no-participants {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 24px;
+}
+
+.participant-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.action-btn-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.action-btn-small svg {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-kick {
+    background: rgba(255, 59, 48, 0.2);
+    color: #FF3B30;
+}
+
+.btn-kick:hover {
+    background: rgba(255, 59, 48, 0.4);
+}
+
+.role-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.role-head {
+    background: rgba(255, 193, 7, 0.2);
+    color: #FFC107;
+}
+
+.role-participant {
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+}
+
+.btn-admin {
+    background: rgba(255, 193, 7, 0.2);
+    color: #FFC107;
+}
+
+.btn-admin:hover {
+    background: rgba(255, 193, 7, 0.4);
+}
+
+.btn-demote {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.btn-demote:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="participants-page">
+    <div class="page-header">
+        <a href="{% url 'events:event_detail' event.pk %}" class="back-btn">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="page-title">Учасники</h1>
+    </div>
+    
+    {% if messages %}
+    <div style="margin-bottom: 16px;">
+        {% for message in messages %}
+        <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;
+            {% if message.tags == 'success' %}background: rgba(52, 168, 83, 0.2); color: #34A853;
+            {% elif message.tags == 'error' %}background: rgba(255, 59, 48, 0.2); color: #FF3B30;
+            {% else %}background: rgba(255, 255, 255, 0.1); color: #fff;{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Invite Section - Only for admins -->
+    {% if is_admin %}
+    <div class="invite-section">
+        <div class="section-title">Запросити друзів</div>
+        <form method="post" action="{% url 'events:event_invite_friend' event.pk %}" class="invite-form">
+            {% csrf_token %}
+            <input type="text" name="friend_tag" class="invite-input" placeholder="@тег користувача">
+            <button type="submit" class="invite-btn">Запросити</button>
+        </form>
+        
+        {% if friends %}
+        <div class="friends-section">
+            <div class="friends-label">Швидкий вибір з друзів:</div>
+            <div class="friends-list">
+                {% for friend in friends %}
+                <form method="post" action="{% url 'events:event_invite_friend' event.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="friend_id" value="{{ friend.user.id }}">
+                    <button type="submit" class="friend-chip">
+                        <span class="friend-avatar">{{ friend.get_display_name|first|upper }}</span>
+                        {{ friend.get_display_name }}
+                    </button>
+                </form>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- Participants List -->
+    <div class="participants-section">
+        <div class="section-title">Запрошені ({{ participants|length }})</div>
+        
+        {% if participants %}
+        {% for p in participants %}
+        <div class="participant">
+            <div class="participant-info">
+                <div class="participant-avatar">
+                    {{ p.participant.profile.get_display_name|first|upper }}
+                </div>
+                <div class="participant-details">
+                    <span class="participant-name">
+                        {{ p.participant.profile.get_display_name }}
+                        {% if p.role == 'head' %}
+                        <span class="role-badge role-head">👑 Адмін</span>
+                        {% endif %}
+                    </span>
+                    {% if p.participant.profile.unique_tag %}
+                    <span class="participant-tag">@{{ p.participant.profile.unique_tag }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="participant-actions">
+                <span class="participant-status status-{{ p.status }}">
+                    {{ p.get_status_display }}
+                </span>
+                {% if is_owner and p.status == 'accepted' %}
+                <!-- Toggle admin button - only for owner -->
+                <form method="post" action="{% url 'events:event_toggle_admin' event.pk p.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    {% if p.role == 'head' %}
+                    <button type="submit" class="action-btn-small btn-demote" title="Зняти адміна">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5"/>
+                        </svg>
+                    </button>
+                    {% else %}
+                    <button type="submit" class="action-btn-small btn-admin" title="Зробити адміном">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </button>
+                    {% endif %}
+                </form>
+                {% endif %}
+                {% if is_admin %}
+                <form method="post" action="{% url 'events:event_remove_participant' event.pk p.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn-small btn-kick" title="Видалити">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="no-participants">
+            Поки що немає запрошених учасників
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

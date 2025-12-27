@@ -1,0 +1,849 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{{ cocktail.name }} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Montserrat:wght@400;500;600&display=swap');
+
+.recipe-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+}
+
+/* Hero Section */
+.recipe-hero {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+}
+
+.hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a3a1a 0%, #0d1f0d 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-placeholder svg {
+    width: 120px;
+    height: 120px;
+    stroke: rgba(255, 255, 255, 0.2);
+}
+
+.hero-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(to top, #000000, transparent);
+    pointer-events: none;
+}
+
+/* Header on hero */
+.hero-header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.back-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: rgba(52, 168, 83, 0.5);
+    transform: translateX(-3px);
+}
+
+.back-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
+}
+
+.action-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    background: rgba(52, 168, 83, 0.5);
+    border-color: #34A853;
+}
+
+.action-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
+}
+
+/* Content Card */
+.content-card {
+    background: #000000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px 30px 0 0;
+    margin-top: -40px;
+    position: relative;
+    z-index: 5;
+    padding: 30px 24px;
+}
+
+/* Recipe Header */
+.recipe-header {
+    margin-bottom: 24px;
+}
+
+.recipe-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 12px;
+}
+
+.recipe-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+}
+
+.meta-item svg {
+    width: 16px;
+    height: 16px;
+    stroke: #34A853;
+}
+
+.category-badge {
+    background: rgba(52, 168, 83, 0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+    color: #34A853;
+    font-weight: 500;
+}
+
+.strength-badge {
+    font-size: 16px;
+}
+
+.strength-badge span {
+    cursor: help;
+}
+
+/* Rating Stars */
+.rating-display {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.star {
+    width: 16px;
+    height: 16px;
+    fill: #34A853;
+}
+
+.star.empty {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.3);
+}
+
+/* Description */
+.recipe-description {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 32px;
+}
+
+/* Ingredients Section */
+.section {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title svg {
+    width: 20px;
+    height: 20px;
+    stroke: #34A853;
+}
+
+.ingredients-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.ingredient-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.ingredient-card:hover {
+    border-color: rgba(52, 168, 83, 0.4);
+    background: rgba(52, 168, 83, 0.1);
+}
+
+.ingredient-icon {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 8px;
+    background: rgba(52, 168, 83, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ingredient-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: #34A853;
+}
+
+.ingredient-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.ingredient-amount {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Instructions */
+.instructions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.instruction-step {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s;
+}
+
+.instruction-step:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(52, 168, 83, 0.2);
+}
+
+.step-number {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: #34A853;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.step-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+    padding-top: 4px;
+}
+
+/* Author Section */
+.author-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 32px;
+}
+
+.author-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #34A853, #1e6530);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.author-info {
+    flex: 1;
+}
+
+.author-name {
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.author-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Reviews Section */
+.reviews-section {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 24px;
+}
+
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.add-review-btn {
+    padding: 10px 20px;
+    background: #34A853;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.add-review-btn:hover {
+    background: #2d9046;
+}
+
+.review-item {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.reviewer-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+.review-date {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.review-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+}
+
+.btn {
+    flex: 1;
+    padding: 16px;
+    border-radius: 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-primary {
+    background: #34A853;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #2d9046;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #34A853;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.content-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.ingredient-card {
+    animation: fadeInUp 0.4s ease-out forwards;
+    opacity: 0;
+}
+
+.ingredient-card:nth-child(1) { animation-delay: 0.1s; }
+.ingredient-card:nth-child(2) { animation-delay: 0.15s; }
+.ingredient-card:nth-child(3) { animation-delay: 0.2s; }
+.ingredient-card:nth-child(4) { animation-delay: 0.25s; }
+.ingredient-card:nth-child(5) { animation-delay: 0.3s; }
+.ingredient-card:nth-child(6) { animation-delay: 0.35s; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .recipe-hero {
+        height: 300px;
+    }
+
+    .content-card {
+        padding: 24px 20px;
+    }
+
+    .recipe-title {
+        font-size: 24px;
+    }
+
+    .ingredients-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="recipe-page">
+    <!-- Hero Section -->
+    <div class="recipe-hero">
+        {% if cocktail.image %}
+        <img src="{{ cocktail.image.url }}" alt="{{ cocktail.name }}" class="hero-image">
+        {% else %}
+        <div class="hero-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1">
+                <path d="M8 2v4M16 2v4M6 10l4 4-4 4"/>
+                <path d="M18 6H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/>
+            </svg>
+        </div>
+        {% endif %}
+        <div class="hero-overlay"></div>
+
+        <!-- Header -->
+        <div class="hero-header">
+            <a href="{% url 'recipes:cocktail_list' %}" class="back-btn">
+                <svg viewBox="0 0 24 24" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <button class="action-btn" id="shareBtn">
+                <svg viewBox="0 0 24 24" stroke-width="2">
+                    <circle cx="18" cy="5" r="3"/>
+                    <circle cx="6" cy="12" r="3"/>
+                    <circle cx="18" cy="19" r="3"/>
+                    <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Content Card -->
+    <div class="content-card">
+        <!-- Recipe Header -->
+        <div class="recipe-header">
+            <h1 class="recipe-title">{{ cocktail.name }}</h1>
+            <div class="recipe-meta">
+                {% if cocktail.category %}
+                <div class="meta-item category-badge">
+                    <span>{{ cocktail.get_category_display }}</span>
+                </div>
+                {% endif %}
+                {% if cocktail.strength %}
+                <div class="meta-item strength-badge">
+                    {% if cocktail.strength == 'light' %}
+                        <span title="{% trans 'Легкий (до 10%)' %}">🍃</span>
+                    {% elif cocktail.strength == 'medium' %}
+                        <span title="{% trans 'Середній (10-20%)' %}">🔥</span>
+                    {% elif cocktail.strength == 'strong' %}
+                        <span title="{% trans 'Міцний (20-30%)' %}">🔥🔥</span>
+                    {% elif cocktail.strength == 'very_strong' %}
+                        <span title="{% trans 'Дуже міцний (30%+)' %}">🔥🔥🔥</span>
+                    {% elif cocktail.strength == 'non_alcoholic' %}
+                        <span title="{% trans 'Безалкогольний' %}">🍹</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <div class="rating-display">
+                    {% for i in "12345" %}
+                    <svg class="star{% if forloop.counter > cocktail.avg_rating|default:4 %} empty{% endif %}" viewBox="0 0 24 24" stroke-width="1.5">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        {% if cocktail.description %}
+        <p class="recipe-description">{{ cocktail.description }}</p>
+        {% endif %}
+
+        <!-- Author Section -->
+        <div class="author-section">
+            <div class="author-avatar">🍸</div>
+            <div class="author-info">
+                <div class="author-name">Alechemy Team</div>
+                <div class="author-label">{% trans "Автор рецепту" %}</div>
+            </div>
+        </div>
+
+        <!-- Ingredients -->
+        <section class="section">
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+                {% trans "Інгредієнти" %}
+            </h2>
+            <div class="ingredients-grid">
+                {% for ci in cocktail.ingredients.all %}
+                <div class="ingredient-card">
+                    <div class="ingredient-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                            <path d="M8 2v4M16 2v4"/>
+                            <path d="M3 10h18"/>
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                        </svg>
+                    </div>
+                    <div class="ingredient-name">{{ ci.ingredient.name }}</div>
+                    <div class="ingredient-amount">{{ ci.amount }} {{ ci.unit }}</div>
+                </div>
+                {% empty %}
+                <div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">
+                    {% trans "Інгредієнти не вказані" %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Instructions -->
+        {% if cocktail.instructions %}
+        <section class="section">
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                {% trans "Приготування" %}
+            </h2>
+            <div class="instructions-list">
+                {% for step in cocktail.instructions.splitlines %}
+                {% if step.strip %}
+                <div class="instruction-step">
+                    <div class="step-number">{{ forloop.counter }}</div>
+                    <div class="step-text">{{ step }}</div>
+                </div>
+                {% endif %}
+                {% empty %}
+                <div class="instruction-step">
+                    <div class="step-number">1</div>
+                    <div class="step-text">{{ cocktail.instructions }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Reviews Section -->
+        <section class="reviews-section">
+            <div class="reviews-header">
+                <h2 class="section-title" style="margin-bottom: 0;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    {% trans "Відгуки" %} ({{ cocktail.reviews.count }})
+                </h2>
+            </div>
+            
+            {% if request.user.is_authenticated %}
+            <!-- Add/Edit Review Form -->
+            <div style="background: rgba(52, 168, 83, 0.1); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                <h4 style="color: #34A853; margin-bottom: 16px; font-size: 15px;">
+                    {% if user_review %}{% trans "Редагувати ваш відгук" %}{% else %}{% trans "Залишити відгук" %}{% endif %}
+                </h4>
+                <form method="post" action="{% url 'recipes:add_cocktail_review' cocktail.slug %}">
+                    {% csrf_token %}
+                    <div style="margin-bottom: 16px;">
+                        <label style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 8px; display: block;">{% trans "Оцінка" %}</label>
+                        <div style="display: flex; gap: 8px;">
+                            {% for i in "12345" %}
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="rating" value="{{ forloop.counter }}" {% if user_review.rating == forloop.counter or not user_review and forloop.counter == 5 %}checked{% endif %} style="display: none;">
+                                <span class="review-star" data-value="{{ forloop.counter }}" style="font-size: 28px; opacity: 0.3; transition: opacity 0.2s;">⭐</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <textarea name="text" rows="3" placeholder="{% trans 'Поділіться враженнями про цей коктейль...' %}" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; color: #fff; font-size: 14px; resize: vertical;">{{ user_review.text|default:'' }}</textarea>
+                    </div>
+                    <button type="submit" class="add-review-btn">{% if user_review %}{% trans "Оновити відгук" %}{% else %}{% trans "Надіслати" %}{% endif %}</button>
+                </form>
+            </div>
+            {% endif %}
+
+            {% for review in cocktail.reviews.all %}
+            <div class="review-item">
+                <div class="review-header">
+                    <span class="reviewer-name">{{ review.user.profile.get_display_name }}</span>
+                    <span class="review-date">{{ review.created_at|date:"d.m.Y" }}</span>
+                </div>
+                <div class="rating-display" style="margin-bottom: 8px;">
+                    {% for i in "12345" %}
+                    <svg class="star{% if forloop.counter > review.rating %} empty{% endif %}" viewBox="0 0 24 24" stroke-width="1.5">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    {% endfor %}
+                </div>
+                {% if review.text %}
+                <p class="review-text">{{ review.text }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 30px; color: rgba(255,255,255,0.5);">
+                <p>{% trans "Ще немає відгуків. Будьте першим!" %}</p>
+            </div>
+            {% endfor %}
+        </section>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{% url 'recipes:cocktail_list' %}" class="btn btn-secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                {% trans "Назад" %}
+            </a>
+            <button class="btn btn-primary" id="addToEventBtn" onclick="showAddToEventModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                {% trans "Додати до події" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add to Event Modal -->
+{% if request.user.is_authenticated %}
+<div id="addToEventModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: #0a0f0c; border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 20px; padding: 32px; max-width: 450px; width: 90%; margin: 20px;">
+        <h3 style="font-family: 'Poppins', sans-serif; color: #34A853; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            🍸 {% trans "Додати до події" %}
+        </h3>
+        
+        {% if user_events %}
+        <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px; font-size: 14px;">{% trans "Оберіть подію, до якої хочете додати цей коктейль:" %}</p>
+        <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+            {% for event in user_events %}
+            <a href="{% url 'events:event_edit' event.pk %}" style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 8px; text-decoration: none; transition: all 0.3s;">
+                <span style="font-size: 24px;">🎉</span>
+                <div style="flex: 1;">
+                    <div style="color: #fff; font-weight: 500;">{{ event.title|default:event.scenario.name }}</div>
+                    <div style="color: rgba(255,255,255,0.5); font-size: 13px;">{{ event.date|date:"d.m.Y" }}</div>
+                </div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 30px; color: rgba(255,255,255,0.5);">
+            <span style="font-size: 40px; display: block; margin-bottom: 10px;">📅</span>
+            <p>{% trans "У вас ще немає подій." %}</p>
+            <a href="{% url 'events:scenario_list' %}" style="color: #34A853; text-decoration: underline;">{% trans "Створити подію" %}</a>
+        </div>
+        {% endif %}
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="hideAddToEventModal()" style="padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15);">{% trans "Закрити" %}</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Share button
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', async function() {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: '{{ cocktail.name }}',
+                        text: '{% trans "Спробуй цей коктейль!" %}',
+                        url: window.location.href
+                    });
+                } catch (err) {}
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('{% trans "Посилання скопійовано!" %}');
+            }
+        });
+    }
+
+    // Review star rating interactive
+    const reviewStars = document.querySelectorAll('.review-star');
+    reviewStars.forEach(star => {
+        star.addEventListener('click', function() {
+            const val = parseInt(this.dataset.value);
+            reviewStars.forEach((s, i) => {
+                s.style.opacity = i < val ? '1' : '0.3';
+            });
+            // The radio button is in the parent label
+        });
+    });
+    
+    // Initialize stars based on checked radio
+    const checkedRadio = document.querySelector('input[name="rating"]:checked');
+    if (checkedRadio) {
+        const val = parseInt(checkedRadio.value);
+        reviewStars.forEach((s, i) => {
+            s.style.opacity = i < val ? '1' : '0.3';
+        });
+    }
+});
+
+function showAddToEventModal() {
+    {% if request.user.is_authenticated %}
+    document.getElementById('addToEventModal').style.display = 'flex';
+    {% else %}
+    window.location.href = '{% url "accounts:login" %}?next={{ request.path }}';
+    {% endif %}
+}
+
+function hideAddToEventModal() {
+    document.getElementById('addToEventModal').style.display = 'none';
+}
+
+// Close modal on outside click
+{% if request.user.is_authenticated %}
+document.getElementById('addToEventModal').addEventListener('click', function(e) {
+    if (e.target === this) hideAddToEventModal();
+});
+{% endif %}
+</script>
+{% endblock %}

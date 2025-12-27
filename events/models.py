@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 from django.db import models
@@ -7,8 +8,8 @@ from django.db import models
 
 class DrinkCategory(models.Model):
     """
-    Категория напитка: вино, пиво, крепкое, безалкогольное и т.п.
-    Хранится в БД, чтобы можно было добавлять новые категории без правки кода.
+    Категорія напою: вино, пиво, міцне, безалкогольне тощо.
+    Зберігається в БД, щоб можна було додавати нові категорії без правки коду.
     """
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100)
@@ -19,8 +20,8 @@ class DrinkCategory(models.Model):
 
 class DrinkTag(models.Model):
     """
-    Теги напитка: 'красное', 'сухое', 'игристое', 'яблочное', 'кола' и т.п.
-    Для фильтрации и рекомендаций.
+    Теги напою: 'червоне', 'сухе', 'ігристе', 'яблучне', 'кола' тощо.
+    Для фільтрації та рекомендацій.
     """
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100)
@@ -31,9 +32,9 @@ class DrinkTag(models.Model):
 
 class Drink(models.Model):
     class Strength(models.TextChoices):
-        STRONG = "strong", "Крепкий"
-        REGULAR = "regular", "Обычный"
-        NON_ALCOHOLIC = "non_alcoholic", "Безалкогольный"
+        STRONG = "strong", "Міцний"
+        REGULAR = "regular", "Звичайний"
+        NON_ALCOHOLIC = "non_alcoholic", "Безалкогольний"
 
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100)
@@ -56,7 +57,7 @@ class Drink(models.Model):
         decimal_places=1,
         null=True,
         blank=True,
-        help_text="Крепость в % об.",
+        help_text="Міцність у % об.",
     )
     tags = models.ManyToManyField(
         DrinkTag,
@@ -70,9 +71,9 @@ class Drink(models.Model):
 
 class Dish(models.Model):
     class Difficulty(models.TextChoices):
-        EASY = "easy", "Очень просто"
-        MEDIUM = "medium", "Средне"
-        HARD = "hard", "Посложнее"
+        EASY = "easy", _("Дуже просто")
+        MEDIUM = "medium", _("Середньо")
+        HARD = "hard", _("Складніше")
 
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100)
@@ -100,14 +101,31 @@ class Dish(models.Model):
 
 
 class Scenario(models.Model):
+    class Category(models.TextChoices):
+        ROMANTIC = "romantic", "Побачення"
+        SPORT = "sport", "Спорт/Футбол"
+        PARTY = "party", "Вечірка"
+        BUDGET = "budget", "Перед зарплатою"
+        FRIENDS = "friends", "Друзі"
+        FAMILY = "family", "Сімейне"
+        HOLIDAY = "holiday", "Свято"
+        OTHER = "other", "Інше"
+
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    category = models.CharField(
+        max_length=20,
+        choices=Category.choices,
+        default=Category.OTHER,
+        help_text="Категорія сценарію для фільтрації"
+    )
+    icon = models.CharField(max_length=10, default="🎉", help_text="Емодзі для відображення")
 
-    # какие напитки доступны в этом сценарии
+    # які напої доступні в цьому сценарії
     drinks = models.ManyToManyField("events.Drink", related_name="scenarios", blank=True)
 
-    # НОВОЕ: текст по этапам
+    # НОВЕ: текст по етапах
     prep_text = models.TextField(
         blank=True,
         help_text="Рекомендации по подготовке: що купити, що підготувати, атмосфера.",
@@ -148,6 +166,14 @@ class Event(models.Model):
         related_name="events",
         null=True,
         blank=True,
+        help_text="Основний напій (застаріле, використовуйте drinks)",
+    )
+    # Множинні напої
+    drinks = models.ManyToManyField(
+        Drink,
+        related_name="multi_events",
+        blank=True,
+        help_text="Напої для події",
     )
     dish = models.ForeignKey(
         Dish,
@@ -155,10 +181,27 @@ class Event(models.Model):
         related_name="events",
         null=True,
         blank=True,
+        help_text="Основна страва (застаріле, використовуйте dishes)",
+    )
+    # Множинні страви
+    dishes = models.ManyToManyField(
+        Dish,
+        related_name="multi_events",
+        blank=True,
+        help_text="Страви для події",
+    )
+    # Коктейлі з модуля recipes
+    cocktails = models.ManyToManyField(
+        "recipes.Cocktail",
+        related_name="events",
+        blank=True,
+        help_text="Коктейлі для події",
     )
 
     title = models.CharField(max_length=150, blank=True)
     date = models.DateField()
+    start_time = models.TimeField(null=True, blank=True, help_text="Час початку події")
+    end_time = models.TimeField(null=True, blank=True, help_text="Час закінчення події")
     people_count = models.PositiveIntegerField(default=2)
     duration_hours = models.PositiveIntegerField(default=2)
     intensity = models.CharField(
@@ -167,25 +210,147 @@ class Event(models.Model):
         default=Intensity.MEDIUM,
     )
     notes = models.TextField(blank=True)
+    
+    # Локація події
+    location_name = models.CharField(max_length=255, blank=True, help_text="Назва місця")
+    location_address = models.CharField(max_length=500, blank=True, help_text="Адреса")
+    location_lat = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True, help_text="Широта"
+    )
+    location_lng = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True, help_text="Довгота"
+    )
+    
+    # Фідбек після події
+    is_finished = models.BooleanField(default=False, help_text="Подія завершена")
+    user_rating = models.PositiveIntegerField(
+        null=True, blank=True, 
+        help_text="Оцінка події від 1 до 5"
+    )
+    feedback = models.TextField(blank=True, help_text="Відгук після події")
+    feedback_submitted_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         base = self.title or self.scenario.name
         return f"{base} ({self.date})"
+    
+    def get_participants(self):
+        """Отримати список учасників події"""
+        return self.event_participants.select_related('participant__profile').all()
+    
+    def get_average_rating(self):
+        """Отримати середню оцінку від усіх учасників"""
+        ratings = list(
+            self.event_participants.filter(rating__isnull=False).values_list('rating', flat=True)
+        )
+        if self.user_rating:
+            ratings.append(self.user_rating)
+        return sum(ratings) / len(ratings) if ratings else None
 
     class Meta:
         ordering = ["-date", "-created_at"]
 
 
+class EventParticipant(models.Model):
+    """
+    Учасники події - друзі, яких запросив власник події.
+    """
+    class Status(models.TextChoices):
+        PENDING = "pending", "Очікує"
+        ACCEPTED = "accepted", "Прийнято"
+        DECLINED = "declined", "Відхилено"
+        MAYBE = "maybe", "Можливо"
+    
+    class Role(models.TextChoices):
+        HEAD = "head", "Глава"
+        PARTICIPANT = "participant", "Учасник"
+    
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="event_participants"
+    )
+    participant = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="event_invitations"
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+    role = models.CharField(
+        max_length=15,
+        choices=Role.choices,
+        default=Role.PARTICIPANT
+    )
+    
+    # Фідбек учасника
+    rating = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Оцінка події від 1 до 5"
+    )
+    feedback = models.TextField(blank=True)
+    feedback_submitted_at = models.DateTimeField(null=True, blank=True)
+    
+    invited_at = models.DateTimeField(auto_now_add=True, null=True)
+    responded_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ("event", "participant")
+        ordering = ["-invited_at"]
+    
+    def __str__(self):
+        return f"{self.participant.email} @ {self.event}"
+    
+    def accept(self):
+        from django.utils import timezone
+        self.status = self.Status.ACCEPTED
+        self.responded_at = timezone.now()
+        self.save()
+    
+    def decline(self):
+        from django.utils import timezone
+        self.status = self.Status.DECLINED
+        self.responded_at = timezone.now()
+        self.save()
+
+
+class EventMessage(models.Model):
+    """
+    Повідомлення в обговоренні події.
+    """
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="messages"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="event_messages"
+    )
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ["created_at"]
+    
+    def __str__(self):
+        return f"{self.user.email} @ {self.event}: {self.text[:50]}"
+
+
 class AlcoholLog(models.Model):
     """
-    Запись в алко-дневник:
-    - что выпил,
-    - сколько,
-    - когда,
-    - примерная оценка BAC.
-    Всё очень грубо и только для ориентировочного отображения в приложении.
+    Запис в алко-щоденник:
+    - що випив,
+    - скільки,
+    - коли,
+    - приблизна оцінка BAC.
+    Все дуже грубо і тільки для орієнтовного відображення в застосунку.
     """
 
     user = models.ForeignKey(
@@ -199,7 +364,7 @@ class AlcoholLog(models.Model):
         null=True,
         blank=True,
         related_name="alcohol_logs",
-        help_text="Можно привязать запись к событию, а можно оставить пустым.",
+        help_text="Можна прив'язати запис до події, а можна залишити порожнім.",
     )
     drink = models.ForeignKey(
         Drink,
@@ -211,15 +376,15 @@ class AlcoholLog(models.Model):
 
     taken_at = models.DateTimeField(
         default=timezone.now,
-        help_text="Когда примерно был напиток.",
+        help_text="Коли приблизно був напій.",
     )
     volume_ml = models.PositiveIntegerField(
-        help_text="Объём напитка в миллилитрах, например 150.",
+        help_text="Об'єм напою в мілілітрах, наприклад 150.",
     )
 
-    # Если не указать, берём abv из Drink
+    # Якщо не вказати, беремо abv з Drink
     abv = models.DecimalField(
-        "Крепость, % об.",
+        "Міцність, % об.",
         max_digits=4,
         decimal_places=1,
         null=True,
@@ -227,18 +392,18 @@ class AlcoholLog(models.Model):
     )
 
     bac_estimate = models.DecimalField(
-        "Оценка BAC, ‰",
+        "Оцінка BAC, ‰",
         max_digits=5,
         decimal_places=3,
         null=True,
         blank=True,
-        help_text="Очень грубая оценка по одной порции, только для справки.",
+        help_text="Дуже груба оцінка по одній порції, тільки для довідки.",
     )
 
     note = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Опциональный комментарий.",
+        help_text="Опціональний коментар.",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -247,15 +412,15 @@ class AlcoholLog(models.Model):
         ordering = ["-taken_at", "-created_at"]
 
     def __str__(self) -> str:
-        base = self.drink.name if self.drink else "Напиток"
+        base = self.drink.name if self.drink else "Напій"
         return f"{base} {self.volume_ml} мл @ {self.taken_at:%Y-%m-%d %H:%M}"
 
-    # === расчёт BAC ===
+    # === розрахунок BAC ===
 
     def _get_weight_and_sex(self):
         """
-        Пытаемся аккуратно вытащить вес/пол из профиля.
-        Поля могут называться по-разному — тут максимально мягко.
+        Намагаємось акуратно витягнути вагу/стать з профілю.
+        Поля можуть називатися по-різному — тут максимально м'яко.
         """
         profile = getattr(self.user, "profile", None)
         if not profile:
@@ -271,13 +436,13 @@ class AlcoholLog(models.Model):
 
     def calculate_bac(self) -> Decimal | None:
         """
-        Очень приблизительная оценка BAC для одной порции.
-        Никаких мед. выводов, просто цифра в интерфейсе.
+        Дуже приблизна оцінка BAC для однієї порції.
+        Жодних мед. висновків, просто цифра в інтерфейсі.
         """
         if not self.volume_ml:
             return None
 
-        # крепость
+        # міцність
         abv = self.abv
         if abv is None and self.drink and self.drink.abv is not None:
             abv = self.drink.abv
@@ -288,7 +453,7 @@ class AlcoholLog(models.Model):
         weight_kg, sex = self._get_weight_and_sex()
 
         if not weight_kg:
-            # без веса пользователя считать нечего
+            # без ваги користувача рахувати нічого
             return None
 
         try:
@@ -299,23 +464,23 @@ class AlcoholLog(models.Model):
         if weight_kg <= 0:
             return None
 
-        # коэффициент распределения (Widmark r)
+        # коефіцієнт розподілу (Widmark r)
         sex_str = (str(sex) or "").lower()
         if sex_str in ("m", "male", "man", "ч", "м"):
             r = 0.68
         elif sex_str in ("f", "female", "woman", "ж"):
             r = 0.55
         else:
-            r = 0.6  # усреднённое
+            r = 0.6  # усереднене
 
-        # объём чистого спирта в граммах
-        # 1 мл напитка * (abv/100) * 0.789 (плотность этанола)
+        # об'єм чистого спирту в грамах
+        # 1 мл напою * (abv/100) * 0.789 (щільність етанолу)
         pure_alcohol_g = float(self.volume_ml) * float(abv) / 100.0 * 0.789
 
         # Widmark: BAC (г/дл) ≈ A / (r * weight_kg * 10)
         bac = pure_alcohol_g / (r * weight_kg * 10.0)
 
-        # переводим в промилле (‰): 0.08 -> 0.8‰
+        # переводимо в проміле (‰): 0.08 -> 0.8‰
         bac_promille = bac * 10.0
 
         return Decimal(str(round(bac_promille, 3)))
@@ -334,8 +499,8 @@ class IngredientUnit(models.TextChoices):
 
 
 class IngredientCategory(models.TextChoices):
-    FOOD = "food", "Еда"
-    OTHER = "other", "Другое"
+    FOOD = "food", "Їжа"
+    OTHER = "other", "Інше"
 
 
 class Ingredient(models.Model):
@@ -350,6 +515,7 @@ class Ingredient(models.Model):
         choices=IngredientUnit.choices,
         default=IngredientUnit.G,
     )
+    is_alcoholic = models.BooleanField(default=False, verbose_name="Алкогольний")
 
     def __str__(self) -> str:
         return self.name
@@ -357,7 +523,7 @@ class Ingredient(models.Model):
 
 class DishIngredient(models.Model):
     """
-    Количество ингредиента на 1 человека (на порцию).
+    Кількість інгредієнта на 1 людину (на порцію).
     """
     dish = models.ForeignKey("events.Dish", on_delete=models.CASCADE, related_name="dish_ingredients")
     ingredient = models.ForeignKey("events.Ingredient", on_delete=models.PROTECT, related_name="dish_uses")

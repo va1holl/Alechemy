@@ -5,10 +5,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# зависимости для psycopg2
+# зависимости для psycopg2 + шрифти для PDF
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

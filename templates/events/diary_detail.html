@@ -1,36 +1,247 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Запись дневника{% endblock %}
+{% block title %}{% trans "Запис щоденника" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+.diary-detail-page {
+    padding: 30px 40px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 32px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 16px;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: #34A853;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+}
+
+/* Detail Card */
+.detail-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.drink-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.drink-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #34A853, #2d8f47);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+}
+
+.drink-info h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.drink-date {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+/* Detail Rows */
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+}
+
+.detail-value {
+    color: #fff;
+    font-weight: 500;
+    font-size: 15px;
+}
+
+.detail-value a {
+    color: #34A853;
+    text-decoration: none;
+}
+
+.detail-value a:hover {
+    text-decoration: underline;
+}
+
+/* BAC Badge */
+.bac-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.bac-low {
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+}
+
+.bac-medium {
+    background: rgba(255, 193, 7, 0.2);
+    color: #FFC107;
+}
+
+.bac-high {
+    background: rgba(255, 152, 0, 0.2);
+    color: #FF9800;
+}
+
+.bac-danger {
+    background: rgba(255, 107, 107, 0.2);
+    color: #FF6B6B;
+}
+
+/* Note */
+.note-section {
+    margin-top: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+}
+
+.note-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.note-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .diary-detail-page {
+        padding: 20px 16px;
+    }
+    
+    .detail-card {
+        padding: 24px;
+    }
+    
+    .page-title {
+        font-size: 22px;
+    }
+    
+    .drink-info h2 {
+        font-size: 18px;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-  <h1>Запись дневника</h1>
-
-  <ul>
-    <li>Дата и время: {{ log.taken_at }}</li>
-    {% if log.event %}
-      <li>Событие:
-        <a href="{% url 'events:event_detail' log.event.pk %}">
-          {{ log.event }}
+<div class="diary-detail-page">
+    <div class="page-header">
+        <a href="{% url 'events:diary_list' %}" class="back-link">
+            ← {% trans "Назад до щоденника" %}
         </a>
-      </li>
-    {% endif %}
-    {% if log.drink %}
-      <li>Напиток: {{ log.drink.name }}</li>
-    {% endif %}
-    <li>Объём: {{ log.volume_ml }} мл</li>
-    {% if log.abv %}
-      <li>Крепость: {{ log.abv }} %</li>
-    {% endif %}
-    {% if log.bac_estimate %}
-      <li>Оценочный BAC: {{ log.bac_estimate }} ‰</li>
-    {% endif %}
-    {% if log.note %}
-      <li>Комментарий: {{ log.note }}</li>
-    {% endif %}
-    <li>Создано: {{ log.created_at }}</li>
-  </ul>
-
-  <p>
-    <a href="{% url 'events:diary_list' %}">Назад к дневнику</a>
-  </p>
+        <h1 class="page-title">📊 {% trans "Запис щоденника" %}</h1>
+    </div>
+    
+    <div class="detail-card">
+        <div class="drink-header">
+            <div class="drink-icon">🍷</div>
+            <div class="drink-info">
+                <h2>{% if log.drink %}{{ log.drink.name }}{% else %}{% trans "Напій" %}{% endif %}</h2>
+                <div class="drink-date">{{ log.taken_at|date:"d.m.Y H:i" }}</div>
+            </div>
+        </div>
+        
+        <div class="detail-row">
+            <span class="detail-label">{% trans "Об'єм" %}</span>
+            <span class="detail-value">{{ log.volume_ml }} {% trans "мл" %}</span>
+        </div>
+        
+        {% if log.abv %}
+        <div class="detail-row">
+            <span class="detail-label">{% trans "Міцність" %}</span>
+            <span class="detail-value">{{ log.abv }}%</span>
+        </div>
+        {% endif %}
+        
+        {% if log.bac_estimate %}
+        <div class="detail-row">
+            <span class="detail-label">{% trans "Оціночний BAC" %}</span>
+            <span class="detail-value">
+                <span class="bac-badge {% if log.bac_estimate < 0.3 %}bac-low{% elif log.bac_estimate < 0.8 %}bac-medium{% elif log.bac_estimate < 1.5 %}bac-high{% else %}bac-danger{% endif %}">
+                    {{ log.bac_estimate|floatformat:2 }}‰
+                </span>
+            </span>
+        </div>
+        {% endif %}
+        
+        {% if log.event %}
+        <div class="detail-row">
+            <span class="detail-label">{% trans "Подія" %}</span>
+            <span class="detail-value">
+                <a href="{% url 'events:event_detail' log.event.pk %}">{{ log.event }}</a>
+            </span>
+        </div>
+        {% endif %}
+        
+        <div class="detail-row">
+            <span class="detail-label">{% trans "Створено" %}</span>
+            <span class="detail-value">{{ log.created_at|date:"d.m.Y H:i" }}</span>
+        </div>
+        
+        {% if log.note %}
+        <div class="note-section">
+            <div class="note-label">{% trans "Коментар" %}</div>
+            <div class="note-text">{{ log.note }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

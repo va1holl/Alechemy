@@ -1,128 +1,675 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Редактировать событие — Alechmy{% endblock %}
+{% block title %}{% trans "Редагувати подію" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+.event-edit-page {
+    padding: 30px 40px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 32px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 16px;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: #34A853;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+}
+
+/* Cards */
+.edit-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 24px;
+}
+
+.card-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #34A853;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Current Items */
+.current-items {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.current-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px 18px;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+}
+
+.current-item span {
+    color: #34A853;
+    font-weight: 500;
+}
+
+/* Recommendations */
+.reco-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.reco-item {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 16px;
+    border-radius: 12px;
+}
+
+.reco-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.reco-value {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.reco-value small {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+    font-weight: 400;
+}
+
+#reco-summary {
+    background: rgba(52, 168, 83, 0.1);
+    padding: 16px;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+/* Form */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: #fff;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #34A853;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Buttons */
+.btn-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.btn {
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #34A853, #2d8f47);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(52, 168, 83, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-outline:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Drinks, Dishes & Cocktails Grid */
+.drinks-cocktails-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+}
+
+.selection-column {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.column-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #34A853;
+    margin-bottom: 16px;
+}
+
+.section-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.checkbox-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.checkbox-grid.scrollable {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.checkbox-grid.scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.checkbox-grid.scrollable::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.checkbox-grid.scrollable::-webkit-scrollbar-thumb {
+    background: rgba(52, 168, 83, 0.4);
+    border-radius: 3px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.checkbox-item:hover {
+    background: rgba(52, 168, 83, 0.1);
+    border-color: rgba(52, 168, 83, 0.3);
+}
+
+.checkbox-item.recommended {
+    background: rgba(52, 168, 83, 0.08);
+    border-color: rgba(52, 168, 83, 0.2);
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #34A853;
+    flex-shrink: 0;
+}
+
+.checkbox-label {
+    flex: 1;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+}
+
+.abv-badge {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.strength-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.strength-badge.strength-light {
+    background: rgba(76, 175, 80, 0.2);
+    color: #81C784;
+}
+
+.strength-badge.strength-medium {
+    background: rgba(255, 193, 7, 0.2);
+    color: #FFD54F;
+}
+
+.strength-badge.strength-strong {
+    background: rgba(255, 152, 0, 0.2);
+    color: #FFB74D;
+}
+
+.strength-badge.strength-very_strong {
+    background: rgba(244, 67, 54, 0.2);
+    color: #E57373;
+}
+
+.empty-message {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 14px;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+    .event-edit-page {
+        padding: 20px 16px;
+    }
+    
+    .drinks-cocktails-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .reco-list {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .btn-row {
+        flex-direction: column;
+    }
+    
+    .selection-column {
+        padding: 16px;
+    }
+    
+    .column-title {
+        font-size: 15px;
+    }
+    
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .edit-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .current-items {
+        flex-direction: column;
+    }
+    
+    .current-item {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .reco-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .checkbox-grid.scrollable {
+        max-height: 250px;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-  <h1>Редактировать событие</h1>
-
-  <p>Сценарий: {{ scenario.name }}</p>
-
-  {% if event.drink %}
-    <p>Текущий напиток: {{ event.drink.name }}</p>
-  {% endif %}
-  {% if event.dish %}
-    <p>Текущее блюдо: {{ event.dish.name }}</p>
-  {% endif %}
-
-  {% if recommendations %}
-    <h2>Рекомендации</h2>
-    <div id="recommendations-block"
-         data-scenario-id="{{ scenario.id }}"
-         data-drink-id="{{ event.drink.id }}"
-         data-dish-id="{{ event.dish.id }}">
-      <p id="reco-summary">{{ recommendations.summary }}</p>
-
-      <ul>
-        <li>
-          Напиток на человека:
-          <span id="reco-per-person-alc">{{ recommendations.per_person_alcohol_ml }}</span> мл
-        </li>
-        <li>
-          Всего напитка:
-          <span id="reco-total-alc">{{ recommendations.total_alcohol_ml }}</span> мл
-          (≈ <span id="reco-bottles">{{ recommendations.bottles_750_ml }}</span> × 0.75 л)
-        </li>
-        <li>
-          Вода на человека:
-          <span id="reco-per-person-water">{{ recommendations.per_person_water_ml }}</span> мл
-        </li>
-        <li>
-          Всего воды:
-          <span id="reco-total-water">{{ recommendations.total_water_ml }}</span> мл
-          (≈ <span id="reco-water-bottles">{{ recommendations.water_bottles_1500_ml }}</span> × 1.5 л)
-        </li>
-        <li>
-          Порций еды:
-          <span id="reco-food-portions">{{ recommendations.food_portions }}</span>
-        </li>
-      </ul>
+<div class="event-edit-page">
+    <div class="page-header">
+        <a href="{% url 'events:event_detail' event.pk %}" class="back-link">
+            ← {% trans "Назад до події" %}
+        </a>
+        <h1 class="page-title">✏️ {% trans "Редагувати подію" %}</h1>
     </div>
-  {% endif %}
+    
+    <div class="edit-card">
+        <h2 class="card-title">📋 {% trans "Поточні дані" %}</h2>
+        
+        <div class="current-items">
+            <div class="current-item">
+                🎭 {% trans "Сценарій:" %} <span>{{ scenario.name }}</span>
+            </div>
+            {% if event.drink %}
+            <div class="current-item">
+                🍷 {% trans "Напій:" %} <span>{{ event.drink.name }}</span>
+            </div>
+            {% endif %}
+            {% if event.dish %}
+            <div class="current-item">
+                🍽️ {% trans "Страва:" %} <span>{{ event.dish.name }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if recommendations %}
+    <div class="edit-card">
+        <h2 class="card-title">💡 {% trans "Рекомендації" %}</h2>
+        
+        <div id="recommendations-block"
+             data-scenario-id="{{ scenario.id }}"
+             data-drink-id="{{ event.drink.id }}"
+             data-dish-id="{{ event.dish.id }}">
+            
+            <p id="reco-summary">{{ recommendations.summary }}</p>
+            
+            <div class="reco-list">
+                <div class="reco-item">
+                    <div class="reco-label">{% trans "Напій на особу" %}</div>
+                    <div class="reco-value">
+                        <span id="reco-per-person-alc">{{ recommendations.per_person_alcohol_ml }}</span> 
+                        <small>{% trans "мл" %}</small>
+                    </div>
+                </div>
+                <div class="reco-item">
+                    <div class="reco-label">{% trans "Всього напою" %}</div>
+                    <div class="reco-value">
+                        <span id="reco-total-alc">{{ recommendations.total_alcohol_ml }}</span>
+                        <small>{% trans "мл" %} (≈ <span id="reco-bottles">{{ recommendations.bottles_750_ml }}</span> × 0.75 {% trans "л" %})</small>
+                    </div>
+                </div>
+                <div class="reco-item">
+                    <div class="reco-label">{% trans "Вода на особу" %}</div>
+                    <div class="reco-value">
+                        <span id="reco-per-person-water">{{ recommendations.per_person_water_ml }}</span>
+                        <small>{% trans "мл" %}</small>
+                    </div>
+                </div>
+                <div class="reco-item">
+                    <div class="reco-label">{% trans "Всього води" %}</div>
+                    <div class="reco-value">
+                        <span id="reco-total-water">{{ recommendations.total_water_ml }}</span>
+                        <small>{% trans "мл" %} (≈ <span id="reco-water-bottles">{{ recommendations.water_bottles_1500_ml }}</span> × 1.5 {% trans "л" %})</small>
+                    </div>
+                </div>
+                <div class="reco-item">
+                    <div class="reco-label">{% trans "Порцій їжі" %}</div>
+                    <div class="reco-value">
+                        <span id="reco-food-portions">{{ recommendations.food_portions }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="edit-card">
+        <h2 class="card-title">🍹 {% trans "Напої, страви та коктейлі" %}</h2>
+        
+        <div class="drinks-cocktails-grid">
+            <!-- Напої -->
+            <div class="selection-column">
+                <h3 class="column-title">🍷 {% trans "Напої" %}</h3>
+                
+                {% if form.recommended_drink_ids %}
+                <div class="section-label">⭐ {% trans "Рекомендовані для сценарію" %}</div>
+                <div class="checkbox-grid">
+                    {% for drink in form.drinks.field.queryset %}
+                        {% if drink.id in form.recommended_drink_ids %}
+                        <label class="checkbox-item recommended">
+                            <input type="checkbox" name="drinks" value="{{ drink.id }}"
+                                {% if drink in form.instance.drinks.all %}checked{% endif %}>
+                            <span class="checkbox-label">{{ drink.name }}</span>
+                            {% if drink.abv %}<span class="abv-badge">{{ drink.abv }}%</span>{% endif %}
+                        </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="section-label" style="margin-top: 16px;">📋 {% trans "Всі напої" %}</div>
+                <div class="checkbox-grid scrollable">
+                    {% for drink in form.drinks.field.queryset %}
+                        {% if drink.id not in form.recommended_drink_ids %}
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="drinks" value="{{ drink.id }}"
+                                {% if drink in form.instance.drinks.all %}checked{% endif %}>
+                            <span class="checkbox-label">{{ drink.name }}</span>
+                            {% if drink.abv %}<span class="abv-badge">{{ drink.abv }}%</span>{% endif %}
+                        </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Страви -->
+            <div class="selection-column">
+                <h3 class="column-title">🍽️ {% trans "Страви" %}</h3>
+                
+                {% if recommended_dish_ids %}
+                <div class="section-label">⭐ {% trans "Рекомендовані для напоїв" %}</div>
+                <div class="checkbox-grid">
+                    {% for dish in all_dishes %}
+                        {% if dish.id in recommended_dish_ids %}
+                        <label class="checkbox-item recommended">
+                            <input type="checkbox" name="dishes" value="{{ dish.id }}"
+                                {% if dish in form.instance.dishes.all %}checked{% endif %}>
+                            <span class="checkbox-label">{{ dish.name }}</span>
+                        </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="section-label" style="margin-top: 16px;">📋 {% trans "Всі страви" %}</div>
+                <div class="checkbox-grid scrollable">
+                    {% for dish in all_dishes %}
+                        {% if dish.id not in recommended_dish_ids %}
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="dishes" value="{{ dish.id }}"
+                                {% if dish in form.instance.dishes.all %}checked{% endif %}>
+                            <span class="checkbox-label">{{ dish.name }}</span>
+                        </label>
+                        {% endif %}
+                    {% empty %}
+                    <div class="empty-message">{% trans "Страви ще не додано" %}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Коктейлі -->
+            <div class="selection-column">
+                <h3 class="column-title">🍸 {% trans "Коктейлі" %}</h3>
+                <div class="checkbox-grid scrollable">
+                    {% for cocktail in form.cocktails.field.queryset %}
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="cocktails" value="{{ cocktail.id }}"
+                            {% if cocktail in form.instance.cocktails.all %}checked{% endif %}>
+                        <span class="checkbox-label">{{ cocktail.name }}</span>
+                        {% if cocktail.strength %}
+                        <span class="strength-badge strength-{{ cocktail.strength }}">
+                            {% if cocktail.strength == 'light' %}Легкий
+                            {% elif cocktail.strength == 'medium' %}Середній
+                            {% elif cocktail.strength == 'strong' %}Міцний
+                            {% elif cocktail.strength == 'very_strong' %}Дуже міцний
+                            {% else %}{{ cocktail.get_strength_display }}
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </label>
+                    {% empty %}
+                    <div class="empty-message">{% trans "Коктейлі ще не додано" %}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="edit-card">
+        <h2 class="card-title">⚙️ {% trans "Параметри" %}</h2>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-grid">
+                {% for field in form %}
+                    {% if field.name != 'drinks' and field.name != 'cocktails' and field.name != 'dishes' %}
+                <div class="form-group {% if field.name == 'notes' %}full-width{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <span style="color: #FF6B6B; font-size: 12px;">{{ field.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <div class="btn-row">
+                <button type="submit" class="btn btn-primary">
+                    💾 {% trans "Зберегти зміни" %}
+                </button>
+                <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline">
+                    ✕ {% trans "Скасувати" %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
 
-  <h2>Параметры</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Сохранить изменения</button>
-  </form>
-
-  <p><a href="{% url 'events:event_detail' event.pk %}">Назад к событию</a></p>
-
-  {% if recommendations %}
-  <script>
+{% if recommendations %}
+<script>
     function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-      return null;
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-      const block = document.getElementById("recommendations-block");
-      if (!block) return;
+        const block = document.getElementById("recommendations-block");
+        if (!block) return;
 
-      const url = "{% url 'events:event_recommendations_preview' %}";
+        const url = "{% url 'events:event_recommendations_preview' %}";
 
-      const peopleInput = document.querySelector('input[name="people_count"]');
-      const hoursInput = document.querySelector('input[name="duration_hours"]');
+        const peopleInput = document.querySelector('input[name="people_count"]');
+        const hoursInput = document.querySelector('input[name="duration_hours"]');
 
-      function updateRecommendations() {
-        const data = new URLSearchParams();
-        data.append("scenario_id", block.dataset.scenarioId);
-        data.append("drink_id", block.dataset.drinkId || "");
-        data.append("dish_id", block.dataset.dishId || "");
-        data.append("people_count", peopleInput ? peopleInput.value : "");
-        data.append("duration_hours", hoursInput ? hoursInput.value : "");
+        function updateRecommendations() {
+            const data = new URLSearchParams();
+            data.append("scenario_id", block.dataset.scenarioId);
+            data.append("drink_id", block.dataset.drinkId || "");
+            data.append("dish_id", block.dataset.dishId || "");
+            data.append("people_count", peopleInput ? peopleInput.value : "");
+            data.append("duration_hours", hoursInput ? hoursInput.value : "");
 
-        fetch(url, {
-          method: "POST",
-          headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "X-Requested-With": "XMLHttpRequest",
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: data.toString(),
-        })
-          .then((response) => response.json())
-          .then((rec) => {
-            const setText = (id, value) => {
-              const el = document.getElementById(id);
-              if (el) el.textContent = value;
-            };
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: data.toString(),
+            })
+            .then((response) => response.json())
+            .then((rec) => {
+                const setText = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = value;
+                };
 
-            setText("reco-summary", rec.summary);
-            setText("reco-per-person-alc", rec.per_person_alcohol_ml);
-            setText("reco-total-alc", rec.total_alcohol_ml);
-            setText("reco-bottles", rec.bottles_750_ml);
-            setText("reco-per-person-water", rec.per_person_water_ml);
-            setText("reco-total-water", rec.total_water_ml);
-            setText("reco-water-bottles", rec.water_bottles_1500_ml);
-            setText("reco-food-portions", rec.food_portions);
-          })
-          .catch((err) => console.error("Ошибка обновления рекомендаций", err));
-      }
+                setText("reco-summary", rec.summary);
+                setText("reco-per-person-alc", rec.per_person_alcohol_ml);
+                setText("reco-total-alc", rec.total_alcohol_ml);
+                setText("reco-bottles", rec.bottles_750_ml);
+                setText("reco-per-person-water", rec.per_person_water_ml);
+                setText("reco-total-water", rec.total_water_ml);
+                setText("reco-water-bottles", rec.water_bottles_1500_ml);
+                setText("reco-food-portions", rec.food_portions);
+            })
+            .catch((err) => console.error("{% trans 'Помилка оновлення рекомендацій' %}", err));
+        }
 
-      const handlers = [];
-      if (peopleInput) handlers.push(peopleInput);
-      if (hoursInput) handlers.push(hoursInput);
+        const handlers = [];
+        if (peopleInput) handlers.push(peopleInput);
+        if (hoursInput) handlers.push(hoursInput);
 
-      handlers.forEach((el) => {
-        el.addEventListener("input", updateRecommendations);
-        el.addEventListener("change", updateRecommendations);
-      });
+        handlers.forEach((el) => {
+            el.addEventListener("input", updateRecommendations);
+            el.addEventListener("change", updateRecommendations);
+        });
 
-      updateRecommendations();
+        updateRecommendations();
     });
-  </script>
-  {% endif %}
+</script>
+{% endif %}
 {% endblock %}

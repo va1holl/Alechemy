@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Карта" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+.map-page {
+    padding: 30px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.filter-btn:hover {
+    border-color: rgba(52, 168, 83, 0.5);
+    color: #fff;
+}
+
+.filter-btn.active {
+    background: rgba(52, 168, 83, 0.2);
+    border-color: #34A853;
+    color: #34A853;
+}
+
+.map-container {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    height: 600px;
+    position: relative;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    z-index: 1;
+}
+
+/* Fix Leaflet tile rendering */
+.leaflet-container {
+    background: #1a1a1a;
+}
+
+.leaflet-tile-pane {
+    z-index: 1;
+}
+
+.leaflet-tile {
+    visibility: visible !important;
+}
+
+/* Leaflet customization */
+.leaflet-popup-content-wrapper {
+    background: #0a0f0c;
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 12px;
+}
+
+.leaflet-popup-content {
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+}
+
+.leaflet-popup-tip {
+    background: #0a0f0c;
+}
+
+.popup-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #34A853;
+    margin-bottom: 8px;
+}
+
+.popup-address {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.popup-promo {
+    background: rgba(52, 168, 83, 0.15);
+    border-left: 3px solid #34A853;
+    padding: 8px 12px;
+    margin-top: 8px;
+    border-radius: 0 8px 8px 0;
+}
+
+.popup-promo-title {
+    font-weight: 500;
+    font-size: 13px;
+    color: #34A853;
+}
+
+.popup-promo-date {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.popup-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: #34A853;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.popup-link:hover {
+    text-decoration: underline;
+}
+
+.place-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.place-icon.bar {
+    background: linear-gradient(135deg, #FF6B6B, #ee5a5a);
+}
+
+.place-icon.shop {
+    background: linear-gradient(135deg, #34A853, #2d8f47);
+}
+
+.place-icon.other {
+    background: linear-gradient(135deg, #FFC538, #e6b030);
+}
+
+.stats-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 16px 24px;
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 4px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .map-page {
+        padding: 20px 16px;
+    }
+    
+    .map-container {
+        height: 450px;
+    }
+    
+    .page-title {
+        font-size: 22px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="map-page">
+    <div class="page-header">
+        <h1 class="page-title">
+            📍 {% trans "Карта" %}
+        </h1>
+        <div class="filter-group">
+            <button class="filter-btn active" data-filter="all">{% trans "Всі" %}</button>
+            <button class="filter-btn" data-filter="bar">🍺 {% trans "Бари" %}</button>
+            <button class="filter-btn" data-filter="shop">🛒 {% trans "Магазини" %}</button>
+        </div>
+    </div>
+    
+    <div class="map-container">
+        <div id="map"></div>
+    </div>
+    
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-value" id="total-places">0</div>
+            <div class="stat-label">{% trans "Місць" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="total-bars">0</div>
+            <div class="stat-label">{% trans "Барів" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="total-shops">0</div>
+            <div class="stat-label">{% trans "Магазинів" %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="total-promos">0</div>
+            <div class="stat-label">{% trans "Акцій" %}</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map centered on Kyiv
+    const map = L.map('map').setView([50.4501, 30.5234], 12);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Fix map tiles not loading correctly
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 100);
+    
+    // Additional fix for resize
+    window.addEventListener('resize', function() {
+        map.invalidateSize();
+    });
+    
+    // Force redraw after all resources loaded
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 200);
+    });
+    
+    let allMarkers = [];
+    let placesData = [];
+    
+    // Custom icons
+    function createIcon(type) {
+        const colors = {
+            'bar': '#FF6B6B',
+            'shop': '#34A853',
+            'other': '#FFC538'
+        };
+        const emojis = {
+            'bar': '🍺',
+            'shop': '🛒',
+            'other': '📍'
+        };
+        
+        return L.divIcon({
+            className: 'custom-marker',
+            html: `<div class="place-icon ${type}">${emojis[type]}</div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+        });
+    }
+    
+    // Create popup content
+    function createPopup(place) {
+        let html = `<div class="popup-title">${place.name}</div>`;
+        
+        if (place.address) {
+            html += `<div class="popup-address">📍 ${place.address}</div>`;
+        }
+        
+        if (place.promotions && place.promotions.length > 0) {
+            place.promotions.forEach(promo => {
+                html += `
+                    <div class="popup-promo">
+                        <div class="popup-promo-title">🎉 ${promo.title}</div>
+                        <div class="popup-promo-date">{% trans "До" %}: ${promo.valid_to}</div>
+                    </div>
+                `;
+            });
+        }
+        
+        if (place.url) {
+            html += `<a href="${place.url}" target="_blank" class="popup-link">{% trans "Перейти на сайт" %} →</a>`;
+        }
+        
+        return html;
+    }
+    
+    // Load places
+    fetch('{% url "places:places_json" %}')
+        .then(response => response.json())
+        .then(data => {
+            placesData = data;
+            updateStats(data);
+            renderMarkers(data);
+            
+            // Fit bounds if there are places
+            if (data.length > 0) {
+                const bounds = L.latLngBounds(data.map(p => [p.lat, p.lon]));
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+        })
+        .catch(err => console.error('Error loading places:', err));
+    
+    function renderMarkers(places) {
+        // Clear existing markers
+        allMarkers.forEach(m => map.removeLayer(m));
+        allMarkers = [];
+        
+        places.forEach(place => {
+            const marker = L.marker([place.lat, place.lon], {
+                icon: createIcon(place.kind)
+            })
+            .bindPopup(createPopup(place))
+            .addTo(map);
+            
+            marker.placeData = place;
+            allMarkers.push(marker);
+        });
+    }
+    
+    function updateStats(places) {
+        const bars = places.filter(p => p.kind === 'bar').length;
+        const shops = places.filter(p => p.kind === 'shop').length;
+        const promos = places.reduce((acc, p) => acc + (p.promotions ? p.promotions.length : 0), 0);
+        
+        document.getElementById('total-places').textContent = places.length;
+        document.getElementById('total-bars').textContent = bars;
+        document.getElementById('total-shops').textContent = shops;
+        document.getElementById('total-promos').textContent = promos;
+    }
+    
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active state
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filter = this.dataset.filter;
+            let filtered = placesData;
+            
+            if (filter !== 'all') {
+                filtered = placesData.filter(p => p.kind === filter);
+            }
+            
+            renderMarkers(filtered);
+            updateStats(filtered);
+        });
+    });
+    
+    // Try to get user's location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const { latitude, longitude } = position.coords;
+                map.setView([latitude, longitude], 14);
+                
+                // Add user marker
+                L.marker([latitude, longitude], {
+                    icon: L.divIcon({
+                        className: 'user-marker',
+                        html: '<div style="width:16px;height:16px;background:#4285F4;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>',
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    })
+                })
+                .bindPopup('{% trans "Ви тут" %}')
+                .addTo(map);
+            },
+            err => console.log('Geolocation not available')
+        );
+    }
+});
+</script>
+{% endblock %}

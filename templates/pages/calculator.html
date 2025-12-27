@@ -1,0 +1,660 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Калькулятор" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@700&family=Montserrat:wght@400;600&display=swap');
+
+.calculator-page {
+    background: transparent;
+    min-height: 100vh;
+    padding: 45px 52px 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #34A853;
+    text-align: center;
+    margin-bottom: 30px;
+    letter-spacing: -0.24px;
+}
+
+/* Search Bar */
+.search-bar {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    opacity: 0.5;
+}
+
+.search-input {
+    width: 100%;
+    height: 56px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 28px;
+    color: #ffffff;
+    font-size: 16px;
+    padding: 0 20px 0 50px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.search-input:focus {
+    border-color: #34A853;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Cocktail Button */
+.cocktail-btn {
+    width: 100%;
+    height: 64px;
+    background: #34A853;
+    border: none;
+    border-radius: 32px;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    cursor: pointer;
+    margin-bottom: 30px;
+    transition: background 0.3s;
+    text-decoration: none;
+}
+
+.cocktail-btn:hover {
+    background: #2d9046;
+}
+
+.cocktail-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Calculator Container */
+.calculator-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.calculator-left {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.calculator-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
+/* Form Group */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 14px;
+    color: #ffffff;
+    opacity: 0.8;
+}
+
+/* Gender Toggle */
+.gender-toggle {
+    display: flex;
+    gap: 12px;
+}
+
+.gender-option {
+    flex: 1;
+    height: 48px;
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    color: #ffffff;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.gender-option:hover {
+    border-color: #34A853;
+}
+
+.gender-option.active {
+    background: #34A853;
+    border-color: #34A853;
+}
+
+.radio-check {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    position: relative;
+}
+
+.gender-option.active .radio-check::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    border-radius: 50%;
+}
+
+/* Input Fields */
+.input-with-unit {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-field {
+    width: 100%;
+    height: 48px;
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    color: #ffffff;
+    font-size: 16px;
+    padding: 0 50px 0 20px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.input-field:focus {
+    border-color: #34A853;
+}
+
+.input-field.small {
+    width: 120px;
+    padding-right: 40px;
+}
+
+.unit {
+    position: absolute;
+    right: 20px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.drink-inputs {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.drink-input-group {
+    position: relative;
+    flex: 1;
+}
+
+/* Calculate Button */
+.calculate-btn {
+    width: 100%;
+    height: 56px;
+    background: #34A853;
+    border: none;
+    border-radius: 28px;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.3s;
+}
+
+.calculate-btn:hover {
+    background: #2d9046;
+}
+
+/* Results */
+.results {
+    background: #1a1a1a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 10px;
+    display: none;
+}
+
+.results.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.results h3 {
+    color: #34A853;
+    font-size: 18px;
+    margin-bottom: 16px;
+}
+
+.results-list {
+    list-style: none;
+    margin-bottom: 16px;
+    padding: 0;
+}
+
+.results-list li {
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    padding-left: 16px;
+    position: relative;
+    color: #fff;
+}
+
+.results-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #34A853;
+}
+
+.premium-note {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+}
+
+.link {
+    color: #34A853;
+    text-decoration: none;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+/* Calculator Right - Instructions */
+.calculator-right {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.instructions-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.instructions-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.section-title-instr {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-top: 10px;
+}
+
+/* Stages */
+.stages {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.stage h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 8px;
+}
+
+.stage p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .calculator-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .calculator-page {
+        padding: 20px 16px;
+    }
+    
+    .page-title {
+        font-size: 22px;
+    }
+
+    .gender-toggle {
+        flex-direction: column;
+    }
+
+    .drink-inputs {
+        flex-wrap: wrap;
+    }
+
+    .drink-input-group {
+        width: calc(50% - 6px);
+    }
+    
+    .search-bar {
+        padding: 0 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .drink-input-group {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calculator-page">
+    <h1 class="page-title">{% trans "Калькулятор" %}</h1>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="white">
+            <circle cx="11" cy="11" r="8" stroke-width="2"/>
+            <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="text" placeholder="{% trans 'Пошук напою...' %}" class="search-input" id="drink-search">
+    </div>
+
+    <!-- Cocktail Database Button -->
+    <a href="{% url 'recipes:cocktail_list' %}" class="cocktail-btn">
+        <svg viewBox="0 0 30 30" fill="none" stroke="white" stroke-width="2">
+            <path d="M13.125 6.25H16.875M13.125 7.5V5M16.875 7.5V5M9.375 18.75C9.375 17.5329 9.76975 16.3487 10.5 15.375L12.75 12.375C12.9934 12.0504 13.125 11.6557 13.125 11.25V2.5H16.875V11.25C16.875 11.6557 17.0066 12.0504 17.25 12.375L19.5 15.375C20.2302 16.3487 20.625 17.5329 20.625 18.75V26.25C20.625 26.5815 20.4933 26.8995 20.2589 27.1339C20.0245 27.3683 19.7065 27.5 19.375 27.5H10.625C10.2935 27.5 9.97554 27.3683 9.74112 27.1339C9.5067 26.8995 9.375 26.5815 9.375 26.25V18.75Z"/>
+        </svg>
+        <span>{% trans "База коктейлів" %}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+    </a>
+
+    <!-- Calculator Form -->
+    <div class="calculator-container">
+        <div class="calculator-left">
+            <h2 class="calculator-title">{% trans "Калькулятор з розрахунку BAC" %}</h2>
+
+            <!-- Gender Selection -->
+            <div class="form-group">
+                <label>{% trans "Стать" %}</label>
+                <div class="gender-toggle">
+                    <div class="gender-option {% if default_gender == 'male' %}active{% endif %}" data-gender="male" onclick="selectGender(this)">
+                        <span class="radio-check"></span>
+                        <span>{% trans "Чоловік" %}</span>
+                    </div>
+                    <div class="gender-option {% if default_gender == 'female' %}active{% endif %}" data-gender="female" onclick="selectGender(this)">
+                        <span class="radio-check"></span>
+                        <span>{% trans "Жінка" %}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weight Input -->
+            <div class="form-group">
+                <label>{% trans "Вага" %}</label>
+                <div class="input-with-unit">
+                    <input type="number" class="input-field" id="weight" value="{{ default_weight }}" min="30" max="300">
+                    <span class="unit">{% trans "кг" %}</span>
+                </div>
+            </div>
+
+            <!-- Height Input -->
+            <div class="form-group">
+                <label>{% trans "Зріст" %}</label>
+                <div class="input-with-unit">
+                    <input type="number" class="input-field" id="height" value="{{ default_height }}" min="100" max="250">
+                    <span class="unit">{% trans "см" %}</span>
+                </div>
+            </div>
+
+            <!-- Drink 1 -->
+            <div class="form-group">
+                <label>{% trans "Напій" %} 1</label>
+                <div class="drink-inputs">
+                    <div class="drink-input-group">
+                        <input type="number" class="input-field small" id="drink1-percent" value="40" min="0" max="100">
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="drink-input-group">
+                        <input type="number" class="input-field small" id="drink1-ml" value="50" min="0" max="5000">
+                        <span class="unit">{% trans "мл" %}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drink 2 -->
+            <div class="form-group">
+                <label>{% trans "Напій" %} 2</label>
+                <div class="drink-inputs">
+                    <div class="drink-input-group">
+                        <input type="number" class="input-field small" id="drink2-percent" value="0" min="0" max="100">
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="drink-input-group">
+                        <input type="number" class="input-field small" id="drink2-ml" value="0" min="0" max="5000">
+                        <span class="unit">{% trans "мл" %}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drink 3 -->
+            <div class="form-group">
+                <label>{% trans "Напій" %} 3</label>
+                <div class="drink-inputs">
+                    <div class="drink-input-group">
+                        <input type="number" class="input-field small" id="drink3-percent" value="0" min="0" max="100">
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="drink-input-group">
+                        <input type="number" class="input-field small" id="drink3-ml" value="0" min="0" max="5000">
+                        <span class="unit">{% trans "мл" %}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stomach Fullness -->
+            <div class="form-group">
+                <label>{% trans "Наповненість шлунку" %}</label>
+                <div class="gender-toggle">
+                    <div class="gender-option active" data-stomach="full" onclick="selectStomach(this)">
+                        <span class="radio-check"></span>
+                        <span>{% trans "Ситий" %}</span>
+                    </div>
+                    <div class="gender-option" data-stomach="empty" onclick="selectStomach(this)">
+                        <span class="radio-check"></span>
+                        <span>{% trans "Голодний" %}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculate Button -->
+            <button class="calculate-btn" onclick="calculateBAC()">{% trans "Розрахувати" %}</button>
+
+            <!-- Results -->
+            <div class="results" id="results">
+                <h3>{% trans "Результат" %}</h3>
+                <ul class="results-list" id="results-list">
+                    <li id="result-bac">BAC: 0.00%</li>
+                    <li id="result-status">{% trans "Рівень" %}: {% trans "Тверезий" %}</li>
+                    <li id="result-time">{% trans "Час до тверезості" %}: 0 {% trans "год" %}</li>
+                </ul>
+                <p class="premium-note">
+                    {% trans "Отримайте детальніший аналіз та PDF-звіт з" %} <a href="#" class="link">Alechemy Premium</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="calculator-right">
+            <h2 class="instructions-title">{% trans "Інструкція" %}</h2>
+            <p class="instructions-text">
+                {% trans "Щоб скористатися алкогольним калькулятором, потрібно вписати: стать, вагу, зріст людини, обсяг та міцність випитих напоїв, наповненість шлунку. Після натискання на кнопку 'Розрахувати' з'явиться приблизний показник вмісту алкоголю в крові (BAC)." %}
+            </p>
+
+            <h3 class="section-title-instr">{% trans "Ступені сп'яніння людини" %}</h3>
+
+            <div class="stages">
+                <div class="stage">
+                    <h4>🟢 {% trans "Легке сп'яніння" %} (0.2–0.5‰)</h4>
+                    <p>{% trans "Легка ейфорія, розслаблення, незначне зниження концентрації. Керувати транспортом небезпечно." %}</p>
+                </div>
+                <div class="stage">
+                    <h4>🟡 {% trans "Помірне сп'яніння" %} (0.5–1.5‰)</h4>
+                    <p>{% trans "Зниження реакції, порушення координації, емоційна нестабільність. Водіння заборонено." %}</p>
+                </div>
+                <div class="stage">
+                    <h4>🟠 {% trans "Середнє сп'яніння" %} (1.5–2.5‰)</h4>
+                    <p>{% trans "Значне порушення мови та рівноваги, сонливість, нудота. Потрібен відпочинок." %}</p>
+                </div>
+                <div class="stage">
+                    <h4>🔴 {% trans "Сильне сп'яніння" %} (2.5–3.5‰)</h4>
+                    <p>{% trans "Сплутаність свідомості, можлива втрата свідомості. Потрібна медична допомога." %}</p>
+                </div>
+                <div class="stage">
+                    <h4>⚫ {% trans "Небезпечне" %} (&gt;3.5‰)</h4>
+                    <p>{% trans "Загроза життю, можливе алкогольне отруєння. Негайно викликайте швидку!" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedGender = '{{ default_gender }}';
+let selectedStomach = 'full';
+
+function selectGender(el) {
+    document.querySelectorAll('[data-gender]').forEach(btn => btn.classList.remove('active'));
+    el.classList.add('active');
+    selectedGender = el.dataset.gender;
+}
+
+function selectStomach(el) {
+    document.querySelectorAll('[data-stomach]').forEach(btn => btn.classList.remove('active'));
+    el.classList.add('active');
+    selectedStomach = el.dataset.stomach;
+}
+
+function calculateBAC() {
+    const weight = parseFloat(document.getElementById('weight').value) || 70;
+    const height = parseFloat(document.getElementById('height').value) || 180;
+    
+    const drink1Percent = parseFloat(document.getElementById('drink1-percent').value) || 0;
+    const drink1Ml = parseFloat(document.getElementById('drink1-ml').value) || 0;
+    const drink2Percent = parseFloat(document.getElementById('drink2-percent').value) || 0;
+    const drink2Ml = parseFloat(document.getElementById('drink2-ml').value) || 0;
+    const drink3Percent = parseFloat(document.getElementById('drink3-percent').value) || 0;
+    const drink3Ml = parseFloat(document.getElementById('drink3-ml').value) || 0;
+
+    // Щільність алкоголю г/мл
+    const alcoholDensity = 0.789;
+    const totalAlcoholGrams = 
+        (drink1Ml * drink1Percent / 100 * alcoholDensity) +
+        (drink2Ml * drink2Percent / 100 * alcoholDensity) +
+        (drink3Ml * drink3Percent / 100 * alcoholDensity);
+
+    // Widmark formula: BAC = (A / (r * W)) - (β * t)
+    // A = грами чистого спирту
+    // r = коефіцієнт розподілу (0.68 для чоловіків, 0.55 для жінок)
+    // W = вага в кг
+    // Результат в проміле (г/л), ділимо на 10 щоб отримати %
+    const r = selectedGender === 'male' ? 0.68 : 0.55;
+    const stomachFactor = selectedStomach === 'full' ? 0.7 : 1.0;
+
+    // BAC в проміле (‰) = грами алкоголю / (вага * коефіцієнт)
+    const bacPromile = (totalAlcoholGrams * stomachFactor) / (weight * r);
+    // Переводимо в % (1‰ = 0.1%)
+    const bacPercent = bacPromile / 10;
+    
+    // Час до тверезості (організм виводить ~0.15‰ на годину)
+    const eliminationRate = 0.15; // проміле на годину
+    const hoursToSober = bacPromile / eliminationRate;
+    const hours = Math.floor(hoursToSober);
+    const minutes = Math.round((hoursToSober - hours) * 60);
+
+    // Результати - порівнюємо в проміле
+    let status = '';
+    let emoji = '';
+    
+    if (bacPromile < 0.2) {
+        status = 'Тверезий';
+        emoji = '✅';
+    } else if (bacPromile < 0.5) {
+        status = 'Легке сп\'яніння';
+        emoji = '🟢';
+    } else if (bacPromile < 1.5) {
+        status = 'Помірне сп\'яніння';
+        emoji = '🟡';
+    } else if (bacPromile < 2.5) {
+        status = 'Середнє сп\'яніння';
+        emoji = '🟠';
+    } else if (bacPromile < 3.5) {
+        status = 'Сильне сп\'яніння';
+        emoji = '🔴';
+    } else {
+        status = 'Небезпечний рівень!';
+        emoji = '⚫';
+    }
+
+    document.getElementById('result-bac').textContent = `BAC: ${bacPromile.toFixed(2)}‰ (${bacPercent.toFixed(3)}%)`;
+    document.getElementById('result-status').textContent = `${emoji} Рівень: ${status}`;
+    document.getElementById('result-time').textContent = `⏱️ Час до тверезості: ${hours} год ${minutes} хв`;
+    
+    document.getElementById('results').classList.add('show');
+    
+    if (bacPromile >= 2.5) {
+        alert('⚠️ Увага! Небезпечний рівень алкоголю. Зверніться за медичною допомогою!');
+    }
+}
+</script>
+{% endblock %}

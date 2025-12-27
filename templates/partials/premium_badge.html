@@ -1,0 +1,284 @@
+<!-- Premium Button/Badge Partial -->
+<!-- Використання: {% include "partials/premium_badge.html" with size="small" %} -->
+<!-- Розміри: small, medium, large -->
+<!-- Типи: badge (тільки бейдж), button (кнопка), promo (промо-блок) -->
+
+{% if not profile.is_premium %}
+
+{% if type == "promo" %}
+<!-- Промо-блок для преміум -->
+<div class="premium-promo-block">
+    <div class="premium-promo-content">
+        <div class="premium-promo-icon">
+            <svg viewBox="0 0 24 24" fill="#FFD700">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
+        </div>
+        <div class="premium-promo-text">
+            <h4>Alechemy Premium</h4>
+            <p>Розблокуй AI-сомельє, списки покупок та інше!</p>
+        </div>
+        <a href="{% url 'pages:plan_choice' %}" class="premium-promo-btn">
+            Спробувати
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+            </svg>
+        </a>
+    </div>
+</div>
+
+{% elif type == "button" %}
+<!-- Кнопка Premium -->
+<a href="{% url 'pages:plan_choice' %}" class="premium-upgrade-btn {% if size == 'small' %}btn-sm{% elif size == 'large' %}btn-lg{% endif %}">
+    <svg viewBox="0 0 24 24" fill="#FFD700">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+    </svg>
+    <span>Отримати Premium</span>
+</a>
+
+{% elif type == "inline" %}
+<!-- Інлайн посилання -->
+<a href="{% url 'pages:plan_choice' %}" class="premium-inline-link">
+    <svg viewBox="0 0 24 24" fill="#FFD700" width="14" height="14">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+    </svg>
+    Premium
+</a>
+
+{% elif type == "lock" %}
+<!-- Замок для заблокованих функцій -->
+<div class="premium-lock-overlay">
+    <div class="lock-content">
+        <svg viewBox="0 0 24 24" fill="#FFD700" width="32" height="32">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+        </svg>
+        <p>Доступно з Premium</p>
+        <a href="{% url 'pages:plan_choice' %}" class="unlock-btn">Розблокувати</a>
+    </div>
+</div>
+
+{% else %}
+<!-- За замовчуванням: маленький бейдж -->
+<a href="{% url 'pages:plan_choice' %}" class="premium-mini-badge" title="Отримати Premium">
+    <svg viewBox="0 0 24 24" fill="#FFD700">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+    </svg>
+</a>
+{% endif %}
+
+{% else %}
+<!-- Користувач має Premium -->
+{% if show_badge %}
+<span class="premium-active-badge">
+    <svg viewBox="0 0 24 24" fill="#FFD700" width="14" height="14">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+    </svg>
+    Premium
+</span>
+{% endif %}
+{% endif %}
+
+<style>
+/* Premium Promo Block */
+.premium-promo-block {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.1));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.premium-promo-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.premium-promo-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 215, 0, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.premium-promo-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.premium-promo-text {
+    flex: 1;
+    min-width: 200px;
+}
+
+.premium-promo-text h4 {
+    color: #FFD700;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 4px;
+}
+
+.premium-promo-text p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    margin: 0;
+}
+
+.premium-promo-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.premium-promo-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+/* Premium Upgrade Button */
+.premium-upgrade-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.15));
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    color: #FFD700;
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.premium-upgrade-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.premium-upgrade-btn:hover {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    transform: translateY(-2px);
+}
+
+.premium-upgrade-btn.btn-sm {
+    padding: 6px 14px;
+    font-size: 12px;
+}
+
+.premium-upgrade-btn.btn-sm svg {
+    width: 14px;
+    height: 14px;
+}
+
+.premium-upgrade-btn.btn-lg {
+    padding: 14px 28px;
+    font-size: 16px;
+}
+
+/* Premium Inline Link */
+.premium-inline-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #FFD700;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.premium-inline-link:hover {
+    text-decoration: underline;
+}
+
+/* Premium Lock Overlay */
+.premium-lock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    z-index: 10;
+}
+
+.lock-content {
+    text-align: center;
+}
+
+.lock-content p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 12px 0;
+    font-size: 14px;
+}
+
+.unlock-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.unlock-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Premium Mini Badge */
+.premium-mini-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 215, 0, 0.15);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.premium-mini-badge svg {
+    width: 16px;
+    height: 16px;
+}
+
+.premium-mini-badge:hover {
+    background: rgba(255, 215, 0, 0.3);
+    transform: scale(1.1);
+}
+
+/* Premium Active Badge */
+.premium-active-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+</style>

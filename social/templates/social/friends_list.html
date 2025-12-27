@@ -1,0 +1,438 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Друзі" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+.friends-page {
+    padding: 30px 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+}
+
+.search-box {
+    display: flex;
+    gap: 12px;
+}
+
+.search-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    padding: 12px 20px;
+    color: #fff;
+    font-size: 14px;
+    width: 250px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: rgba(52, 168, 83, 0.5);
+}
+
+/* Search Form */
+.search-section {
+    background: rgba(10, 15, 12, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.search-form {
+    margin-top: 16px;
+}
+
+.search-input-wrapper {
+    display: flex;
+    gap: 12px;
+}
+
+.search-input-wrapper .search-input {
+    flex: 1;
+    width: auto;
+}
+
+.search-btn {
+    background: linear-gradient(135deg, #34A853, #2d8f47);
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(52, 168, 83, 0.3);
+}
+
+.search-results {
+    margin-top: 20px;
+}
+
+.btn-add {
+    background: linear-gradient(135deg, #34A853, #2d8f47);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 168, 83, 0.3);
+}
+
+.friend-tag {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Section */
+.section {
+    margin-bottom: 40px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.section-icon {
+    font-size: 24px;
+}
+
+.section-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.section-count {
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Friend Cards */
+.friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.friend-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s;
+}
+
+.friend-card:hover {
+    border-color: rgba(52, 168, 83, 0.3);
+}
+
+.friend-avatar {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #34A853, #2d8f47);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.friend-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.friend-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: #fff;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.friend-email {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.friend-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-accept {
+    background: rgba(52, 168, 83, 0.2);
+    border: 1px solid rgba(52, 168, 83, 0.4);
+    color: #34A853;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.btn-accept:hover {
+    background: rgba(52, 168, 83, 0.3);
+}
+
+.btn-reject {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    color: #FF6B6B;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.btn-reject:hover {
+    background: rgba(255, 107, 107, 0.2);
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.15);
+    color: #FFC107;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .friends-page {
+        padding: 20px 16px;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
+    .friends-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .friend-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="friends-page">
+    <div class="page-header">
+        <h1 class="page-title">👥 {% trans "Друзі" %}</h1>
+    </div>
+    
+    <!-- Search for friends -->
+    <div class="section search-section">
+        <div class="section-header">
+            <span class="section-icon">🔍</span>
+            <h2 class="section-title">{% trans "Знайти друзів" %}</h2>
+        </div>
+        <form method="post" action="{% url 'social:search_users' %}" class="search-form">
+            {% csrf_token %}
+            <div class="search-input-wrapper">
+                <input type="text" name="query" placeholder="{% trans 'Введи @тег або email...' %}" class="search-input" required>
+                <button type="submit" class="search-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
+        {% if search_results is not None %}
+        <div class="search-results">
+            {% if search_results %}
+            <div class="friends-grid">
+                {% for u in search_results %}
+                <div class="friend-card">
+                    <div class="friend-avatar">{{ u.profile.get_display_name|slice:":1"|upper }}</div>
+                    <div class="friend-info">
+                        <div class="friend-name">{{ u.profile.get_display_name }}</div>
+                        <div class="friend-tag">@{{ u.profile.unique_tag }}</div>
+                    </div>
+                    <form method="post" action="{% url 'social:send_friend_request' u.id %}" class="friend-actions">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-add">➕ {% trans "Додати" %}</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <p>{% trans "Нікого не знайдено" %}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- My Friends -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">🤝</span>
+            <h2 class="section-title">{% trans "Мої друзі" %}</h2>
+            <span class="section-count">{{ friends|length }}</span>
+        </div>
+        
+        {% if friends %}
+        <div class="friends-grid">
+            {% for u in friends %}
+            <div class="friend-card">
+                <div class="friend-avatar">{{ u.email|slice:":1"|upper }}</div>
+                <div class="friend-info">
+                    <div class="friend-name">{{ u.get_full_name|default:u.email }}</div>
+                    <div class="friend-email">{{ u.email }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👋</div>
+            <p>{% trans "У тебе поки немає друзів. Шукай користувачів та додавай їх!" %}</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Incoming Requests -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">📥</span>
+            <h2 class="section-title">{% trans "Вхідні запити" %}</h2>
+            <span class="section-count">{{ incoming|length }}</span>
+        </div>
+        
+        {% if incoming %}
+        <div class="friends-grid">
+            {% for r in incoming %}
+            <div class="friend-card">
+                <div class="friend-avatar">{{ r.from_user.email|slice:":1"|upper }}</div>
+                <div class="friend-info">
+                    <div class="friend-name">{{ r.from_user.get_full_name|default:r.from_user.email }}</div>
+                    <div class="friend-email">{{ r.from_user.email }}</div>
+                </div>
+                <div class="friend-actions">
+                    <a href="{% url 'social:accept_friend_request' r.id %}" class="btn-accept">{% trans "Прийняти" %}</a>
+                    <a href="{% url 'social:reject_friend_request' r.id %}" class="btn-reject">{% trans "Відхилити" %}</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>{% trans "Немає вхідних запитів" %}</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Outgoing Requests -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">📤</span>
+            <h2 class="section-title">{% trans "Вихідні запити" %}</h2>
+            <span class="section-count">{{ outgoing|length }}</span>
+        </div>
+        
+        {% if outgoing %}
+        <div class="friends-grid">
+            {% for r in outgoing %}
+            <div class="friend-card">
+                <div class="friend-avatar">{{ r.to_user.email|slice:":1"|upper }}</div>
+                <div class="friend-info">
+                    <div class="friend-name">{{ r.to_user.get_full_name|default:r.to_user.email }}</div>
+                    <div class="friend-email">{{ r.to_user.email }}</div>
+                </div>
+                <span class="status-badge status-pending">{% trans "Очікує" %}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📬</div>
+            <p>{% trans "Немає вихідних запитів" %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

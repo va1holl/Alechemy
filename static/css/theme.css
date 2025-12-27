@@ -1,0 +1,47 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  --background: #ffffff;
+  --foreground: oklch(0.145 0 0);
+  --card: #ffffff;
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: #030213;
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.0058 264.53);
+  --secondary-foreground: #030213;
+  --muted: #ececf0;
+  --muted-foreground: #717182;
+  --accent: #e9ebef;
+  --accent-foreground: #030213;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: transparent;
+  --input-background: #f3f3f5;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  @custom-variant dark (&:is(.dark *));
+}
+
+/* Глобальная тёмная подложка */
+html,
+body {
+  background: radial-gradient(120% 120% at 20% 20%, rgba(52, 168, 83, 0.08), transparent),
+              radial-gradient(140% 140% at 80% 0%, rgba(0, 255, 170, 0.05), transparent),
+              #030604 !important;
+  color: #e6efe8;
+  min-height: 100vh;
+}
+
+html { font-size: var(--font-size); }
+h1 { font-size: var(--text-2xl); font-weight: var(--font-weight-medium); line-height: 1.5; }
+h2 { font-size: var(--text-xl); font-weight: var(--font-weight-medium); line-height: 1.5; }
+h3 { font-size: var(--text-lg); font-weight: var(--font-weight-medium); line-height: 1.5; }
+h4 { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+label { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+button { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+input { font-size: var(--text-base); font-weight: var(--font-weight-normal); line-height: 1.5; }

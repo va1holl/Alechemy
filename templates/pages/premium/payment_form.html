@@ -1,0 +1,520 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Оплата Premium" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sedgwick+Ave+Display&family=Inter:wght@400;500;600&display=swap');
+
+.payment-page {
+    background: transparent;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.payment-card {
+    background: rgba(52, 168, 83, 0.15);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-radius: 40px;
+    padding: 50px 40px;
+    max-width: 1000px;
+    width: 100%;
+}
+
+.back-btn {
+    width: 24px;
+    height: 30px;
+    cursor: pointer;
+    margin-bottom: 40px;
+    transition: transform 0.3s;
+    background: none;
+    border: none;
+}
+
+.back-btn:hover {
+    transform: translateX(-5px);
+}
+
+.back-btn svg {
+    width: 100%;
+    height: 100%;
+}
+
+.payment-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Logo Section */
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 40px;
+}
+
+.mini-logo {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #34A853, #1e7e34);
+    border-radius: 8px;
+}
+
+.brand-name {
+    font-family: 'Sedgwick Ave Display', cursive;
+    color: #34A853;
+    font-size: 24px;
+    margin: 0;
+}
+
+/* Content Wrapper */
+.content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+}
+
+/* Form Section */
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.form-description {
+    font-size: 16px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.payment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.info-icon {
+    width: 16px;
+    height: 16px;
+    cursor: help;
+}
+
+.form-input {
+    width: 100%;
+    height: 52px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 16px;
+    padding: 0 18px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.form-input:focus {
+    border-color: #34A853;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.submit-button {
+    width: 100%;
+    height: 56px;
+    background: #34A853;
+    border: none;
+    border-radius: 50px;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.submit-button:hover {
+    background: #2d9046;
+    transform: translateY(-2px);
+}
+
+.submit-button:disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Summary Section */
+.summary-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.summary-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 28px 24px;
+}
+
+.premium-badge {
+    display: inline-block;
+    background: #34A853;
+    color: #ffffff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.summary-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 20px;
+}
+
+.summary-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.detail-row {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-label {
+    font-size: 14px;
+    color: #333;
+}
+
+.detail-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #000;
+}
+
+.divider {
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 16px 0;
+}
+
+.total-section {
+    background: rgba(52, 168, 83, 0.3);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.total-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 6px;
+}
+
+.total-amount {
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+    margin: 0;
+}
+
+/* Trial Badge */
+.trial-badge {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.trial-badge strong {
+    display: block;
+    font-size: 16px;
+}
+
+.trial-badge span {
+    font-size: 13px;
+}
+
+/* Error message */
+.error-message {
+    background: rgba(234, 67, 53, 0.2);
+    border: 1px solid #EA4335;
+    color: #EA4335;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .content-wrapper {
+        grid-template-columns: 1fr;
+    }
+
+    .payment-card {
+        padding: 40px 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .payment-card {
+        padding: 30px 20px;
+        border-radius: 24px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-page">
+    <div class="payment-card">
+        <!-- Back Button -->
+        <button class="back-btn" onclick="history.back()">
+            <svg viewBox="0 0 18 30" fill="white">
+                <path d="M0 15C0 15.3 0.05 15.56 0.16 15.8C0.28 16.05 0.45 16.29 0.69 16.52L14.46 29.42C14.86 29.81 15.35 30 15.91 30C16.3 30 16.65 29.91 16.96 29.73C17.28 29.56 17.53 29.32 17.72 29.02C17.91 28.72 18 28.4 18 28.04C18 27.49 17.78 27.01 17.35 26.6L4.93 15L17.35 3.39C17.78 2.97 18 2.5 18 1.96C18 1.59 17.91 1.26 17.72 0.97C17.53 0.67 17.28 0.44 16.96 0.27C16.65 0.09 16.3 0 15.91 0C15.35 0 14.86 0.19 14.46 0.56L0.69 13.47C0.45 13.69 0.28 13.93 0.16 14.18C0.05 14.43 0 14.7 0 15Z"/>
+            </svg>
+        </button>
+
+        <div class="payment-container">
+            <!-- Logo -->
+            <div class="logo-section">
+                <div class="mini-logo"></div>
+                <h1 class="brand-name">Alechemy</h1>
+            </div>
+
+            <div class="content-wrapper">
+                <!-- Payment Form -->
+                <div class="form-section">
+                    <p class="form-description">
+                        {% trans "Будь ласка, введіть дані картки для оформлення підписки Premium." %}
+                    </p>
+
+                    <div class="error-message" id="errorMessage"></div>
+
+                    <form class="payment-form" id="paymentForm" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="trial" value="{{ trial }}">
+
+                        <!-- Full Name -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                {% trans "ПІБ власника картки" %}
+                                <svg class="info-icon" viewBox="0 0 17 17">
+                                    <circle cx="8.5" cy="8.5" r="8" stroke="#34A853" fill="none"/>
+                                    <text x="8.5" y="12" text-anchor="middle" fill="#34A853" font-size="10">i</text>
+                                </svg>
+                            </label>
+                            <input type="text" name="full_name" class="form-input" placeholder="{% trans 'Іван Іваненко' %}" required minlength="3">
+                        </div>
+
+                        <!-- Card Number -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                {% trans "Номер картки" %}
+                            </label>
+                            <input type="text" name="card_number" class="form-input" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                        </div>
+
+                        <!-- CCV and Expiry -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">CVV</label>
+                                <input type="text" name="cvv" class="form-input" id="cvv" placeholder="123" maxlength="3" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">{% trans "Термін дії" %}</label>
+                                <input type="text" name="expiry" class="form-input" id="expiry" placeholder="MM / YY" maxlength="7" required>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="submit-button" id="submitBtn">
+                            {% if trial %}{% trans "Розпочати пробний період" %}{% else %}{% trans "Сплатити" %} 99 UAH{% endif %}
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Payment Summary -->
+                <div class="summary-section">
+                    <div class="summary-card">
+                        <div class="premium-badge">Premium</div>
+
+                        {% if trial %}
+                        <div class="trial-badge">
+                            <strong>🎁 {% trans "3 дні безкоштовно" %}</strong>
+                            <span>{% trans "Після" %} — 99 UAH/{% trans "місяць" %}</span>
+                        </div>
+                        {% endif %}
+
+                        <h2 class="summary-title">{% trans "Підсумок замовлення" %}</h2>
+
+                        <div class="summary-details">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Підписка" %}</span>
+                                <span class="detail-value">Premium</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Період" %}</span>
+                                <span class="detail-value">{% if trial %}{% trans "3 дні пробних" %}{% else %}{% trans "1 місяць" %}{% endif %}</span>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="total-section">
+                            <p class="total-label">{% trans "До сплати:" %}</p>
+                            <p class="total-amount">{% if trial %}0 UAH{% else %}99 UAH{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cardInput = document.getElementById('cardNumber');
+    const cvvInput = document.getElementById('cvv');
+    const expiryInput = document.getElementById('expiry');
+    const form = document.getElementById('paymentForm');
+    const errorDiv = document.getElementById('errorMessage');
+
+    // Format card number
+    cardInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        value = value.replace(/(.{4})/g, '$1 ').trim();
+        e.target.value = value.substring(0, 19);
+    });
+
+    // Format CVV
+    cvvInput.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/\D/g, '').substring(0, 3);
+    });
+
+    // Format expiry
+    expiryInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + ' / ' + value.substring(2, 4);
+        }
+        e.target.value = value;
+    });
+
+    // Validate form
+    form.addEventListener('submit', function(e) {
+        const cardNumber = cardInput.value.replace(/\s/g, '');
+        const cvv = cvvInput.value;
+        const expiry = expiryInput.value;
+
+        // Validate card number (16 digits)
+        if (cardNumber.length !== 16 || !/^\d+$/.test(cardNumber)) {
+            e.preventDefault();
+            showError('{% trans "Номер картки має містити 16 цифр" %}');
+            return;
+        }
+
+        // Validate CVV (3 digits)
+        if (cvv.length !== 3 || !/^\d+$/.test(cvv)) {
+            e.preventDefault();
+            showError('{% trans "CVV має містити 3 цифри" %}');
+            return;
+        }
+
+        // Validate expiry
+        const expiryParts = expiry.split(' / ');
+        if (expiryParts.length !== 2) {
+            e.preventDefault();
+            showError('{% trans "Невірний формат терміну дії" %}');
+            return;
+        }
+
+        const month = parseInt(expiryParts[0]);
+        const year = parseInt('20' + expiryParts[1]);
+
+        if (month < 1 || month > 12) {
+            e.preventDefault();
+            showError('{% trans "Невірний місяць" %}');
+            return;
+        }
+
+        const now = new Date();
+        const expiryDate = new Date(year, month - 1);
+        if (expiryDate < now) {
+            e.preventDefault();
+            showError('{% trans "Картка прострочена" %}');
+            return;
+        }
+
+        // Show loading
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').textContent = '{% trans "Обробка..." %}';
+    });
+
+    function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.classList.add('show');
+        setTimeout(() => errorDiv.classList.remove('show'), 5000);
+    }
+});
+</script>
+{% endblock %}

@@ -1,26 +1,124 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Мои события — Alechmy{% endblock %}
+{% block title %}{% trans "Мої події" %} — Alechemy{% endblock %}
 
 {% block content %}
-  <h1>Мои события</h1>
+  <style>
+    .events-page { background: #000; color: #fff; min-height: 100vh; padding: 40px 24px; }
+    .events-shell { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+    .events-header { text-align: center; display: flex; flex-direction: column; gap: 8px; }
+    .events-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 26px; color: #34a853; }
+    .events-sub { opacity: 0.8; font-family: 'Inter', sans-serif; }
+    .events-row { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .ad-card { position: relative; overflow: hidden; border-radius: 18px; height: 260px; background: #0f0f0f; border: 1px solid rgba(255,255,255,0.08); }
+    .ad-card img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); }
+    .ad-card__text { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); text-align: center; width: min(360px, 90%); font-family: 'Montserrat', sans-serif; font-size: 13px; color: #9ba3ac; }
+    .ad-card__text .highlight { color: #34a853; font-weight: 700; }
+    .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+    .event-card { background: #0a0a0a; border: 1px solid rgba(255,255,255,0.16); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 28px rgba(0,0,0,0.45); }
+    .event-header { display: flex; justify-content: space-between; align-items: center; }
+    .badge { font-size: 12px; padding: 6px 10px; background: rgba(52,168,83,0.15); border: 1px solid rgba(52,168,83,0.45); border-radius: 999px; color: #c8ffd8; }
+    .event-thumb { width: 100%; height: 170px; border-radius: 14px; background: linear-gradient(135deg, #1e1e1e, #111); background-size: cover; background-position: center; }
+    .event-title { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 18px; color: #34a853; margin: 4px 0 0 0; }
+    .event-meta { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #e5e5e5; }
+    .event-meta svg { flex-shrink: 0; }
+    .event-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .btn-primary { flex: 1; height: 52px; background: #34a853; border: none; border-radius: 60px; color: #fff; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 16px; text-align: center; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: background .2s ease; }
+    .btn-primary:hover { background: #2d8f47; }
+    .btn-ghost { flex: 1; height: 46px; background: transparent; border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; color: #fff; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px; text-align: center; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+    .create-row { margin-top: 10px; display: flex; justify-content: center; }
+    @media (max-width: 768px) {
+      .events-page { padding: 24px 16px; }
+      .btn-primary { width: 100%; }
+      .btn-ghost { width: 100%; }
+      .events-grid { grid-template-columns: 1fr; gap: 16px; }
+      .event-card { padding: 12px; }
+      .event-thumb { height: 140px; }
+      .event-title { font-size: 16px; }
+      .event-meta { flex-wrap: wrap; gap: 8px; font-size: 12px; }
+      .event-actions { flex-direction: column; gap: 8px; }
+      .event-header { flex-wrap: wrap; gap: 8px; }
+      .ad-card { height: 180px; }
+    }
+    @media (max-width: 480px) {
+      .events-title { font-size: 22px; }
+      .events-sub { font-size: 14px; }
+      .badge { font-size: 11px; padding: 5px 8px; }
+    }
+  </style>
 
-  {% if events %}
-    <ul>
-      {% for event in events %}
-        <li>
-          {{ event.date }} —
-          {{ event.scenario.name }}
-          {% if event.title %} ({{ event.title }}){% endif %}
-          · людей: {{ event.people_count }}
-          · длительность: {{ event.duration_hours }} ч
-          {% if event.drink %} · напиток: {{ event.drink.name }}{% endif %}
-          {% if event.dish %} · блюдо: {{ event.dish.name }}{% endif %}
-          · <a href="{% url 'events:event_detail' event.pk %}">Подробнее</a>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>Событий пока нет.</p>
-  {% endif %}
+  <div class="events-page">
+    <div class="events-shell">
+      <div class="events-header">
+        <h1 class="events-title">{% if show_archive %}{% trans "Архів подій" %}{% else %}{% trans "Мої події" %}{% endif %}</h1>
+        <p class="events-sub">{% trans "Слідкуй за подіями, місцем і часом на одному екрані." %}</p>
+        
+        <!-- Перемикач Активні / Архів -->
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+          <a href="{% url 'events:event_list' %}" 
+             class="btn-ghost" 
+             style="{% if not show_archive %}background: #34a853; border-color: #34a853;{% endif %} padding: 10px 24px;">
+            {% trans "Активні" %}
+          </a>
+          <a href="{% url 'events:event_list' %}?archive=1" 
+             class="btn-ghost"
+             style="{% if show_archive %}background: #34a853; border-color: #34a853;{% endif %} padding: 10px 24px;">
+            📦 {% trans "Архів" %}{% if archive_count %} ({{ archive_count }}){% endif %}
+          </a>
+        </div>
+      </div>
+
+      {% if events %}
+        <div class="events-row">
+          <div class="ad-card">
+            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=900&auto=format&fit=crop" alt="Premium" loading="lazy">
+            <p class="ad-card__text">Скажи «прощай» рекламе вместе с <span class="highlight">Alechemy Premium</span></p>
+          </div>
+
+          <div class="events-grid">
+            {% for event in events %}
+              <div class="event-card">
+                <div class="event-header">
+                  <span class="badge">{{ event.date }}</span>
+                  {% if event.id not in own_event_ids %}
+                  <span class="badge" style="background: rgba(52, 168, 83, 0.3); color: #34A853;">👥 {% trans "Учасник" %}</span>
+                  {% endif %}
+                  {% if event.people_count %}<span class="badge">{{ event.people_count }} чел.</span>{% endif %}
+                </div>
+                <div class="event-thumb" style="background-image: url('{% if event.scenario.image %}{{ event.scenario.image.url }}{% endif %}');"></div>
+                <div class="event-title">{{ event.title|default:event.scenario.name }}</div>
+                <div class="event-meta">
+                  <span>{{ event.scenario.name }}</span>
+                  <span>•</span>
+                  <span>{{ event.duration_hours }} {% trans "год" %}</span>
+                </div>
+                <div class="event-meta">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 16 16" aria-hidden="true">
+                    <path clip-rule="evenodd" fill="white" fill-rule="evenodd" d="M8 0c2.12 0 4.16.84 5.66 2.34A8 8 0 0 1 8 16a8 8 0 0 1-5.66-13.66A8 8 0 0 1 8 0Zm0 1.78a6.22 6.22 0 0 0-4.4 1.82A6.22 6.22 0 0 0 8 14.22a6.22 6.22 0 0 0 4.4-10.62A6.22 6.22 0 0 0 8 1.78Zm0 2.67A2.56 2.56 0 1 1 8 11.56 2.56 2.56 0 0 1 8 4.45Z"/>
+                  </svg>
+                  <span>{% if event.location %}{{ event.location }}{% else %}{% trans "Локація уточнюється" %}{% endif %}</span>
+                </div>
+                <div class="event-actions">
+                  <a class="btn-ghost" href="{% url 'events:event_detail' event.pk %}">{% trans "Детальніше" %}</a>
+                  <a class="btn-ghost" href="{% url 'shopping:preview' %}?event={{ event.id }}">{% trans "Покупки" %}</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="create-row">
+          <a class="btn-primary" href="{% url 'events:scenario_list' %}">{% trans "Обрати сценарій" %}</a>
+        </div>
+      {% else %}
+        <div class="ad-card">
+          <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=900&auto=format&fit=crop" alt="Premium" loading="lazy">
+          <p class="ad-card__text">{% trans "Подій поки немає" %} — {% trans "почни з" %} <span class="highlight">Alechemy Premium</span> {% trans "і створи першу." %}</p>
+        </div>
+        <div class="create-row">
+          <a class="btn-primary" href="{% url 'events:scenario_list' %}">{% trans "Обрати сценарій" %}</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
 {% endblock %}

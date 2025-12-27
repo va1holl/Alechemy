@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Мої досягнення" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+.achievements-page {
+    padding: 30px 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #34A853;
+    margin-bottom: 8px;
+}
+
+.page-subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 16px;
+}
+
+/* Stats */
+.stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px 32px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #FFC538;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 4px;
+}
+
+/* Achievements Grid */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.achievement-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: all 0.3s;
+}
+
+.achievement-card:hover {
+    border-color: rgba(52, 168, 83, 0.4);
+    transform: translateY(-2px);
+}
+
+.achievement-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #FFC538, #e6b030);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.achievement-info {
+    flex: 1;
+}
+
+.achievement-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #fff;
+    margin-bottom: 6px;
+}
+
+.achievement-desc {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.achievement-date {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.achievement-points {
+    background: rgba(52, 168, 83, 0.15);
+    color: #34A853;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.empty-text {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .achievements-page {
+        padding: 20px 16px;
+    }
+    
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .stats-row {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .stat-card {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="achievements-page">
+    <div class="page-header">
+        <h1 class="page-title">🏆 {% trans "Мої досягнення" %}</h1>
+        <p class="page-subtitle">{% trans "Твої заслужені нагороди" %}</p>
+    </div>
+    
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-value">{{ achievements|length }}</div>
+            <div class="stat-label">{% trans "Досягнень" %}</div>
+        </div>
+    </div>
+    
+    {% if achievements %}
+    <div class="achievements-grid">
+        {% for a in achievements %}
+        <div class="achievement-card">
+            <div class="achievement-icon">🏅</div>
+            <div class="achievement-info">
+                <div class="achievement-title">{{ a.achievement.title }}</div>
+                <div class="achievement-desc">{{ a.achievement.description }}</div>
+                <div class="achievement-date">{{ a.earned_at|date:"d.m.Y" }}</div>
+            </div>
+            {% if a.achievement.points_reward %}
+            <span class="achievement-points">+{{ a.achievement.points_reward }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <div class="empty-title">{% trans "Поки що немає досягнень" %}</div>
+        <div class="empty-text">{% trans "Створюй події, виконуй челенджі та отримуй нагороди!" %}</div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,681 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "AI-Сомельє" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sedgwick+Ave+Display&family=Montserrat:wght@500;600;700&family=Urbanist:wght@400;500&display=swap');
+
+.sommelier-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 24px;
+    min-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.sommelier-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.sommelier-header h1 {
+    font-family: 'Sedgwick Ave Display', cursive;
+    font-size: 24px;
+    color: #34A853;
+    letter-spacing: 1px;
+}
+
+.divider {
+    width: 100%;
+    height: 1px;
+    background: rgba(189, 189, 189, 0.3);
+    margin-top: 12px;
+}
+
+/* Content Area */
+.content-area {
+    display: flex;
+    gap: 24px;
+    flex: 1;
+}
+
+/* Chat Sidebar */
+.chat-sidebar {
+    width: 300px;
+    background: rgba(247, 247, 248, 0.08);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-logo {
+    width: 42px;
+    height: 42px;
+    background: radial-gradient(circle at 50% 100%, 
+        rgba(255,255,255,1) 0%, 
+        rgba(21,255,111,1) 39%, 
+        rgba(0,0,0,1) 90%);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.chat-section h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 12px;
+}
+
+.chat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.chat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.chat-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.chat-item span {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dots-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #34A853, #1e6530);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.user-profile span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Chat Area */
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Empty State */
+.empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.empty-state h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    color: #ffffff;
+}
+
+/* Suggestion Chips */
+.suggestion-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.suggestion-chip {
+    padding: 10px 18px;
+    background: rgba(52, 168, 83, 0.15);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 20px;
+    color: #ffffff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.suggestion-chip:hover {
+    background: rgba(52, 168, 83, 0.3);
+    border-color: #34A853;
+}
+
+/* Input Container */
+.input-container {
+    position: relative;
+    width: 100%;
+}
+
+.chat-input {
+    width: 100%;
+    height: 54px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 14px 56px 14px 18px;
+    color: #ffffff;
+    font-family: 'Urbanist', sans-serif;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.chat-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.chat-input:focus {
+    border-color: #34A853;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.send-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    background: #34A853;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.send-btn:hover {
+    background: #2d9046;
+    transform: translateY(-50%) scale(1.05);
+}
+
+.send-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: white;
+    transform: rotate(90deg);
+}
+
+/* Conversation */
+.conversation {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+.message {
+    padding: 16px 20px;
+    border-radius: 12px;
+}
+
+.user-message {
+    background: transparent;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+
+.message-avatar.ai {
+    background: radial-gradient(circle at 50% 100%, 
+        rgba(255,255,255,1) 0%, 
+        rgba(21,255,111,1) 39%, 
+        rgba(0,0,0,1) 90%);
+}
+
+.message-content {
+    flex: 1;
+}
+
+.ai-message {
+    background: rgba(247, 247, 248, 0.08);
+    padding: 20px;
+}
+
+.ai-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.ai-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.action-btn:hover {
+    background: rgba(52, 168, 83, 0.3);
+}
+
+.action-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: white;
+    fill: none;
+}
+
+.ai-content {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.ai-content h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #34A853;
+    margin: 16px 0 12px;
+}
+
+.ai-content h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 12px 0 8px;
+}
+
+.ai-content ul {
+    margin-left: 20px;
+    margin-bottom: 12px;
+}
+
+.ai-content li {
+    margin-bottom: 6px;
+}
+
+.ai-content .hint {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    margin-top: 16px;
+}
+
+/* Recipe Card in Response */
+.recipe-result {
+    background: rgba(52, 168, 83, 0.1);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 16px;
+}
+
+.recipe-result h4 {
+    font-size: 16px;
+    color: #34A853;
+    margin-bottom: 8px;
+}
+
+.recipe-link {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 10px 20px;
+    background: #34A853;
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.recipe-link:hover {
+    background: #2d9046;
+}
+
+/* Bottom Bar */
+.bottom-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+.regenerate-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(250, 250, 250, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    align-self: center;
+}
+
+.regenerate-btn:hover {
+    background: rgba(250, 250, 250, 0.15);
+}
+
+.regenerate-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: white;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .content-area {
+        flex-direction: column;
+    }
+
+    .chat-sidebar {
+        width: 100%;
+        max-height: 200px;
+    }
+
+    .chat-list {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+
+    .chat-item {
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .sommelier-page {
+        padding: 20px 16px;
+    }
+
+    .chat-sidebar {
+        display: none;
+    }
+
+    .suggestion-chips {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sommelier-page">
+    <header class="sommelier-header">
+        <h1>AI-SOMELIER</h1>
+        <div class="divider"></div>
+    </header>
+
+    <div class="content-area">
+        <!-- Chat Sidebar -->
+        <aside class="chat-sidebar">
+            <div class="chat-logo"></div>
+            
+            <div class="chat-section">
+                <h3>{% trans "Чат" %}</h3>
+                <div class="chat-list">
+                    {% if chat_history %}
+                        {% for chat in chat_history %}
+                        <div class="chat-item">
+                            <span>{{ chat.query|truncatechars:25 }}</span>
+                            <button class="dots-btn">⋮</button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="chat-item">
+                            <span>{% trans "Новий чат" %}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    {% if request.user.first_name %}{{ request.user.first_name.0 }}{% else %}U{% endif %}
+                </div>
+                <span>{{ request.user.first_name|default:request.user.email }}</span>
+            </div>
+        </aside>
+
+        <!-- Chat Area -->
+        <main class="chat-area">
+            {% if recommendation %}
+            <!-- Show Conversation -->
+            <div class="conversation">
+                <!-- User Message -->
+                <div class="message user-message">
+                    <div class="message-avatar">
+                        {% if request.user.first_name %}{{ request.user.first_name.0 }}{% else %}U{% endif %}
+                    </div>
+                    <div class="message-content">
+                        <p>{{ user_query|default:"Порекомендуй мені коктейль" }}</p>
+                    </div>
+                </div>
+
+                <!-- AI Response -->
+                <div class="message ai-message">
+                    <div class="ai-header">
+                        <div class="message-avatar ai"></div>
+                        <div class="ai-actions">
+                            <button class="action-btn" title="{% trans 'Копіювати' %}" onclick="copyResponse()">
+                                <svg viewBox="0 0 24 24" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn" title="{% trans 'Поділитися' %}" onclick="shareResponse()">
+                                <svg viewBox="0 0 24 24" stroke-width="2">
+                                    <circle cx="18" cy="5" r="3"/>
+                                    <circle cx="6" cy="12" r="3"/>
+                                    <circle cx="18" cy="19" r="3"/>
+                                    <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ai-content">
+                        <p>{{ explanation }}</p>
+
+                        <div class="recipe-result">
+                            <h4>
+                                {% if recommendation_type == 'drink' %}🍾 {% trans "Напій" %}{% else %}🍹 {% trans "Коктейль" %}{% endif %}:
+                                {{ recommendation.name }}
+                            </h4>
+                            {% if recommendation.description %}
+                            <p>{{ recommendation.description }}</p>
+                            {% endif %}
+                            {% if recommendation_type == 'cocktail' %}
+                            <a href="{% url 'recipes:cocktail_detail' recommendation.slug %}" class="recipe-link">
+                                {% trans "Переглянути рецепт" %} →
+                            </a>
+                            {% endif %}
+                        </div>
+                        
+                        {% if alternatives %}
+                        <div class="alternatives-section" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 12px;">{% trans "Також рекомендуємо:" %}</p>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                {% for item, itype in alternatives %}
+                                <div style="background: rgba(52, 168, 83, 0.1); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 12px; padding: 10px 14px;">
+                                    <span style="font-size: 13px;">
+                                        {% if itype == 'drink' %}🍾{% else %}🍹{% endif %}
+                                        {% if itype == 'cocktail' %}
+                                        <a href="{% url 'recipes:cocktail_detail' item.slug %}" style="color: #34A853; text-decoration: none;">{{ item.name }}</a>
+                                        {% else %}
+                                        {{ item.name }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <p class="hint">{% trans "Переформулюйте запит, якщо відповідь не задовільна." %}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="bottom-bar">
+                <button class="regenerate-btn" onclick="window.location.href='{% url 'recipes:ai_sommelier' %}'">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4C7.58 4 4.01 7.58 4.01 12C4.01 16.42 7.58 20 12 20C15.73 20 18.84 17.45 19.73 14H17.65C16.83 16.33 14.61 18 12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C13.66 6 15.14 6.69 16.22 7.78L13 11H20V4L17.65 6.35Z"/>
+                    </svg>
+                    {% trans "Регенерація" %}
+                </button>
+
+                <form method="post" class="input-container">
+                    {% csrf_token %}
+                    <input type="hidden" name="quick_query" value="1">
+                    <input type="text" name="query" placeholder="{% trans 'Введіть запит...' %}" class="chat-input" />
+                    <button type="submit" class="send-btn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2L22 12L12 22L12 14L2 12L12 10L12 2Z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            {% else %}
+            <!-- Empty State - Show Form -->
+            <div class="empty-state">
+                <h2>{% trans "Що нового бажаєш спробувати?" %}</h2>
+
+                <div class="suggestion-chips">
+                    <button class="suggestion-chip" onclick="fillQuery('Порекомендуй солодкий коктейль')">🍬 {% trans "Солодкий коктейль" %}</button>
+                    <button class="suggestion-chip" onclick="fillQuery('Щось для вечірки')">🎉 {% trans "Для вечірки" %}</button>
+                    <button class="suggestion-chip" onclick="fillQuery('Легкий романтичний напій')">💕 {% trans "Романтика" %}</button>
+                    <button class="suggestion-chip" onclick="fillQuery('Міцний класичний коктейль')">💪 {% trans "Міцний класика" %}</button>
+                </div>
+
+                <form method="post" class="input-container">
+                    {% csrf_token %}
+                    <input type="hidden" name="quick_query" value="1">
+                    <input type="text" name="query" id="queryInput" placeholder="{% trans 'Введіть запит...' %}" class="chat-input" />
+                    <button type="submit" class="send-btn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2L22 12L12 22L12 14L2 12L12 10L12 2Z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+
+<script>
+function fillQuery(text) {
+    document.getElementById('queryInput').value = text;
+    document.getElementById('queryInput').focus();
+}
+
+function copyResponse() {
+    const content = document.querySelector('.ai-content').innerText;
+    navigator.clipboard.writeText(content).then(() => {
+        alert('{% trans "Скопійовано!" %}');
+    });
+}
+
+function shareResponse() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{% trans "AI-Сомельє рекомендація" %}',
+            text: document.querySelector('.ai-content').innerText,
+            url: window.location.href
+        });
+    } else {
+        copyResponse();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Focus input
+    const input = document.querySelector('.chat-input');
+    if (input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                this.closest('form').submit();
+            }
+        });
+    }
+
+    // Scroll to bottom of conversation
+    const conversation = document.querySelector('.conversation');
+    if (conversation) {
+        conversation.scrollTop = conversation.scrollHeight;
+    }
+});
+</script>
+{% endblock %}

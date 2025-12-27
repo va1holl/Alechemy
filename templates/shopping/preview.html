@@ -1,196 +1,754 @@
 {% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Список покупок" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+.shopping-page {
+    padding: 30px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header */
+.shopping-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.shopping-header h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #34A853;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.shopping-header p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 15px;
+}
+
+/* Badge */
+.header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(52, 168, 83, 0.15);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 50px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: #34A853;
+    margin-bottom: 12px;
+}
+
+.header-badge svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+}
+
+/* Main Layout */
+.shopping-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .shopping-layout {
+        grid-template-columns: 1fr;
+    }
+    .shopping-page {
+        padding: 20px 16px;
+    }
+}
+
+/* Card Panel */
+.shop-card {
+    background: rgba(10, 15, 12, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.card-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #34A853;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-title svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+}
+
+/* Form Fields */
+.form-field {
+    margin-bottom: 16px;
+}
+
+.form-field label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 8px;
+}
+
+.form-field select,
+.form-field input[type="text"],
+.form-field input[type="number"] {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #ffffff;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.form-field select:focus,
+.form-field input:focus {
+    outline: none;
+    border-color: rgba(52, 168, 83, 0.5);
+    background: rgba(52, 168, 83, 0.05);
+}
+
+.form-field select option {
+    background: #0a0f0c;
+    color: #ffffff;
+}
+
+/* Dishes Picker */
+.dishes-picker {
+    background: rgba(15, 20, 16, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.picker-header strong {
+    font-size: 15px;
+    font-weight: 600;
+    color: #34A853;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.picker-header strong svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+}
+
+.selected-badge {
+    background: rgba(52, 168, 83, 0.15);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: #34A853;
+    font-weight: 500;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.toggle-btn {
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.2) 0%, rgba(52, 168, 83, 0.1) 100%);
+    border: 1px solid rgba(52, 168, 83, 0.4);
+    border-radius: 10px;
+    padding: 10px 18px;
+    color: #34A853;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.toggle-btn:hover {
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.3) 0%, rgba(52, 168, 83, 0.2) 100%);
+    transform: translateY(-1px);
+}
+
+.picker-content {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.picker-content.active {
+    display: block;
+}
+
+.picker-filter {
+    margin-bottom: 16px;
+}
+
+.picker-filter input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 12px 16px;
+    padding-left: 42px;
+    color: #ffffff;
+    font-size: 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 14px center;
+}
+
+.picker-filter input:focus {
+    outline: none;
+    border-color: rgba(52, 168, 83, 0.5);
+}
+
+.picker-grid {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 16px;
+    align-items: stretch;
+}
+
+.picker-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.picker-column-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-left: 4px;
+}
+
+.picker-column select {
+    width: 100%;
+    min-height: 200px;
+    background: rgba(10, 12, 10, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    color: #ffffff;
+    padding: 10px;
+    font-size: 13px;
+}
+
+.picker-column select:focus {
+    outline: none;
+    border-color: rgba(52, 168, 83, 0.5);
+}
+
+.picker-column select option {
+    padding: 10px 8px;
+    border-radius: 6px;
+    margin: 2px 0;
+}
+
+.picker-column select option:checked {
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.3) 0%, rgba(52, 168, 83, 0.2) 100%);
+}
+
+.picker-controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+}
+
+.picker-controls button {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.25) 0%, rgba(52, 168, 83, 0.15) 100%);
+    border: 1px solid rgba(52, 168, 83, 0.4);
+    border-radius: 12px;
+    color: #34A853;
+    font-size: 22px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.picker-controls button:hover {
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.4) 0%, rgba(52, 168, 83, 0.3) 100%);
+    transform: scale(1.05);
+}
+
+.picker-controls button:active {
+    transform: scale(0.95);
+}
+
+/* Stages */
+.stages-section {
+    background: rgba(15, 20, 16, 0.8);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.stages-section .section-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #34A853;
+    margin-bottom: 12px;
+}
+
+.stages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+}
+
+.stages-grid label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.stages-grid label:hover {
+    border-color: rgba(52, 168, 83, 0.4);
+}
+
+.stages-grid input[type="checkbox"] {
+    accent-color: #34A853;
+    width: 18px;
+    height: 18px;
+}
+
+/* Parameters */
+.params-section {
+    margin-bottom: 20px;
+}
+
+.params-section summary {
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.params-section summary:hover {
+    color: #34A853;
+}
+
+.params-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.params-grid .form-field {
+    margin-bottom: 0;
+    min-width: 0; /* Prevent overflow */
+}
+
+.params-grid .form-field input[type="number"] {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Primary Button */
+.primary-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #34A853 0%, #2d8f47 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 16px 24px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(52, 168, 83, 0.3);
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(52, 168, 83, 0.4);
+}
+
+.form-hint {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 10px;
+}
+
+/* Results Section */
+.results-card {
+    position: sticky;
+    top: 20px;
+}
+
+.result-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.result-empty svg {
+    width: 60px;
+    height: 60px;
+    stroke: rgba(255, 255, 255, 0.2);
+    margin-bottom: 16px;
+}
+
+.result-empty p {
+    font-size: 14px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .shopping-page {
+        padding: 20px 16px;
+    }
+    
+    .shopping-header h1 {
+        font-size: 24px;
+    }
+    
+    .shopping-header p {
+        font-size: 14px;
+    }
+    
+    .shop-card {
+        padding: 16px;
+    }
+    
+    .picker-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .picker-controls {
+        flex-direction: row;
+        justify-content: center;
+    }
+    
+    .params-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .results-card {
+        padding: 16px;
+    }
+    
+    .result-item {
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .shopping-layout {
+        gap: 16px;
+    }
+    
+    .section-title {
+        font-size: 16px;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-  <h1>Калькулятор и список покупок</h1>
-
-  <form method="post" id="calc-form">
-    {% csrf_token %}
-    {{ form.event.as_p }}
-    <div id="scenario-row">
-      {{ form.scenario.as_p }}
+<div class="shopping-page">
+    <!-- Header -->
+    <div class="shopping-header">
+        <div class="header-badge">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            {% trans "Калькулятор покупок" %}
+        </div>
+        <h1>{% trans "Збери список покупок" %}</h1>
+        <p>{% trans "Обери подію або сценарій, додай страви і отримай миттєвий розрахунок" %}</p>
     </div>
 
-    <div style="margin:12px 0; padding:10px; border:1px solid #333;">
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <strong>Блюда:</strong>
-        <span id="selected-dishes-text">ничего не выбрано</span>
-        <button type="button" id="toggle-dishes">Добавить блюда</button>
-      </div>
+    <div class="shopping-layout">
+        <!-- Calculator Form -->
+        <div class="shop-card">
+            <div class="card-title">
+                <svg viewBox="0 0 24 24" stroke-width="2">
+                    <rect x="4" y="2" width="16" height="20" rx="2"/>
+                    <line x1="8" y1="6" x2="16" y2="6"/>
+                    <line x1="8" y1="10" x2="16" y2="10"/>
+                    <line x1="8" y1="14" x2="12" y2="14"/>
+                </svg>
+                {% trans "Параметри розрахунку" %}
+            </div>
 
-      <div id="dish-picker" style="display:none; margin-top:10px;">
-        <input type="text" id="dish-filter" placeholder="Фильтр по названию…" style="width:100%; max-width:520px;">
+            <form method="post" id="calc-form">
+                {% csrf_token %}
 
-        <div style="display:none;">
-          {{ form.dishes }}
+                <div class="form-field">
+                    {{ form.event.label_tag }}
+                    {{ form.event }}
+                </div>
+
+                <div id="scenario-row" class="form-field">
+                    {{ form.scenario.label_tag }}
+                    {{ form.scenario }}
+                </div>
+
+                <!-- Dishes Picker -->
+                <div class="dishes-picker">
+                    <div class="picker-header">
+                        <strong>
+                            <svg viewBox="0 0 24 24" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5"/>
+                                <path d="M2 12l10 5 10-5"/>
+                            </svg>
+                            {% trans "Страви" %}
+                        </strong>
+                        <span class="selected-badge" id="selected-dishes-text">{% trans "нічого не обрано" %}</span>
+                        <button type="button" id="toggle-dishes" class="toggle-btn">{% trans "Обрати страви" %}</button>
+                    </div>
+
+                    <div id="dish-picker" class="picker-content">
+                        <div class="picker-filter">
+                            <input type="text" id="dish-filter" placeholder="{% trans 'Пошук страви...' %}">
+                        </div>
+
+                        <div style="display:none;">
+                            {{ form.dishes }}
+                        </div>
+
+                        <div class="picker-grid">
+                            <div class="picker-column">
+                                <div class="picker-column-label">{% trans "Доступні" %}</div>
+                                <select id="available-dishes" multiple size="8"></select>
+                            </div>
+                            <div class="picker-controls">
+                                <button type="button" id="add-dish" title="{% trans 'Додати' %}">→</button>
+                                <button type="button" id="remove-dish" title="{% trans 'Видалити' %}">←</button>
+                            </div>
+                            <div class="picker-column">
+                                <div class="picker-column-label">{% trans "Обрані" %}</div>
+                                <select id="chosen-dishes" multiple size="8"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stages -->
+                <div class="stages-section">
+                    <div class="section-label">{% trans "Етапи" %}</div>
+                    <div class="stages-grid">{{ form.stages }}</div>
+                </div>
+
+                <!-- Parameters -->
+                <details class="params-section" open>
+                    <summary>{% trans "Додаткові параметри" %}</summary>
+                    <div class="params-grid">
+                        <div class="form-field">
+                            {{ form.people_count.label_tag }}
+                            {{ form.people_count }}
+                        </div>
+                        <div class="form-field">
+                            {{ form.duration_hours.label_tag }}
+                            {{ form.duration_hours }}
+                        </div>
+                    </div>
+                </details>
+
+                <button type="submit" class="primary-btn">{% trans "Порахувати" %}</button>
+                <p class="form-hint">{% trans "Перерахунок відбувається автоматично при змінах" %}</p>
+            </form>
         </div>
 
-        <div style="display:flex; gap:12px; margin-top:10px; align-items:center;">
-          <div style="flex:1;">
-            <div><strong>Доступные</strong></div>
-            <select id="available-dishes" size="10" style="width:100%;"></select>
-          </div>
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <button type="button" id="add-dish">+</button>
-            <button type="button" id="remove-dish">-</button>
-          </div>
-          <div style="flex:1;">
-            <div><strong>Выбранные</strong></div>
-            <select id="chosen-dishes" size="10" style="width:100%;"></select>
-          </div>
+        <!-- Results -->
+        <div class="shop-card results-card" id="result-container">
+            <div class="card-title">
+                <svg viewBox="0 0 24 24" stroke-width="2">
+                    <path d="M9 11l3 3L22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+                {% trans "Результати" %}
+            </div>
+            {% include "shopping/_result.html" %}
         </div>
-      </div>
     </div>
+</div>
 
-    <fieldset style="margin:12px 0;">
-      <legend><strong>Этапы</strong></legend>
-      {{ form.stages }}
-    </fieldset>
+<script>
+(function () {
+    const form = document.getElementById("calc-form");
+    const result = document.getElementById("result-container");
 
-    <details style="margin:12px 0;">
-      <summary><strong>Параметры (необязательно)</strong></summary>
-      <div style="margin-top:10px;">
-        {{ form.people_count.as_p }}
-        {{ form.duration_hours.as_p }}
-      </div>
-    </details>
+    const toggleBtn = document.getElementById("toggle-dishes");
+    const picker = document.getElementById("dish-picker");
+    const filterInput = document.getElementById("dish-filter");
+    const hiddenSelect = document.getElementById("id_dishes");
+    const available = document.getElementById("available-dishes");
+    const chosen = document.getElementById("chosen-dishes");
+    const addBtn = document.getElementById("add-dish");
+    const removeBtn = document.getElementById("remove-dish");
+    const selectedText = document.getElementById("selected-dishes-text");
 
-    <button type="submit">Посчитать</button>
-    <small style="display:block; margin-top:6px; opacity:.8;">
-      Пересчёт происходит автоматически при изменениях (если JS включен).
-    </small>
-  </form>
-
-  <div id="result-container" style="margin-top:14px;">
-    {% include "shopping/_result.html" %}
-  </div>
-
-  <script>
-    (function () {
-      const form = document.getElementById("calc-form");
-      const result = document.getElementById("result-container");
-
-      const toggleBtn = document.getElementById("toggle-dishes");
-      const picker = document.getElementById("dish-picker");
-      const filterInput = document.getElementById("dish-filter");
-      const hiddenSelect = document.getElementById("id_dishes");
-      const available = document.getElementById("available-dishes");
-      const chosen = document.getElementById("chosen-dishes");
-      const addBtn = document.getElementById("add-dish");
-      const removeBtn = document.getElementById("remove-dish");
-      const selectedText = document.getElementById("selected-dishes-text");
-
-      function csrf() {
+    function csrf() {
         return form.querySelector('input[name="csrfmiddlewaretoken"]').value;
-      }
+    }
 
-      function createOption(text, value) {
+    function createOption(text, value) {
         const opt = document.createElement("option");
         opt.textContent = text;
         opt.value = value;
         return opt;
-      }
+    }
 
-      function rebuildLists() {
+    function rebuildLists() {
         if (!hiddenSelect) return;
         available.innerHTML = "";
         chosen.innerHTML = "";
         const q = (filterInput.value || "").toLowerCase().trim();
         Array.from(hiddenSelect.options).forEach(opt => {
-          const label = opt.text.trim();
-          const value = opt.value;
-          const match = !q || label.toLowerCase().includes(q);
-          if (opt.selected) chosen.appendChild(createOption(label, value));
-          else if (match) available.appendChild(createOption(label, value));
+            const label = opt.text.trim();
+            const value = opt.value;
+            const match = !q || label.toLowerCase().includes(q);
+            if (opt.selected) chosen.appendChild(createOption(label, value));
+            else if (match) available.appendChild(createOption(label, value));
         });
         updateHidden();
-      }
+    }
 
-      function updateHidden() {
+    function updateHidden() {
         const vals = new Set(Array.from(chosen.options).map(o => o.value));
         Array.from(hiddenSelect.options).forEach(o => {
-          o.selected = vals.has(o.value);
+            o.selected = vals.has(o.value);
         });
         updateSelectedText();
-      }
+    }
 
-      function updateSelectedText() {
+    function updateSelectedText() {
         const names = Array.from(chosen.options).map(o => o.text);
-        selectedText.textContent = names.length ? names.join(", ") : "ничего не выбрано";
-      }
+        selectedText.textContent = names.length ? names.join(", ") : "{% trans 'нічого не обрано' %}";
+    }
 
-      function move(from, to) {
+    function move(from, to) {
         const picked = Array.from(from.selectedOptions);
         if (!picked.length) return;
         picked.forEach(opt => {
-          to.appendChild(createOption(opt.textContent, opt.value));
-          opt.remove();
+            to.appendChild(createOption(opt.textContent, opt.value));
+            opt.remove();
         });
         updateHidden();
         debounceRecalc();
-      }
+    }
 
-      toggleBtn.addEventListener("click", () => {
-        const open = picker.style.display === "none";
-        picker.style.display = open ? "block" : "none";
-        if (open) rebuildLists();
-      });
+    toggleBtn.addEventListener("click", () => {
+        picker.classList.toggle("active");
+        if (picker.classList.contains("active")) rebuildLists();
+    });
 
-      filterInput.addEventListener("input", rebuildLists);
-      addBtn.addEventListener("click", () => move(available, chosen));
-      removeBtn.addEventListener("click", () => move(chosen, available));
+    filterInput.addEventListener("input", rebuildLists);
+    addBtn.addEventListener("click", () => move(available, chosen));
+    removeBtn.addEventListener("click", () => move(chosen, available));
 
-      let timer = null;
-      function debounceRecalc() {
+    let timer = null;
+    function debounceRecalc() {
         clearTimeout(timer);
-        timer = setTimeout(recalc, 200);
-      }
+        timer = setTimeout(recalc, 300);
+    }
 
-      async function recalc() {
+    async function recalc() {
         const fd = new FormData(form);
-
-        // Ключевой фикс: переносим ?event=... (и любые query-параметры) в AJAX запрос.
         const ajaxUrl = "{% url 'shopping:ajax_preview' %}" + window.location.search;
 
-        const resp = await fetch(ajaxUrl, {
-          method: "POST",
-          headers: { "X-CSRFToken": csrf(), "X-Requested-With": "XMLHttpRequest" },
-          body: fd
-        });
+        try {
+            const resp = await fetch(ajaxUrl, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrf(), "X-Requested-With": "XMLHttpRequest" },
+                body: fd
+            });
 
-        if (!resp.ok) {
-          result.innerHTML = "<div style=\"margin:12px 0; padding:10px; border:1px solid #b00; color:#b00;\">Ошибка сервера при пересчёте (HTTP " + resp.status + ")</div>";
-          return;
+            if (!resp.ok) {
+                result.innerHTML = '<div class="card-title"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>{% trans "Результати" %}</div><div class="error-card">{% trans "Помилка сервера" %} (HTTP ' + resp.status + ')</div>';
+                return;
+            }
+
+            const data = await resp.json();
+            if (data && data.html !== undefined) {
+                result.innerHTML = '<div class="card-title"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>{% trans "Результати" %}</div>' + data.html;
+            }
+        } catch (e) {
+            console.error('Recalc error:', e);
         }
+    }
 
-        const data = await resp.json();
-        if (data && data.html !== undefined) {
-          result.innerHTML = data.html;
-        }
-      }
-
-      form.addEventListener("submit", e => {
+    form.addEventListener("submit", e => {
         e.preventDefault();
         recalc();
-      });
-      form.addEventListener("change", debounceRecalc);
+    });
+    form.addEventListener("change", debounceRecalc);
 
-      const eventSelect = document.getElementById("id_event");
-      const scenarioRow = document.getElementById("scenario-row");
-      function syncScenarioVisibility() {
+    const eventSelect = document.getElementById("id_event");
+    const scenarioRow = document.getElementById("scenario-row");
+    function syncScenarioVisibility() {
         if (!eventSelect || !scenarioRow) return;
         scenarioRow.style.display = eventSelect.value ? "none" : "block";
         const scenarioSelect = document.getElementById("id_scenario");
         if (scenarioSelect) {
-          scenarioSelect.disabled = !!eventSelect.value;
-          if (eventSelect.value) scenarioSelect.value = "";
+            scenarioSelect.disabled = !!eventSelect.value;
+            if (eventSelect.value) scenarioSelect.value = "";
         }
-      }
-      if (eventSelect) {
+    }
+    if (eventSelect) {
         eventSelect.addEventListener("change", syncScenarioVisibility);
         syncScenarioVisibility();
-      }
+    }
 
-      rebuildLists();
-      if (form.querySelector("#id_event")?.value) recalc();
-    })();
-  </script>
+    rebuildLists();
+    if (form.querySelector("#id_event")?.value) recalc();
+})();
+</script>
 {% endblock %}

@@ -1,0 +1,897 @@
+/* ===========================
+   ALECHEMY MOBILE STYLES
+   =========================== */
+
+/* --------------------------
+   Mobile Bottom Navigation
+   -------------------------- */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: rgba(4, 11, 7, 0.98);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  padding: 0 8px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.mobile-nav__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 8px 4px;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.mobile-nav__item svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-nav__item.active {
+  color: #34A853;
+}
+
+.mobile-nav__item:active {
+  color: #34A853;
+  transform: scale(0.95);
+}
+
+.mobile-nav__item--create {
+  position: relative;
+}
+
+.mobile-nav__create-btn {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #34A853, #2d8f47);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -20px;
+  box-shadow: 0 4px 15px rgba(52, 168, 83, 0.4);
+}
+
+.mobile-nav__create-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* --------------------------
+   Mobile Drawer Menu
+   -------------------------- */
+.mobile-drawer {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.mobile-drawer.open {
+  pointer-events: auto;
+}
+
+.mobile-drawer__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.mobile-drawer.open .mobile-drawer__overlay {
+  opacity: 1;
+}
+
+.mobile-drawer__content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10, 20, 14, 0.98);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.mobile-drawer.open .mobile-drawer__content {
+  transform: translateY(0);
+}
+
+.mobile-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-drawer__logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.mobile-drawer__close {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+}
+
+.mobile-drawer__close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.mobile-drawer__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-drawer__item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.mobile-drawer__item:hover,
+.mobile-drawer__item:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mobile-drawer__item svg {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mobile-drawer__item--premium {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.mobile-drawer__item--premium span {
+  color: #FFD700;
+}
+
+.mobile-drawer__divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 8px 0;
+}
+
+/* --------------------------
+   Mobile Breakpoints
+   -------------------------- */
+@media (max-width: 900px) {
+  /* Show mobile nav, hide side rail */
+  .mobile-nav {
+    display: flex;
+  }
+  
+  .mobile-drawer {
+    display: block;
+  }
+  
+  .side-rail {
+    display: none !important;
+  }
+  
+  /* Adjust body padding for mobile nav */
+  body.has-rail main,
+  body.has-rail header {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  
+  body.has-rail main {
+    padding-bottom: 90px;
+  }
+}
+
+/* --------------------------
+   Global Mobile Fixes
+   -------------------------- */
+@media (max-width: 768px) {
+  /* Prevent horizontal scroll */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  /* Container padding */
+  .container,
+  .page-container,
+  .content-wrapper {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  
+  /* Typography scaling */
+  h1, .page-title {
+    font-size: 24px !important;
+    line-height: 1.3 !important;
+  }
+  
+  h2, .section-title {
+    font-size: 20px !important;
+  }
+  
+  h3, .card-title {
+    font-size: 18px !important;
+  }
+  
+  /* Card adjustments */
+  .edit-card,
+  .info-card,
+  .card {
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+  
+  /* Button row stacking */
+  .btn-row,
+  .button-row,
+  .action-buttons {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  
+  .btn-row .btn,
+  .button-row .btn,
+  .action-buttons .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* --------------------------
+   Event Edit Page Mobile
+   -------------------------- */
+@media (max-width: 900px) {
+  .event-edit-page {
+    padding: 20px 16px !important;
+    max-width: 100% !important;
+  }
+  
+  /* 3-column grid to 1 column */
+  .drinks-cocktails-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .selection-column {
+    padding: 16px !important;
+  }
+  
+  .column-title {
+    font-size: 15px !important;
+  }
+  
+  /* Form grid */
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Recommendations */
+  .reco-list {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .reco-list {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .current-items {
+    flex-direction: column !important;
+  }
+  
+  .current-item {
+    width: 100% !important;
+  }
+}
+
+/* --------------------------
+   Scenario Detail Page Mobile
+   -------------------------- */
+@media (max-width: 900px) {
+  .scenario-detail-page {
+    padding: 20px 16px !important;
+  }
+  
+  /* Tabs horizontal scroll */
+  .tabs-wrapper,
+  .tab-buttons,
+  .tabs {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 8px !important;
+    padding-bottom: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  .tabs-wrapper::-webkit-scrollbar,
+  .tab-buttons::-webkit-scrollbar,
+  .tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  .tab-btn,
+  .tab-button {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    font-size: 14px !important;
+    padding: 10px 16px !important;
+  }
+  
+  /* Panel content */
+  .panel-content,
+  .tab-content,
+  .tab-panel {
+    padding: 16px !important;
+  }
+  
+  /* Drinks/Cocktails selection */
+  .items-section {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  
+  .items-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  /* Checkbox items */
+  .checkbox-item {
+    padding: 12px !important;
+  }
+  
+  .checkbox-label {
+    font-size: 14px !important;
+  }
+  
+  /* Scrollable sections */
+  .scrollable-section,
+  .checkbox-grid.scrollable {
+    max-height: 250px !important;
+  }
+  
+  /* Calculate button */
+  .calculate-btn,
+  .btn-calculate {
+    width: 100% !important;
+  }
+}
+
+/* --------------------------
+   Event List Page Mobile
+   -------------------------- */
+@media (max-width: 900px) {
+  .event-list-page {
+    padding: 20px 16px !important;
+  }
+  
+  /* Header with search/filters */
+  .list-header {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  
+  .search-filters {
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  
+  .search-input {
+    width: 100% !important;
+  }
+  
+  /* Event cards grid */
+  .events-grid,
+  .cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .event-card {
+    padding: 16px !important;
+  }
+  
+  .event-card__header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  
+  .event-card__title {
+    font-size: 16px !important;
+  }
+  
+  .event-card__meta {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+}
+
+/* --------------------------
+   Event Detail Page Mobile
+   -------------------------- */
+@media (max-width: 900px) {
+  .event-detail-page {
+    padding: 20px 16px !important;
+  }
+  
+  .event-header {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  
+  .event-actions {
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  
+  .event-actions .btn {
+    width: 100% !important;
+  }
+  
+  /* Stats grid */
+  .stats-grid,
+  .info-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+  
+  .stat-card {
+    padding: 12px !important;
+  }
+  
+  .stat-value {
+    font-size: 20px !important;
+  }
+  
+  /* Participants */
+  .participants-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Messages section */
+  .messages-section {
+    max-height: 400px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid,
+  .info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* --------------------------
+   Scenario List Page Mobile
+   -------------------------- */
+@media (max-width: 900px) {
+  .scenario-list-page {
+    padding: 20px 16px !important;
+  }
+  
+  .scenarios-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .scenario-card {
+    padding: 16px !important;
+  }
+  
+  .scenario-card__icon {
+    font-size: 32px !important;
+  }
+  
+  .scenario-card__title {
+    font-size: 16px !important;
+  }
+}
+
+/* --------------------------
+   Shopping Lists Mobile
+   -------------------------- */
+@media (max-width: 900px) {
+  .shopping-page {
+    padding: 20px 16px !important;
+  }
+  
+  .lists-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .list-items {
+    padding: 12px !important;
+  }
+  
+  .list-item {
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+  
+  .item-quantity {
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+}
+
+/* --------------------------
+   Calculator Page Mobile
+   -------------------------- */
+@media (max-width: 768px) {
+  .calculator-page {
+    padding: 20px 16px !important;
+  }
+  
+  .calc-form {
+    padding: 16px !important;
+  }
+  
+  .calc-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .calc-results {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .result-card {
+    padding: 16px !important;
+  }
+}
+
+/* --------------------------
+   Profile/Settings Mobile
+   -------------------------- */
+@media (max-width: 768px) {
+  .profile-page,
+  .settings-page {
+    padding: 20px 16px !important;
+  }
+  
+  .profile-header {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 16px !important;
+  }
+  
+  .avatar-section {
+    margin: 0 auto !important;
+  }
+  
+  .settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .setting-item {
+    padding: 16px !important;
+  }
+}
+
+/* --------------------------
+   Map Page Mobile
+   -------------------------- */
+@media (max-width: 900px) {
+  .map-page {
+    padding: 0 !important;
+  }
+  
+  .map-container {
+    height: calc(100vh - 140px) !important;
+    border-radius: 0 !important;
+  }
+  
+  .map-sidebar {
+    position: fixed !important;
+    bottom: 70px !important;
+    left: 0 !important;
+    right: 0 !important;
+    max-height: 40vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    z-index: 100 !important;
+  }
+  
+  .place-card {
+    padding: 12px !important;
+  }
+}
+
+/* --------------------------
+   Diary Page Mobile
+   -------------------------- */
+@media (max-width: 768px) {
+  .diary-page {
+    padding: 20px 16px !important;
+  }
+  
+  .diary-entries {
+    gap: 12px !important;
+  }
+  
+  .diary-entry {
+    padding: 16px !important;
+  }
+  
+  .entry-header {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  .entry-content {
+    font-size: 14px !important;
+  }
+}
+
+/* --------------------------
+   Forms Mobile
+   -------------------------- */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 20px 16px !important;
+  }
+  
+  .form-card {
+    padding: 20px !important;
+  }
+  
+  .form-group {
+    margin-bottom: 16px !important;
+  }
+  
+  .form-group label {
+    font-size: 14px !important;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 12px !important;
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+  
+  /* Radio/Checkbox groups */
+  .radio-group,
+  .checkbox-group {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  .radio-item,
+  .checkbox-item {
+    padding: 12px !important;
+  }
+}
+
+/* --------------------------
+   Modal/Dialog Mobile
+   -------------------------- */
+@media (max-width: 768px) {
+  .modal,
+  .dialog {
+    padding: 16px !important;
+  }
+  
+  .modal-content,
+  .dialog-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 90vh !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+  
+  .modal-header,
+  .dialog-header {
+    padding: 16px !important;
+  }
+  
+  .modal-body,
+  .dialog-body {
+    padding: 16px !important;
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+  }
+  
+  .modal-footer,
+  .dialog-footer {
+    padding: 16px !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+}
+
+/* --------------------------
+   Utility Classes
+   -------------------------- */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  .show-mobile {
+    display: block !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+  
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+  
+  .mobile-center {
+    text-align: center !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+  
+  .mobile-scroll-x {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* Show on desktop only */
+@media (min-width: 901px) {
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+/* --------------------------
+   Touch Improvements
+   -------------------------- */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .btn,
+  button,
+  a.btn {
+    min-height: 44px;
+  }
+  
+  /* Remove hover effects on touch */
+  .btn:hover,
+  .card:hover,
+  .checkbox-item:hover {
+    transform: none;
+  }
+  
+  /* Active states instead */
+  .btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  .card:active,
+  .checkbox-item:active {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* --------------------------
+   Safe Area Insets (iPhone X+)
+   -------------------------- */
+@supports (padding: max(0px)) {
+  .mobile-nav {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    height: calc(70px + env(safe-area-inset-bottom));
+  }
+  
+  body.has-rail main {
+    padding-bottom: calc(90px + env(safe-area-inset-bottom));
+  }
+}
+
+/* --------------------------
+   Landscape Mobile
+   -------------------------- */
+@media (max-width: 900px) and (orientation: landscape) {
+  .mobile-nav {
+    height: 60px;
+  }
+  
+  .mobile-nav__create-btn {
+    width: 40px;
+    height: 40px;
+    margin-top: -16px;
+  }
+  
+  body.has-rail main {
+    padding-bottom: 70px;
+  }
+  
+  .mobile-drawer__content {
+    max-height: 95vh;
+  }
+}
+
+/* --------------------------
+   Small Phones (SE, 5, etc)
+   -------------------------- */
+@media (max-width: 375px) {
+  .mobile-nav__item span {
+    font-size: 9px;
+  }
+  
+  .mobile-nav__create-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  h1, .page-title {
+    font-size: 22px !important;
+  }
+  
+  .edit-card,
+  .card {
+    padding: 12px !important;
+  }
+  
+  .checkbox-item {
+    padding: 10px !important;
+  }
+}

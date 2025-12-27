@@ -1,95 +1,549 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Мой профиль — Alechmy{% endblock %}
+{% block title %}{% trans "Профіль" %} — Alechemy{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@700&family=Montserrat:wght@400;600&display=swap');
+
+.profile-page {
+    background: transparent;
+    min-height: 100vh;
+    padding: 24px 52px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #34A853;
+    text-align: center;
+    margin-bottom: 30px;
+    letter-spacing: -0.24px;
+}
+
+/* Avatar Section */
+.avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.avatar-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin-bottom: 16px;
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #34A853;
+}
+
+.avatar-placeholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #34A853 0%, #1e7e34 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+    color: #ffffff;
+    border: 3px solid #34A853;
+    font-family: 'Poppins', sans-serif;
+}
+
+.camera-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    background: #34A853;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid #030604;
+    transition: background 0.3s;
+}
+
+.camera-badge:hover {
+    background: #2d9046;
+}
+
+.camera-badge svg {
+    width: 16px;
+    height: 16px;
+}
+
+.user-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px;
+}
+
+.user-email {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+
+/* Menu Items */
+.menu-section {
+    margin-bottom: 24px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    background: #1a1a1a;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    text-decoration: none;
+    color: #ffffff;
+    transition: background 0.3s;
+}
+
+.menu-item:hover {
+    background: #252525;
+}
+
+.menu-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(52, 168, 83, 0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.menu-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.menu-text {
+    flex: 1;
+}
+
+.menu-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 2px;
+}
+
+.menu-subtitle {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+}
+
+.menu-arrow {
+    width: 24px;
+    height: 24px;
+    opacity: 0.5;
+}
+
+.notification-badge {
+    background: #34A853;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-right: 12px;
+}
+
+/* Premium Badge */
+.premium-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #000000;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    margin-right: 12px;
+}
+
+/* Status Cards */
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.status-card {
+    background: #1a1a1a;
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+}
+
+.status-card .value {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #34A853;
+}
+
+.status-card .label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 4px;
+}
+
+/* Logout Button */
+.logout-btn {
+    width: 100%;
+    padding: 16px;
+    background: rgba(234, 67, 53, 0.15);
+    border: 1px solid rgba(234, 67, 53, 0.3);
+    border-radius: 16px;
+    color: #EA4335;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.3s;
+    text-decoration: none;
+    margin-bottom: 16px;
+    font-family: 'Inter', sans-serif;
+}
+
+.logout-btn:hover {
+    background: rgba(234, 67, 53, 0.25);
+}
+
+.delete-account {
+    text-align: center;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.delete-account a {
+    color: #EA4335;
+    text-decoration: none;
+}
+
+.delete-account a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-page {
+        padding: 20px 16px;
+    }
+
+    .page-title {
+        font-size: 22px;
+    }
+    
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .avatar-container {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .avatar, .avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        font-size: 28px;
+    }
+    
+    .menu-item {
+        padding: 14px 16px;
+    }
+    
+    .menu-icon {
+        width: 36px;
+        height: 36px;
+        margin-right: 12px;
+    }
+    
+    .menu-title {
+        font-size: 15px;
+    }
+    
+    .menu-desc {
+        font-size: 12px;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-  <h1>Мой профиль</h1>
+<div class="profile-page">
+    <h1 class="page-title">{% trans "Профіль" %}</h1>
 
-  <p>
-    Эти данные используются для расчёта ориентировочного BAC в алко-дневнике
-    и более адекватных рекомендаций по событиям.
-    Это не медсовет и не призыв что-либо пить.
-  </p>
+    <!-- Avatar Section -->
+    <div class="avatar-section">
+        <div class="avatar-container">
+            {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" alt="Avatar" class="avatar">
+            {% else %}
+                <div class="avatar-placeholder">{{ user.username|slice:":1"|upper }}</div>
+            {% endif %}
+            <label class="camera-badge" for="avatar-upload">
+                <svg viewBox="0 0 24 24" fill="white">
+                    <path d="M12 15.2A3.2 3.2 0 1 0 12 8.8a3.2 3.2 0 0 0 0 6.4z"/>
+                    <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+                </svg>
+            </label>
+            <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+        </div>
+        <h2 class="user-name">{{ user.username }}</h2>
+        <p class="user-email">{{ user.email }}</p>
+    </div>
 
-  <form method="post">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
+    <!-- Status Cards -->
+    <div class="status-grid">
+        <div class="status-card">
+            <div class="value">{% if profile.is_premium %}Premium{% else %}Free{% endif %}</div>
+            <div class="label">{% trans "Статус" %}</div>
+        </div>
+        <div class="status-card">
+            <div class="value">{% if profile.is_adult_confirmed %}18+{% else %}—{% endif %}</div>
+            <div class="label">{% trans "Вік" %}</div>
+        </div>
+        <div class="status-card">
+            <div class="value">{% if profile.gdpr_consent %}✓{% else %}—{% endif %}</div>
+            <div class="label">GDPR</div>
+        </div>
+    </div>
 
-    {% for field in form %}
-      <div style="margin-bottom: 10px;">
-        {{ field.label_tag }}<br>
-        {{ field }}
-        {% if field.help_text %}
-          <div style="font-size: 0.85em; color: #666;">{{ field.help_text }}</div>
-        {% endif %}
-        {% for error in field.errors %}
-          <div style="color: red; font-size: 0.85em;">{{ error }}</div>
-        {% endfor %}
-      </div>
-    {% endfor %}
+    <!-- Menu Items -->
+    <div class="menu-section">
+        <!-- Personal Data -->
+        <a href="{% url 'pages:personal_data' %}" class="menu-item">
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34A853" stroke-width="2">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                </svg>
+            </div>
+            <div class="menu-text">
+                <p class="menu-title">{% trans "Персональні дані" %}</p>
+                <p class="menu-subtitle">{% trans "Вага, зріст, стать" %}</p>
+            </div>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </a>
 
-    <button type="submit">Сохранить</button>
-  </form>
+        <!-- Notifications -->
+        <a href="{% url 'pages:notifications' %}" class="menu-item">
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34A853" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+            </div>
+            <div class="menu-text">
+                <p class="menu-title">{% trans "Сповіщення" %}</p>
+                <p class="menu-subtitle">{% trans "Друзі, події, досягнення" %}</p>
+            </div>
+            {% if unread_notifications > 0 %}
+                <span class="notification-badge">{{ unread_notifications }}</span>
+            {% endif %}
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </a>
 
-  <hr>
+        <!-- My Events -->
+        <a href="{% url 'events:event_list' %}" class="menu-item">
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34A853" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+            </div>
+            <div class="menu-text">
+                <p class="menu-title">{% trans "Мої події" %}</p>
+                <p class="menu-subtitle">{% trans "Заплановані вечірки" %}</p>
+            </div>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </a>
 
-  <h2>Текущие данные</h2>
-  <ul>
-    <li>Возраст: {{ profile.age|default:"не указан" }}</li>
-    <li>
-      Пол:
-      {% if profile.sex == "m" %}
-        Мужской
-      {% elif profile.sex == "f" %}
-        Женский
-      {% elif profile.sex %}
-        {{ profile.get_sex_display }}
-      {% else %}
-        не указан
-      {% endif %}
-    </li>
-    <li>
-      Рост:
-      {% if profile.height_cm %}
-        {{ profile.height_cm }} см
-      {% else %}
-        не указан
-      {% endif %}
-    </li>
-    <li>
-      Вес:
-      {% if profile.weight_kg %}
-        {{ profile.weight_kg }} кг
-      {% else %}
-        не указан
-      {% endif %}
-    </li>
-  </ul>
+        <!-- Shopping Lists -->
+        <a href="{% url 'shopping:my_lists' %}" class="menu-item">
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34A853" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+            </div>
+            <div class="menu-text">
+                <p class="menu-title">{% trans "Списки покупок" %}</p>
+                <p class="menu-subtitle">{% trans "Мої списки" %}</p>
+            </div>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </a>
 
-  <hr>
+        <!-- Friends -->
+        <a href="{% url 'social:friends_list' %}" class="menu-item">
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34A853" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <div class="menu-text">
+                <p class="menu-title">{% trans "Друзі" %}</p>
+                <p class="menu-subtitle">{% trans "Знайти друзів, запити" %}</p>
+            </div>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </a>
 
-  <h2>Алко-дневник</h2>
+        <!-- Statistics -->
+        <a href="{% url 'stats:dashboard' %}" class="menu-item">
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34A853" stroke-width="2">
+                    <path d="M18 20V10"/>
+                    <path d="M12 20V4"/>
+                    <path d="M6 20v-6"/>
+                </svg>
+            </div>
+            <div class="menu-text">
+                <p class="menu-title">{% trans "Статистика" %}</p>
+                <p class="menu-subtitle">{% trans "Графіки та звіти" %}</p>
+            </div>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </a>
 
-  {% if diary_stats %}
-    <ul>
-      <li>Записей всего: {{ diary_stats.count }}</li>
-      <li>Максимальный зафиксированный BAC: {{ diary_stats.max_bac|default:"—" }} ‰</li>
-      <li>
-        Последняя запись:
-        {{ diary_stats.last_log.taken_at }} —
-        {% if diary_stats.last_log.drink %}
-          {{ diary_stats.last_log.drink.name }} ({{ diary_stats.last_log.volume_ml }} мл)
-        {% else %}
-          без указания напитка ({{ diary_stats.last_log.volume_ml }} мл)
-        {% endif %}
-      </li>
-    </ul>
-    <p><a href="{% url 'events:diary_list' %}">Перейти в дневник</a></p>
-  {% else %}
-    <p>
-      Пока нет записей в дневнике. Если пьёшь хоть что-то, логировать безопаснее,
-      чем делать вид, что ничего не было.
-    </p>
-  {% endif %}
+        <!-- Achievements -->
+        <a href="{% url 'gamification:my_achievements' %}" class="menu-item">
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34A853" stroke-width="2">
+                    <circle cx="12" cy="8" r="7"/>
+                    <polyline points="8.21,13.89 7,23 12,20 17,23 15.79,13.88"/>
+                </svg>
+            </div>
+            <div class="menu-text">
+                <p class="menu-title">{% trans "Досягнення" %}</p>
+                <p class="menu-subtitle">{% trans "Ачивки та нагороди" %}</p>
+            </div>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </a>
 
+        <!-- Challenges -->
+        <a href="{% url 'gamification:challenges' %}" class="menu-item">
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34A853" stroke-width="2">
+                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                </svg>
+            </div>
+            <div class="menu-text">
+                <p class="menu-title">{% trans "Челенджі" %}</p>
+                <p class="menu-subtitle">{% trans "Щоденні завдання" %}</p>
+            </div>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </a>
+
+        <!-- Premium -->
+        <a href="{% url 'pages:plan_choice' %}" class="menu-item">
+            <div class="menu-icon" style="background: rgba(255, 215, 0, 0.15);">
+                <svg viewBox="0 0 24 24" fill="#FFD700">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                </svg>
+            </div>
+            <div class="menu-text">
+                <p class="menu-title">Premium</p>
+                <p class="menu-subtitle">{% if profile.is_premium %}{% trans "Активний" %}{% else %}{% trans "Розблокуй всі функції" %}{% endif %}</p>
+            </div>
+            {% if profile.is_premium %}
+                <span class="premium-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#000">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                    PRO
+                </span>
+            {% endif %}
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </a>
+
+        <!-- Settings -->
+        <a href="{% url 'pages:settings' %}" class="menu-item">
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34A853" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+            </div>
+            <div class="menu-text">
+                <p class="menu-title">{% trans "Налаштування" %}</p>
+                <p class="menu-subtitle">{% trans "Мова, тема, конфіденційність" %}</p>
+            </div>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </a>
+    </div>
+
+    <!-- Logout Button -->
+    <form action="{% url 'accounts:logout' %}" method="post" style="margin: 0;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16,17 21,12 16,7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            {% trans "Вийти" %}
+        </button>
+    </form>
+
+    <!-- Delete Account -->
+    <div class="delete-account">
+        <a href="{% url 'pages:delete_account' %}">{% trans "Видалити акаунт" %}</a>
+    </div>
+</div>
 {% endblock %}

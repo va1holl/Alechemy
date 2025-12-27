@@ -7,7 +7,7 @@ from .models import ItemCategoryChoices, ScenarioSupplyTemplate, UnitChoices
 
 
 def _label_for_category(category: str) -> str:
-    """Безопасно получаем человекочитаемый label категории."""
+    """Безпечно отримуємо людиночитабельний label категорії."""
     try:
         return ItemCategoryChoices(category).label
     except Exception:
@@ -15,7 +15,7 @@ def _label_for_category(category: str) -> str:
 
 
 def _label_for_unit(unit: str) -> str:
-    """Безопасно получаем человекочитаемый label единицы."""
+    """Безпечно отримуємо людиночитабельний label одиниці."""
     try:
         return UnitChoices(unit).label
     except Exception:
@@ -31,18 +31,18 @@ def build_shopping_items(
     dishes=None,
 ):
     """
-    Считает итоговый список покупок.
+    Рахує підсумковий список покупок.
 
-    ВАЖНО: "интенсивность" убрана полностью. Она нигде не нужна и только плодит
-    несовместимости (events: low/medium/high vs shopping: low/normal/high).
+    ВАЖЛИВО: "інтенсивність" прибрана повністю. Вона ніде не потрібна і тільки
+    створює несумісності (тепер всюди: low/medium/high).
 
-    Возвращает список dict'ов:
+    Повертає список dict'ів:
     [{name, category, category_label, unit, unit_label, qty}, ...]
     """
 
     stages = stages or []
 
-    # шаблоны по сценарию/этапам
+    # шаблони за сценарієм/етапами
     rows = ScenarioSupplyTemplate.objects.filter(scenario=scenario, stage__in=stages)
 
     bucket: dict[tuple[str, str, str], Decimal] = defaultdict(Decimal)  # (name, category, unit) -> qty
@@ -54,7 +54,7 @@ def build_shopping_items(
         key = (r.name.strip(), r.category, r.unit)
         bucket[key] += qty
 
-    # ингредиенты из выбранных блюд (если есть)
+    # інгредієнти з обраних страв (якщо є)
     if dishes:
         di_qs = DishIngredient.objects.filter(dish__in=dishes).select_related("ingredient", "dish")
         for di in di_qs:
@@ -63,20 +63,26 @@ def build_shopping_items(
                 continue
             name = di.ingredient.name.strip()
             category = ItemCategoryChoices.FOOD
-            unit = di.unit  # значения совпадают с UnitChoices: pcs/g/kg/ml/l
+            unit = di.unit  # значення співпадають з UnitChoices: pcs/g/kg/ml/l
             bucket[(name, category, unit)] += qty
 
-    # базовые позиции (без "интенсивности")
-    # вода: 0.33 л на человека в час
+    # базові позиції (без "інтенсивності")
+    # вода: 0.33 л на людину на годину
     water_qty = Decimal("0.33") * Decimal(people_count) * Decimal(duration_hours)
     bucket[("Вода", ItemCategoryChoices.WATER, UnitChoices.L)] += water_qty
 
-    # лёд: 0.10 кг на человека в час
+    # лід: 0.10 кг на людину на годину
     ice_qty = Decimal("0.10") * Decimal(people_count) * Decimal(duration_hours)
-    bucket[("Лёд", ItemCategoryChoices.ICE, UnitChoices.KG)] += ice_qty
+    bucket[("Лід", ItemCategoryChoices.ICE, UnitChoices.KG)] += ice_qty
 
     items = []
     for (name, category, unit), qty in bucket.items():
+        # Format quantity: whole number if integer, max 1 decimal otherwise
+        qty_rounded = qty.quantize(Decimal("0.1"))
+        if qty_rounded == qty_rounded.to_integral_value():
+            qty_display = int(qty_rounded)
+        else:
+            qty_display = float(qty_rounded)
         items.append(
             {
                 "name": name,
@@ -84,7 +90,7 @@ def build_shopping_items(
                 "category_label": _label_for_category(category),
                 "unit": unit,
                 "unit_label": _label_for_unit(unit),
-                "qty": qty.quantize(Decimal("0.001")),
+                "qty": qty_display,
             }
         )
 

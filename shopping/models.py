@@ -5,23 +5,23 @@ from django.db import models
 
 
 class StageChoices(models.TextChoices):
-    PREP = "prep", "Подготовка"
-    DURING = "during", "Во время"
-    RECOVERY = "recovery", "Восстановление"
+    PREP = "prep", "Підготовка"
+    DURING = "during", "Під час"
+    RECOVERY = "recovery", "Відновлення"
 
 
 class IntensityChoices(models.TextChoices):
-    LOW = "low", "Низкая"
-    NORMAL = "normal", "Средняя"
-    HIGH = "high", "Высокая"
+    LOW = "low", "Низька"
+    MEDIUM = "medium", "Середня"
+    HIGH = "high", "Висока"
 
 
 class ItemCategoryChoices(models.TextChoices):
     ALCOHOL = "alcohol", "Алкоголь"
-    FOOD = "food", "Еда"
+    FOOD = "food", "Їжа"
     WATER = "water", "Вода"
-    ICE = "ice", "Лёд"
-    OTHER = "other", "Другое"
+    ICE = "ice", "Лід"
+    OTHER = "other", "Інше"
 
 
 class UnitChoices(models.TextChoices):
@@ -34,8 +34,8 @@ class UnitChoices(models.TextChoices):
 
 class ScenarioSupplyTemplate(models.Model):
     """
-    Шаблон закупки: под конкретный сценарий и этап.
-    Количество задаётся как "на 1 человека в 1 час".
+    Шаблон закупівлі: під конкретний сценарій та етап.
+    Кількість задається як "на 1 людину на 1 годину".
     """
     scenario = models.ForeignKey(
         "events.Scenario",
@@ -80,7 +80,7 @@ class ShoppingList(models.Model):
 
     people_count = models.PositiveIntegerField(default=4)
     duration_hours = models.PositiveIntegerField(default=4)
-    intensity = models.CharField(max_length=16, choices=IntensityChoices.choices, default=IntensityChoices.NORMAL)
+    intensity = models.CharField(max_length=16, choices=IntensityChoices.choices, default=IntensityChoices.MEDIUM)
 
     # выбранные этапы (prep/during/recovery)
     stages = models.JSONField(default=list, blank=True)
@@ -108,6 +108,7 @@ class ShoppingItem(models.Model):
     qty = models.DecimalField(max_digits=12, decimal_places=3, default=Decimal("0.0"))
 
     is_auto = models.BooleanField(default=True)
+    is_bought = models.BooleanField(default=False, help_text="Позначено як куплено")
 
     class Meta:
         ordering = ["category", "name", "unit", "id"]

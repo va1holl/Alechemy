@@ -1,14 +1,18 @@
 from decimal import ROUND_HALF_UP, Decimal
 import math
+import json
+from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Max
+from django.db.models import Max, Sum, Avg, Count
+from django.db.models.functions import TruncDate, TruncHour, ExtractHour, ExtractWeekDay
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
+from django.utils import timezone
 
 from accounts.decorators import adult_required
-from .models import Scenario, Event, Dish, Drink, AlcoholLog
+from .models import Scenario, Event, Dish, Drink, AlcoholLog, EventParticipant
 from .forms import (
     ScenarioDrinkForm,
     EventCreateFromScenarioForm,
@@ -20,8 +24,14 @@ from .forms import (
 @login_required
 @adult_required
 def scenario_list(request):
-    scenarios = Scenario.objects.all().order_by("name")
+    # Prefetch drinks for display optimization
+    scenarios = Scenario.objects.prefetch_related('drinks').order_by("name")
     profile = getattr(request.user, "profile", None)
+
+    # Фільтрація за категорією
+    category_filter = request.GET.get("category", "")
+    if category_filter:
+        scenarios = scenarios.filter(category=category_filter)
 
     favorite_ids = set()
     if profile is not None and hasattr(profile, "favorite_scenarios"):
@@ -29,6 +39,9 @@ def scenario_list(request):
 
     favorite_scenarios = scenarios.filter(id__in=favorite_ids)
     other_scenarios = scenarios.exclude(id__in=favorite_ids)
+
+    # Категорії для фільтрів
+    categories = Scenario.Category.choices
 
     return render(
         request,
@@ -38,12 +51,15 @@ def scenario_list(request):
             "favorite_scenarios": favorite_scenarios,
             "other_scenarios": other_scenarios,
             "favorite_ids": favorite_ids,
+            "categories": categories,
+            "current_category": category_filter,
         },
     )
 
 
 @login_required
 @adult_required
+@require_POST
 def toggle_favorite_scenario(request, slug):
     scenario = get_object_or_404(Scenario, slug=slug)
     profile = request.user.profile
@@ -62,47 +78,206 @@ def scenario_detail(request, slug):
     scenario = get_object_or_404(Scenario, slug=slug)
     profile = getattr(request.user, "profile", None)
 
-    selected_drink = None
+    selected_drinks = []
+    selected_cocktails = []
+    selected_dishes = []
     selected_difficulty = ""
     dishes = None
+    people_count = 2
+    duration_hours = 3
+    intensity = "medium"
+    drink_calculations = []
 
     if request.method == "POST":
         form = ScenarioDrinkForm(request.POST, scenario=scenario)
         if form.is_valid():
-            selected_drink = form.cleaned_data["drink"]
+            selected_drinks = list(form.cleaned_data.get("drinks") or [])
+            selected_cocktails = list(form.cleaned_data.get("cocktails") or [])
+            selected_dishes = list(form.cleaned_data.get("dishes") or [])
             selected_difficulty = form.cleaned_data.get("difficulty") or ""
+            people_count = form.cleaned_data.get("people_count") or 2
+            duration_hours = form.cleaned_data.get("duration_hours") or 3
+            intensity = form.cleaned_data.get("intensity") or "medium"
 
-            qs = Dish.objects.filter(drinks=selected_drink)
-            if selected_difficulty:
-                qs = qs.filter(difficulty=selected_difficulty)
+            # Множник для інтенсивності
+            # low: 0.5x, medium: 1x, high: 1.5x
+            intensity_multiplier = {"low": 0.6, "medium": 1.0, "high": 1.5}.get(intensity, 1.0)
+            
+            # Розрахунок порцій для кожного напою
+            total_items = len(selected_drinks) + len(selected_cocktails)
+            if total_items > 0:
+                # Базові порції на людину на годину:
+                # Міцний (40%): 1 шот/год, Звичайний (12-15%): 1-2 бокали/год, Безалкогольний: 2 склянки/год
+                
+                for drink in selected_drinks:
+                    if drink.strength == "strong":
+                        portions_per_person_hour = 1.0  # 1 шот на годину
+                        portion_ml = 40
+                        portion_name = "шот (40мл)"
+                    elif drink.strength == "non_alcoholic":
+                        portions_per_person_hour = 2.0  # 2 склянки на годину
+                        portion_ml = 200
+                        portion_name = "склянка (200мл)"
+                    else:  # regular
+                        portions_per_person_hour = 1.5  # 1.5 бокала на годину
+                        portion_ml = 150
+                        portion_name = "бокал (150мл)"
+                    
+                    # Порції на людину за весь час, з урахуванням інтенсивності
+                    # Ділимо на кількість напоїв (рівномірний розподіл)
+                    portions_per_person = int(
+                        portions_per_person_hour * duration_hours * intensity_multiplier / total_items
+                    )
+                    portions_per_person = max(1, portions_per_person)  # Мінімум 1 порція
+                    
+                    total_portions = portions_per_person * people_count
+                    total_ml = total_portions * portion_ml
+                    
+                    drink_calculations.append({
+                        "name": drink.name,
+                        "type": "drink",
+                        "strength": drink.get_strength_display() if drink.strength else "Звичайний",
+                        "abv": drink.abv or 0,
+                        "portion_ml": portion_ml,
+                        "portion_name": portion_name,
+                        "portions_per_person": portions_per_person,
+                        "total_portions": total_portions,
+                        "total_ml": total_ml,
+                        "bottles": max(1, (total_ml + 749) // 750),  # пляшка 750мл, округлення вгору
+                    })
+                
+                for cocktail in selected_cocktails:
+                    # Коктейлі - 1 коктейль на 30-60 хв залежно від міцності
+                    if cocktail.strength == "non_alcoholic":
+                        portions_per_person_hour = 2.0  # 2 мокт/год
+                        portion_ml = 250
+                    elif cocktail.strength in ["strong", "very_strong"]:
+                        portions_per_person_hour = 1.0  # 1 коктейль/год
+                        portion_ml = 120
+                    else:  # medium, light
+                        portions_per_person_hour = 1.5  # 1.5 коктейля/год
+                        portion_ml = 180
+                    
+                    portions_per_person = int(
+                        portions_per_person_hour * duration_hours * intensity_multiplier / total_items
+                    )
+                    portions_per_person = max(1, portions_per_person)
+                    
+                    total_portions = portions_per_person * people_count
+                    total_ml = total_portions * portion_ml
+                    
+                    drink_calculations.append({
+                        "name": cocktail.name,
+                        "type": "cocktail",
+                        "strength": cocktail.get_strength_display() if cocktail.strength else "Середній",
+                        "abv": 0,
+                        "portion_ml": portion_ml,
+                        "portion_name": f"коктейль ({portion_ml}мл)",
+                        "portions_per_person": portions_per_person,
+                        "total_portions": total_portions,
+                        "total_ml": total_ml,
+                    })
 
-            dishes = qs.order_by("name")
+            # Отримуємо страви
+            if selected_drinks or selected_cocktails:
+                if selected_drinks:
+                    qs = Dish.objects.filter(drinks__in=selected_drinks).distinct()
+                else:
+                    qs = Dish.objects.all()
+                
+                if selected_difficulty:
+                    qs = qs.filter(difficulty=selected_difficulty)
+                dishes = qs.order_by("name")[:12]
     else:
         form = ScenarioDrinkForm(scenario=scenario)
 
-    return render(
-        request,
-        "events/scenario_detail.html",
-        {
-            "scenario": scenario,
-            "profile": profile,
-            "form": form,
-            "selected_drink": selected_drink,
-            "selected_difficulty": selected_difficulty,
-            "dishes": dishes,
-        },
+    # Отримуємо всі напої для відображення
+    all_drinks = Drink.objects.all().order_by("name")
+    recommended_drink_ids = set(scenario.drinks.values_list("id", flat=True))
+    
+    # Отримуємо всі страви для відображення
+    all_dishes = Dish.objects.all().order_by("name")
+    # Рекомендовані страви - ті, що прив'язані до рекомендованих напоїв сценарію
+    recommended_dish_ids = set(
+        Dish.objects.filter(drinks__in=scenario.drinks.all())
+        .distinct()
+        .values_list("id", flat=True)
     )
+    
+    # Отримуємо коктейлі для відображення
+    from recipes.models import Cocktail
+    cocktails = Cocktail.objects.filter(is_active=True).order_by("category", "name")
+    
+    # Групуємо коктейлі за категоріями
+    cocktail_categories = {}
+    for c in cocktails:
+        cat = c.get_category_display() if c.category else "Інше"
+        if cat not in cocktail_categories:
+            cocktail_categories[cat] = []
+        cocktail_categories[cat].append(c)
+
+    context = {
+        "scenario": scenario,
+        "profile": profile,
+        "form": form,
+        "all_drinks": all_drinks,
+        "recommended_drink_ids": recommended_drink_ids,
+        "all_dishes": all_dishes,
+        "recommended_dish_ids": recommended_dish_ids,
+        "selected_drinks": selected_drinks,
+        "selected_cocktails": selected_cocktails,
+        "selected_dishes": selected_dishes,
+        "selected_difficulty": selected_difficulty,
+        "dishes": dishes,
+        "cocktails": cocktails,
+        "cocktail_categories": cocktail_categories,
+        "people_count": people_count,
+        "duration_hours": duration_hours,
+        "intensity": intensity,
+        "drink_calculations": drink_calculations,
+    }
+    
+    # AJAX request - return partial HTML
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return render(request, "events/partials/scenario_calculations.html", context)
+    
+    return render(request, "events/scenario_detail.html", context)
 
 
 @login_required
 @adult_required
 def event_list(request):
-    events = (
-        Event.objects.filter(user=request.user)
-        .select_related("scenario", "drink", "dish")
-        .order_by("-date", "-created_at")
-    )
-    return render(request, "events/event_list.html", {"events": events})
+    from django.db.models import Q
+    
+    # Події, де користувач є власником АБО прийнятим учасником
+    all_events = Event.objects.filter(
+        Q(user=request.user) |
+        Q(
+            event_participants__participant=request.user,
+            event_participants__status=EventParticipant.Status.ACCEPTED
+        )
+    ).select_related("scenario", "drink", "dish").distinct().order_by("-date", "-created_at")
+    
+    # Розділяємо активні події та архів (завершені)
+    show_archive = request.GET.get('archive') == '1'
+    
+    if show_archive:
+        events = all_events.filter(is_finished=True)
+    else:
+        events = all_events.filter(is_finished=False)
+    
+    # Кількість в архіві для бейджа
+    archive_count = all_events.filter(is_finished=True).count()
+    
+    # ID власних подій для відображення бейджа "Учасник"
+    own_event_ids = set(Event.objects.filter(user=request.user).values_list('id', flat=True))
+    
+    return render(request, "events/event_list.html", {
+        "events": events,
+        "own_event_ids": own_event_ids,
+        "show_archive": show_archive,
+        "archive_count": archive_count,
+    })
 
 
 def build_recommendations_placeholder(
@@ -114,20 +289,18 @@ def build_recommendations_placeholder(
     duration_hours=None,
 ):
     """
-    Простейший калькулятор под Event (БЕЗ "интенсивности").
+    Калькулятор рекомендацій для події.
 
-    Считает:
-    - ориентировочный объём напитка на человека и всего,
-    - сколько это бутылок по 0.75,
-    - объём воды,
-    - примерное количество порций еды,
-    - очень грубую оценку BAC на одного (по профилю пользователя), если есть данные.
-
-    Это НЕ рекомендация "столько выпей", а просто ориентировочные цифры.
+    Розраховує:
+    - орієнтовний об'єм напою на людину і загалом,
+    - скільки це пляшок по 0.75л,
+    - об'єм води,
+    - приблизну кількість порцій їжі,
+    - оцінку BAC на людину (за профілем користувача), якщо є дані.
     """
     profile = getattr(user, "profile", None)
 
-    # --- входные параметры ---
+    # --- вхідні параметри ---
     try:
         people = int(people_count) if people_count else 2
     except (TypeError, ValueError):
@@ -143,9 +316,9 @@ def build_recommendations_placeholder(
     if hours < 1:
         hours = 1
 
-    # --- расчёт алкоголя ---
-    base_serving_volume_ml = 150  # "порция" для вина/лонгдринка
-    servings_per_person = max(1.0, float(hours))  # без интенсивности: 1 порция в час (грубо)
+    # --- розрахунок алкоголю ---
+    base_serving_volume_ml = 150  # "порція" для вина/лонгдрінка
+    servings_per_person = max(1.0, float(hours))  # 1 порція на годину
     per_person_alcohol_ml = int(servings_per_person * base_serving_volume_ml)
     total_alcohol_ml = per_person_alcohol_ml * people
     bottles_750_ml = max(1, math.ceil(total_alcohol_ml / 750))
@@ -155,17 +328,17 @@ def build_recommendations_placeholder(
     total_water_ml = per_person_water_ml * people
     water_bottles_1500_ml = max(1, math.ceil(total_water_ml / 1500))
 
-    # --- еда ---
-    food_factor = 1.5  # фикс, без "интенсивности"
+    # --- їжа ---
+    food_factor = 1.5
     food_portions = max(1, math.ceil(people * food_factor))
 
     summary = (
-        f"Оценка: на {people} человек при длительности {hours} ч "
-        f"получается примерно {per_person_alcohol_ml} мл напитка на человека "
-        f"(всего ~{total_alcohol_ml} мл, это около {bottles_750_ml} бутылок по 0.75 л). "
-        f"Воды стоит заложить не меньше {per_person_water_ml} мл на человека "
-        f"(всего ~{total_water_ml} мл, ≈{water_bottles_1500_ml} бутылок по 1.5 л) "
-        f"и ориентироваться примерно на {food_portions} порций еды."
+        f"📊 Розрахунок на {people} {'людину' if people == 1 else 'людей'} при тривалості {hours} год: "
+        f"≈{per_person_alcohol_ml} мл напою на людину "
+        f"(всього ~{total_alcohol_ml} мл, це близько {bottles_750_ml} пляшок по 0.75 л). "
+        f"💧 Води потрібно мінімум {per_person_water_ml} мл на людину "
+        f"(всього ~{total_water_ml} мл, ≈{water_bottles_1500_ml} пляшок по 1.5 л). "
+        f"🍽️ Їжі орієнтовно на {food_portions} порцій."
     )
 
     bac_promille = None
@@ -181,13 +354,13 @@ def build_recommendations_placeholder(
 
         if bac_promille is not None:
             summary += (
-                f" Для тебя это может дать около {bac_promille} ‰ в пике "
-                f"(очень приблизительно, не использовать для решений про вождение и здоровье)."
+                f" 🍺 Для вас це може дати близько {bac_promille} ‰ BAC "
+                f"(орієнтовно, не використовувати для рішень про керування авто)."
             )
         else:
-            summary += " Для оценки BAC нужно корректно заполнить вес/пол в профиле."
+            summary += " ℹ️ Для оцінки BAC заповніть вагу та стать у профілі."
     elif profile:
-        summary += " Для расчёта BAC нужен напиток с указанной крепостью и заполненные вес/пол в профиле."
+        summary += " ℹ️ Для розрахунку BAC потрібен напій з вказаною міцністю та заповнені дані профілю."
 
     return {
         "summary": summary,
@@ -206,8 +379,8 @@ def build_recommendations_placeholder(
 
 def build_recovery_advice(user, drink, recommendations):
     """
-    Текст: как отойти после такого объёма алкоголя.
-    Используем оценочный BAC и стандартную скорость выведения.
+    Поради щодо відновлення після вживання алкоголю.
+    Використовуємо оцінковий BAC та стандартну швидкість виведення.
     """
     if not recommendations:
         return None
@@ -231,22 +404,25 @@ def build_recovery_advice(user, drink, recommendations):
     extra_water_ml = max(0, int(per_person_water_ml * 0.5))
 
     text = (
-        f"При таком объёме напитка ориентировочный пик для тебя — около {bac} ‰. "
-        f"Организм в среднем выводит примерно 0.15 ‰ алкоголя в час, так что до почти полного "
-        f"отрезвления может пройти около {hours_to_zero} ч. "
+        f"🌙 **Стадія відновлення**\n\n"
+        f"При такому об'ємі напою орієнтовний пік для вас — близько {bac} ‰. "
+        f"Організм в середньому виводить приблизно 0.15 ‰ алкоголю на годину, тому до майже повного "
+        f"протверезіння може пройти близько **{hours_to_zero} год**.\n\n"
     )
 
     if extra_water_ml > 0:
         text += (
-            f"После события стоит переключиться на воду: выпить ещё хотя бы {extra_water_ml} мл "
-            f"поверх того, что планировалось во время вечера, и нормально поесть."
+            f"💧 **Рекомендації:**\n"
+            f"• Випийте ще хоча б {extra_water_ml} мл води понад те, що планувалося під час вечора\n"
+            f"• Нормально поїжте\n"
+            f"• Відпочиньте та виспіться"
         )
     else:
-        text += "После события стоит переключиться на воду и нормальную еду."
+        text += "💧 Після події варто переключитись на воду та нормальну їжу."
 
     text += (
-        " Эта оценка очень приблизительная и не годится для решений про вождение, "
-        "здоровье или дозировки лекарств."
+        "\n\n⚠️ _Ця оцінка дуже орієнтовна і не підходить для рішень щодо керування авто, "
+        "здоров'я або дозування ліків._"
     )
 
     return text
@@ -265,17 +441,20 @@ def event_create_from_scenario(request, slug):
 
     if request.method == "POST":
         step = request.POST.get("step", "select_dish")
-        drink_id = request.POST.get("drink_id")
-        dish_id = request.POST.get("dish_id")
+        # Support both singular (from event_create form) and plural (from scenario_detail form)
+        drink_ids = request.POST.getlist("drink_ids")
+        drink_id = request.POST.get("drink_id") or (drink_ids[0] if drink_ids else None)
+        dish_ids = request.POST.getlist("dish_ids")
+        dish_id = request.POST.get("dish_id") or (dish_ids[0] if dish_ids else None)
         difficulty = request.POST.get("difficulty") or ""
 
         drink = get_object_or_404(Drink, id=drink_id) if drink_id else None
-        dish = get_object_or_404(Dish, id=dish_id) if dish_id else None
+        dishes = [get_object_or_404(Dish, id=dish_id)] if dish_id else []
 
         if step == "select_dish":
             form = EventCreateFromScenarioForm()
             recommendations = build_recommendations_placeholder(
-                request.user, scenario, drink, dish
+                request.user, scenario, drink, dishes[0] if dishes else None
             )
             return render(
                 request,
@@ -283,7 +462,8 @@ def event_create_from_scenario(request, slug):
                 {
                     "scenario": scenario,
                     "drink": drink,
-                    "dish": dish,
+                    "dish": dishes[0] if dishes else None,
+                    "dishes": dishes,
                     "difficulty": difficulty,
                     "form": form,
                     "recommendations": recommendations,
@@ -291,20 +471,34 @@ def event_create_from_scenario(request, slug):
             )
 
         form = EventCreateFromScenarioForm(request.POST)
-        if form.is_valid() and drink and dish:
+        if form.is_valid() and drink:
             event = form.save(commit=False)
             event.user = request.user
             event.scenario = scenario
             event.drink = drink
-            event.dish = dish
+            # Assign first selected dish or None
+            event.dish = dishes[0] if dishes else None
+            # Set intensity from scenario or default
+            event.intensity = getattr(scenario, 'intensity', 'medium') or 'medium'
             event.save()
+            # TODO: If you want to support multiple dishes, add M2M logic here
+
+            # Нараховуємо бали за створення події
+            from gamification.services import award_points
+            award_points(request.user, 'event_create')
+            
             return redirect("events:event_list")
+        else:
+            # Debug: print form errors and drink to console
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Event creation failed: form.errors={form.errors}, drink={drink}, drink_id={drink_id}")
 
         recommendations = build_recommendations_placeholder(
             request.user,
             scenario,
             drink,
-            dish,
+            dishes[0] if dishes else None,
             people_count=request.POST.get("people_count"),
             duration_hours=request.POST.get("duration_hours"),
         )
@@ -314,7 +508,8 @@ def event_create_from_scenario(request, slug):
             {
                 "scenario": scenario,
                 "drink": drink,
-                "dish": dish,
+                "dish": dishes[0] if dishes else None,
+                "dishes": dishes,
                 "difficulty": difficulty,
                 "form": form,
                 "recommendations": recommendations,
@@ -347,6 +542,16 @@ def event_edit(request, pk):
         duration_hours=form.instance.duration_hours,
     )
 
+    # Рекомендовані страви на основі напоїв сценарію
+    all_dishes = Dish.objects.all().order_by("name")
+    recommended_dish_ids = set()
+    if scenario:
+        recommended_dish_ids = set(
+            Dish.objects.filter(drinks__in=scenario.drinks.all())
+            .distinct()
+            .values_list("id", flat=True)
+        )
+
     return render(
         request,
         "events/event_edit.html",
@@ -355,6 +560,8 @@ def event_edit(request, pk):
             "scenario": scenario,
             "form": form,
             "recommendations": recommendations,
+            "all_dishes": all_dishes,
+            "recommended_dish_ids": recommended_dish_ids,
         },
     )
 
@@ -377,7 +584,21 @@ def event_delete(request, pk):
 @login_required
 @adult_required
 def event_detail(request, pk):
-    event = get_object_or_404(Event, pk=pk, user=request.user)
+    event = get_object_or_404(Event, pk=pk)
+    
+    # Перевіряємо доступ - власник або прийнятий учасник
+    is_owner = event.user == request.user
+    participant_record = EventParticipant.objects.filter(
+        event=event, 
+        participant=request.user
+    ).first()
+    is_participant = participant_record and participant_record.status == EventParticipant.Status.ACCEPTED
+    
+    if not is_owner and not is_participant:
+        from django.contrib import messages
+        messages.error(request, "У вас немає доступу до цієї події.")
+        return redirect("events:event_list")
+    
     scenario = event.scenario
 
     recommendations = build_recommendations_placeholder(
@@ -394,6 +615,14 @@ def event_detail(request, pk):
         drink=event.drink,
         recommendations=recommendations,
     )
+    
+    # Отримуємо учасників
+    participants = event.event_participants.select_related('participant__profile').all()
+    accepted_participants = [p for p in participants if p.status == EventParticipant.Status.ACCEPTED]
+    
+    # Кількість повідомлень в обговоренні
+    from .models import EventMessage
+    messages_count = EventMessage.objects.filter(event=event).count()
 
     return render(
         request,
@@ -403,6 +632,11 @@ def event_detail(request, pk):
             "scenario": scenario,
             "recommendations": recommendations,
             "recovery_advice": recovery_advice,
+            "is_owner": is_owner,
+            "is_participant": is_participant,
+            "participants": participants,
+            "accepted_participants": accepted_participants,
+            "messages_count": messages_count,
         },
     )
 
@@ -442,18 +676,120 @@ def event_recommendations_preview(request):
 @adult_required
 def diary_list(request):
     """
-    Список записей алко-дневника текущего пользователя.
+    Список записей алко-дневника текущего пользователя з повною статистикою та графіками.
     """
     logs = (
         AlcoholLog.objects
         .filter(user=request.user)
-        .select_related("event", "drink")
+        .select_related("event", "drink", "event__scenario")
         .order_by("-taken_at", "-created_at")
     )
+    
+    # === СТАТИСТИКА ===
+    stats = {}
+    
+    if logs.exists():
+        now = timezone.now()
+        
+        # Загальна статистика
+        stats['total_logs'] = logs.count()
+        stats['total_volume_ml'] = logs.aggregate(total=Sum('volume_ml'))['total'] or 0
+        stats['avg_bac'] = logs.filter(bac_estimate__isnull=False).aggregate(avg=Avg('bac_estimate'))['avg']
+        stats['max_bac'] = logs.filter(bac_estimate__isnull=False).aggregate(max=Max('bac_estimate'))['max']
+        
+        # Останній запис
+        stats['last_log'] = logs.first()
+        
+        # Статистика за останній тиждень
+        week_ago = now - timedelta(days=7)
+        week_logs = logs.filter(taken_at__gte=week_ago)
+        stats['week_logs'] = week_logs.count()
+        stats['week_volume'] = week_logs.aggregate(total=Sum('volume_ml'))['total'] or 0
+        
+        # Статистика за останній місяць
+        month_ago = now - timedelta(days=30)
+        month_logs = logs.filter(taken_at__gte=month_ago)
+        stats['month_logs'] = month_logs.count()
+        stats['month_volume'] = month_logs.aggregate(total=Sum('volume_ml'))['total'] or 0
+        
+        # === ДАНІ ДЛЯ ГРАФІКІВ ===
+        
+        # 1. BAC по днях (останні 14 днів)
+        two_weeks_ago = now - timedelta(days=14)
+        bac_by_day = (
+            logs.filter(taken_at__gte=two_weeks_ago, bac_estimate__isnull=False)
+            .annotate(day=TruncDate('taken_at'))
+            .values('day')
+            .annotate(avg_bac=Avg('bac_estimate'), max_bac=Max('bac_estimate'))
+            .order_by('day')
+        )
+        stats['bac_chart_labels'] = json.dumps([d['day'].strftime('%d.%m') for d in bac_by_day])
+        stats['bac_chart_avg'] = json.dumps([float(d['avg_bac']) if d['avg_bac'] else 0 for d in bac_by_day])
+        stats['bac_chart_max'] = json.dumps([float(d['max_bac']) if d['max_bac'] else 0 for d in bac_by_day])
+        
+        # 2. Об'єм споживання по днях (останні 14 днів)
+        volume_by_day = (
+            logs.filter(taken_at__gte=two_weeks_ago)
+            .annotate(day=TruncDate('taken_at'))
+            .values('day')
+            .annotate(total_volume=Sum('volume_ml'))
+            .order_by('day')
+        )
+        stats['volume_chart_labels'] = json.dumps([d['day'].strftime('%d.%m') for d in volume_by_day])
+        stats['volume_chart_data'] = json.dumps([d['total_volume'] for d in volume_by_day])
+        
+        # 3. Розподіл за годинами (коли п'ють найчастіше)
+        hourly_distribution = (
+            logs
+            .annotate(hour=ExtractHour('taken_at'))
+            .values('hour')
+            .annotate(count=Count('id'))
+            .order_by('hour')
+        )
+        hours_data = {h['hour']: h['count'] for h in hourly_distribution}
+        stats['hourly_labels'] = json.dumps([f"{h:02d}:00" for h in range(24)])
+        stats['hourly_data'] = json.dumps([hours_data.get(h, 0) for h in range(24)])
+        
+        # 4. Розподіл за днями тижня
+        weekday_distribution = (
+            logs
+            .annotate(weekday=ExtractWeekDay('taken_at'))
+            .values('weekday')
+            .annotate(count=Count('id'), total_volume=Sum('volume_ml'))
+            .order_by('weekday')
+        )
+        weekday_names = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
+        weekday_data = {w['weekday']: w for w in weekday_distribution}
+        stats['weekday_labels'] = json.dumps(weekday_names)
+        stats['weekday_count'] = json.dumps([weekday_data.get(i, {}).get('count', 0) for i in range(1, 8)])
+        stats['weekday_volume'] = json.dumps([weekday_data.get(i, {}).get('total_volume', 0) or 0 for i in range(1, 8)])
+        
+        # 5. Топ напоїв
+        top_drinks = (
+            logs.filter(drink__isnull=False)
+            .values('drink__name')
+            .annotate(count=Count('id'), total_volume=Sum('volume_ml'))
+            .order_by('-count')[:5]
+        )
+        stats['top_drinks'] = list(top_drinks)
+        stats['top_drinks_labels'] = json.dumps([d['drink__name'] for d in top_drinks])
+        stats['top_drinks_data'] = json.dumps([d['count'] for d in top_drinks])
+        
+        # 6. Тренд BAC за місяць (тижневі середні)
+        bac_trend = (
+            logs.filter(taken_at__gte=month_ago, bac_estimate__isnull=False)
+            .annotate(day=TruncDate('taken_at'))
+            .values('day')
+            .annotate(avg_bac=Avg('bac_estimate'))
+            .order_by('day')
+        )
+        stats['bac_trend_labels'] = json.dumps([d['day'].strftime('%d.%m') for d in bac_trend])
+        stats['bac_trend_data'] = json.dumps([float(d['avg_bac']) if d['avg_bac'] else 0 for d in bac_trend])
+    
     return render(
         request,
         "events/diary_list.html",
-        {"logs": logs},
+        {"logs": logs, "stats": stats},
     )
 
 
@@ -474,12 +810,16 @@ def diary_detail(request, pk):
 @adult_required
 def diary_add(request, event_pk=None):
     """
-    Добавление записи в дневник.
-    Если передан event_pk — привязываем запись ТОЛЬКО к этому событию (если оно пользователя).
+    Додавання запису в щоденник.
+    Якщо передано event_pk — прив'язуємо запис до цієї події (якщо є доступ).
     """
     event = None
     if event_pk is not None:
-        event = get_object_or_404(Event, pk=event_pk, user=request.user)
+        event = get_object_or_404(Event, pk=event_pk)
+        if not _can_access_event(event, request.user):
+            from django.contrib import messages
+            messages.error(request, "У вас немає доступу до цієї події.")
+            return redirect("events:event_list")
 
     if request.method == "POST":
         form = AlcoholLogForm(request.POST, user=request.user)
@@ -491,7 +831,7 @@ def diary_add(request, event_pk=None):
                 log.event = event
             else:
                 if log.event is not None and log.event.user_id != request.user.id:
-                    form.add_error("event", "Нельзя выбрать чужое событие.")
+                    form.add_error("event", "Не можна обрати чужу подію.")
                     return render(
                         request,
                         "events/diary_add.html",
@@ -527,3 +867,402 @@ def get_diary_stats_for_user(user):
         "max_bac": max_bac,
         "last_log": last_log,
     }
+
+
+# ===============================
+# Нові функції: Локація, Фідбек, Учасники
+# ===============================
+
+def _can_access_event(event, user):
+    """Перевіряє, чи може користувач дістатися до події (власник або прийнятий учасник)."""
+    if event.user == user:
+        return True
+    return EventParticipant.objects.filter(
+        event=event,
+        participant=user,
+        status=EventParticipant.Status.ACCEPTED
+    ).exists()
+
+
+def _is_event_admin(event, user):
+    """Перевіряє, чи є користувач адміном події (власник або HEAD)."""
+    if event.user == user:
+        return True
+    return EventParticipant.objects.filter(
+        event=event,
+        participant=user,
+        status=EventParticipant.Status.ACCEPTED,
+        role=EventParticipant.Role.HEAD
+    ).exists()
+
+
+def _get_user_role(event, user):
+    """Отримує роль користувача у події."""
+    if event.user == user:
+        return "owner"
+    participant = EventParticipant.objects.filter(
+        event=event,
+        participant=user,
+        status=EventParticipant.Status.ACCEPTED
+    ).first()
+    if participant:
+        return participant.role
+    return None
+
+
+@login_required
+@adult_required
+def event_location(request, pk):
+    """Сторінка з картою місця проведення події."""
+    event = get_object_or_404(Event, pk=pk)
+    if not _can_access_event(event, request.user):
+        from django.contrib import messages
+        messages.error(request, "У вас немає доступу до цієї події.")
+        return redirect("events:event_list")
+    return render(request, "events/event_location.html", {"event": event})
+
+
+@login_required
+@adult_required
+def event_feedback(request, pk):
+    """Фідбек після події - оцінка та відгук."""
+    event = get_object_or_404(Event, pk=pk)
+    if not _can_access_event(event, request.user):
+        from django.contrib import messages
+        messages.error(request, "У вас немає доступу до цієї події.")
+        return redirect("events:event_list")
+    
+    if request.method == "POST":
+        from django.utils import timezone
+        
+        rating = request.POST.get("rating")
+        feedback_text = request.POST.get("feedback", "").strip()
+        
+        if rating:
+            try:
+                rating = int(rating)
+                if 1 <= rating <= 5:
+                    event.user_rating = rating
+            except ValueError:
+                pass
+        
+        event.feedback = feedback_text
+        event.feedback_submitted_at = timezone.now()
+        event.is_finished = True
+        event.save()
+        
+        # Нараховуємо бали за завершення та оцінку події
+        from gamification.services import award_points
+        award_points(request.user, 'event_complete')
+        if rating:
+            award_points(request.user, 'event_rate')
+        
+        return redirect("events:event_detail", pk=event.pk)
+    
+    # Отримати відгуки учасників
+    participants = event.event_participants.select_related('participant__profile').filter(
+        feedback_submitted_at__isnull=False
+    )
+    
+    return render(request, "events/event_feedback.html", {
+        "event": event,
+        "participants": participants,
+        "average_rating": event.get_average_rating(),
+    })
+
+
+@login_required
+@adult_required
+def event_participants(request, pk):
+    """Список учасників події."""
+    from django.contrib import messages
+    
+    event = get_object_or_404(Event, pk=pk)
+    
+    # Перевірка доступу
+    if not _can_access_event(event, request.user):
+        messages.error(request, "У вас немає доступу до цієї події.")
+        return redirect("events:event_list")
+    
+    is_owner = event.user == request.user
+    is_admin = _is_event_admin(event, request.user)
+    
+    participants = event.event_participants.select_related('participant__profile').all()
+    
+    # Отримати список друзів для запрошення (тільки для адмінів)
+    friends = []
+    if is_admin:
+        profile = getattr(request.user, "profile", None)
+        if profile:
+            friends = profile.get_friends()
+            # Виключити тих, хто вже запрошений
+            invited_ids = set(participants.values_list('participant_id', flat=True))
+            friends = [f for f in friends if f.user_id not in invited_ids]
+    
+    return render(request, "events/event_participants.html", {
+        "event": event,
+        "participants": participants,
+        "friends": friends,
+        "is_owner": is_owner,
+        "is_admin": is_admin,
+    })
+
+
+@login_required
+@adult_required
+@require_POST
+def event_invite_friend(request, pk):
+    """Запросити друга на подію (тільки адміни)."""
+    from django.contrib import messages
+    
+    event = get_object_or_404(Event, pk=pk)
+    
+    # Тільки адміни можуть запрошувати
+    if not _is_event_admin(event, request.user):
+        messages.error(request, "Тільки адміністратори можуть запрошувати учасників.")
+        return redirect("events:event_participants", pk=pk)
+    
+    friend_tag = request.POST.get("friend_tag", "").strip()
+    friend_id = request.POST.get("friend_id")
+    
+    from accounts.models import Profile
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    friend_user = None
+    
+    # Пошук за тегом
+    if friend_tag:
+        # Підтримка формату @tag або просто tag
+        tag = friend_tag.lstrip("@").lower()
+        try:
+            friend_profile = Profile.objects.select_related('user').get(unique_tag__iexact=tag)
+            friend_user = friend_profile.user
+        except Profile.DoesNotExist:
+            messages.error(request, f"Користувача з тегом @{tag} не знайдено.")
+            return redirect("events:event_participants", pk=pk)
+    elif friend_id:
+        try:
+            friend_user = User.objects.get(pk=friend_id)
+        except User.DoesNotExist:
+            messages.error(request, "Користувача не знайдено.")
+            return redirect("events:event_participants", pk=pk)
+    
+    if friend_user:
+        if friend_user == request.user:
+            messages.error(request, "Не можна запросити себе.")
+        else:
+            participant, created = EventParticipant.objects.get_or_create(
+                event=event,
+                participant=friend_user
+            )
+            if created:
+                messages.success(request, f"Запрошення надіслано {friend_user.email}!")
+                
+                # Нараховуємо бали за запрошення друга
+                from gamification.services import award_points
+                award_points(request.user, 'event_invite')
+                
+                # Створюємо сповіщення про запрошення на подію
+                from accounts.models import Notification
+                from django.urls import reverse
+                Notification.objects.create(
+                    user=friend_user,
+                    notification_type=Notification.NotificationType.EVENT_INVITE,
+                    title=f"Запрошення на подію",
+                    message=f"{request.user.email} запросив вас на подію «{event.title or event.scenario.name}»",
+                    action_required=True,
+                    action_url=reverse("events:event_participants", kwargs={"pk": event.pk}),
+                    related_user=request.user,
+                    related_event=event
+                )
+            else:
+                messages.info(request, f"{friend_user.email} вже запрошений.")
+    
+    return redirect("events:event_participants", pk=pk)
+
+
+@login_required
+@adult_required
+@require_POST
+def event_remove_participant(request, pk, participant_pk):
+    """Видалити учасника з події (тільки адміни, власника видалити не можна)."""
+    from django.contrib import messages
+    
+    event = get_object_or_404(Event, pk=pk)
+    
+    # Тільки адміни можуть видаляти
+    if not _is_event_admin(event, request.user):
+        messages.error(request, "Тільки адміністратори можуть видаляти учасників.")
+        return redirect("events:event_participants", pk=pk)
+    
+    participant = get_object_or_404(EventParticipant, pk=participant_pk, event=event)
+    
+    # Захист власника - його не можна видалити
+    if participant.participant == event.user:
+        messages.error(request, "Не можна видалити організатора події.")
+        return redirect("events:event_participants", pk=pk)
+    
+    # Призначені адміни не можуть видаляти інших адмінів (тільки власник)
+    is_owner = event.user == request.user
+    if not is_owner and participant.role == EventParticipant.Role.HEAD:
+        messages.error(request, "Тільки організатор може видаляти адміністраторів.")
+        return redirect("events:event_participants", pk=pk)
+    
+    participant.delete()
+    messages.success(request, "Учасника видалено.")
+    
+    return redirect("events:event_participants", pk=pk)
+
+
+@login_required
+@adult_required
+@require_POST
+def event_invitation_response(request, pk, action):
+    """Відповідь на запрошення на подію (accept/decline/maybe)."""
+    from django.utils import timezone
+    from django.contrib import messages
+    
+    participant = get_object_or_404(
+        EventParticipant, 
+        event_id=pk, 
+        participant=request.user
+    )
+    
+    if action == "accept":
+        participant.status = EventParticipant.Status.ACCEPTED
+        messages.success(request, "Ви прийняли запрошення!")
+        
+        # Нараховуємо бали за прийняття запрошення
+        from gamification.services import award_points
+        award_points(request.user, 'event_accept_invite')
+        
+    elif action == "decline":
+        participant.status = EventParticipant.Status.DECLINED
+        messages.info(request, "Ви відхилили запрошення.")
+    elif action == "maybe":
+        participant.status = EventParticipant.Status.MAYBE
+        messages.info(request, "Відповідь збережено.")
+    
+    participant.responded_at = timezone.now()
+    participant.save()
+    
+    return redirect("events:event_list")
+
+
+@login_required
+@adult_required
+def event_discussion(request, pk):
+    """Обговорення події (чат учасників)."""
+    from django.contrib import messages
+    from .models import EventMessage
+    
+    event = get_object_or_404(Event, pk=pk)
+    
+    # Перевіряємо доступ - власник або учасник
+    is_owner = event.user == request.user
+    is_participant = EventParticipant.objects.filter(
+        event=event, 
+        participant=request.user,
+        status=EventParticipant.Status.ACCEPTED
+    ).exists()
+    
+    if not is_owner and not is_participant:
+        messages.error(request, "У вас немає доступу до цього обговорення.")
+        return redirect("events:event_list")
+    
+    # Отримуємо повідомлення
+    event_messages = event.messages.select_related('user__profile').all()
+    
+    # Обробка нового повідомлення
+    if request.method == "POST":
+        text = request.POST.get("message", "").strip()
+        if text:
+            EventMessage.objects.create(
+                event=event,
+                user=request.user,
+                text=text
+            )
+            return redirect("events:event_discussion", pk=pk)
+    
+    return render(request, "events/event_discussion.html", {
+        "event": event,
+        "messages_list": event_messages,
+        "is_owner": is_owner,
+    })
+
+
+@login_required
+@adult_required
+@require_POST
+def event_toggle_admin(request, pk, participant_pk):
+    """Призначити/зняти адміна (тільки власник події)."""
+    from django.contrib import messages
+    
+    event = get_object_or_404(Event, pk=pk)
+    
+    # Тільки власник може призначати адмінів
+    if event.user != request.user:
+        messages.error(request, "Тільки організатор може призначати адміністраторів.")
+        return redirect("events:event_participants", pk=pk)
+    
+    participant = get_object_or_404(EventParticipant, pk=participant_pk, event=event)
+    
+    # Перемикаємо роль
+    if participant.role == EventParticipant.Role.HEAD:
+        participant.role = EventParticipant.Role.PARTICIPANT
+        messages.success(request, f"{participant.participant.profile.get_display_name()} тепер звичайний учасник.")
+    else:
+        participant.role = EventParticipant.Role.HEAD
+        messages.success(request, f"{participant.participant.profile.get_display_name()} тепер адміністратор!")
+    
+    participant.save()
+    return redirect("events:event_participants", pk=pk)
+
+
+@login_required
+@adult_required
+@require_POST
+def event_finish(request, pk):
+    """Завершити подію та нарахувати бали всім учасникам."""
+    from django.contrib import messages
+    from django.utils import timezone
+    from gamification.services import award_points
+    
+    event = get_object_or_404(Event, pk=pk)
+    
+    # Тільки власник може завершити подію
+    if event.user != request.user:
+        messages.error(request, "Тільки організатор може завершити подію.")
+        return redirect("events:event_detail", pk=pk)
+    
+    if event.is_finished:
+        messages.info(request, "Ця подія вже завершена.")
+        return redirect("events:event_detail", pk=pk)
+    
+    # Позначаємо подію як завершену
+    event.is_finished = True
+    event.save(update_fields=["is_finished"])
+    
+    # Нараховуємо бали організатору за завершення події
+    award_points(event.user, 'event_complete')
+    
+    # Нараховуємо бали всім прийнятим учасникам
+    accepted_participants = event.event_participants.filter(
+        status=EventParticipant.Status.ACCEPTED
+    ).select_related('participant')
+    
+    for p in accepted_participants:
+        # Адміни отримують більше балів
+        if p.role == EventParticipant.Role.HEAD:
+            award_points(p.participant, 'event_admin_complete')
+        else:
+            award_points(p.participant, 'event_participate')
+    
+    participant_count = accepted_participants.count()
+    messages.success(
+        request, 
+        f"Подію завершено! Бали нараховано вам та {participant_count} учасникам."
+    )
+    
+    return redirect("events:event_detail", pk=pk)
