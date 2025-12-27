@@ -1,0 +1,3 @@
+"""
+Alechemy test suite.
+"""
