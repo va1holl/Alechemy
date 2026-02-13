@@ -5,14 +5,17 @@ import logging
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.contrib import messages
+from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
 
 from accounts.decorators import adult_required
-from accounts.models import User, FriendRequest
+from accounts.models import User, FriendRequest, Notification
+from gamification.services import award_points
 from ..models import Event, EventParticipant, EventMessage
 from .utils import (
     _get_accessible_event_or_404,
@@ -26,7 +29,7 @@ logger = logging.getLogger(__name__)
 @login_required
 @adult_required
 def event_participants(request, pk):
-    """Список учасників події."""
+    """Список учасників події з функцією запрошення."""
     event = _get_accessible_event_or_404(pk, request.user)
     is_owner = event.user == request.user
     # Check if user has HEAD role (admin-like privileges)
@@ -38,76 +41,96 @@ def event_participants(request, pk):
     
     participants = event.event_participants.select_related('participant__profile').all()
     
-    # Розділяємо на категорії
-    accepted = [p for p in participants if p.status == EventParticipant.Status.ACCEPTED]
-    pending = [p for p in participants if p.status == EventParticipant.Status.PENDING]
-    declined = [p for p in participants if p.status == EventParticipant.Status.DECLINED]
+    # Пошук користувачів для запрошення (тільки для адмінів)
+    search_query = request.GET.get('q', '').strip()
+    search_results = []
+    
+    if is_admin and search_query:
+        clean_query = search_query.lstrip('#@')
+        users = User.objects.filter(
+            Q(profile__unique_tag__icontains=clean_query) |
+            Q(profile__display_name__icontains=clean_query) |
+            Q(first_name__icontains=clean_query)
+        ).exclude(
+            pk=request.user.pk
+        ).select_related('profile')[:15]
+        
+        for u in users:
+            u.is_invited = EventParticipant.objects.filter(event=event, participant=u).exists()
+            search_results.append(u)
+    
+    # Список друзів для швидкого запрошення (перші 6)
+    friends_preview = []
+    if is_admin:
+        friendships = FriendRequest.objects.filter(
+            Q(from_user=request.user, status=FriendRequest.Status.ACCEPTED) |
+            Q(to_user=request.user, status=FriendRequest.Status.ACCEPTED)
+        ).select_related('from_user__profile', 'to_user__profile')[:6]
+        
+        for f in friendships:
+            friend = f.to_user if f.from_user == request.user else f.from_user
+            friend.profile.is_invited = EventParticipant.objects.filter(event=event, participant=friend).exists()
+            friends_preview.append(friend.profile)
+    
+    # Обробка POST запиту для запрошення
+    if request.method == "POST" and is_admin:
+        user_id = request.POST.get("user_id")
+        if user_id:
+            target_user = get_object_or_404(User, pk=user_id)
+            
+            if target_user == request.user:
+                messages.error(request, _("Ви не можете запросити себе"))
+            else:
+                user_display = target_user.profile.get_display_name() if hasattr(target_user, 'profile') else target_user.first_name or "Користувач"
+                
+                participant, created = EventParticipant.objects.get_or_create(
+                    event=event,
+                    participant=target_user,
+                    defaults={'status': EventParticipant.Status.PENDING}
+                )
+                if created:
+                    messages.success(request, f"Запрошення надіслано {user_display}")
+                    award_points(request.user, 'event_invite')
+                    
+                    Notification.objects.create(
+                        user=target_user,
+                        notification_type=Notification.NotificationType.EVENT_INVITE,
+                        title="Запрошення на подію",
+                        message=f"запросив вас на подію «{event.title or event.scenario.name}»",
+                        action_required=True,
+                        action_url=reverse("events:event_participants", kwargs={"pk": event.pk}),
+                        related_user=request.user,
+                        related_event=event
+                    )
+                else:
+                    messages.info(request, f"{user_display} вже запрошений.")
+            
+            redirect_url = reverse("events:event_participants", kwargs={"pk": pk})
+            if search_query:
+                redirect_url += f"?q={search_query}"
+            return redirect(redirect_url)
     
     return render(request, "events/event_participants.html", {
         "event": event,
         "participants": participants,
-        "accepted": accepted,
-        "pending": pending,
-        "declined": declined,
         "is_owner": is_owner,
         "is_admin": is_admin,
+        "search_query": search_query,
+        "search_results": search_results,
+        "friends_preview": friends_preview,
     })
 
 
 @login_required
 @adult_required
 def event_invite_friend(request, pk):
-    """Запросити друга на подію."""
-    event = _get_admin_event_or_404(pk, request.user)
-    
-    # Отримуємо список друзів
-    friendships = FriendRequest.objects.filter(
-        Q(from_user=request.user, status=FriendRequest.Status.ACCEPTED) |
-        Q(to_user=request.user, status=FriendRequest.Status.ACCEPTED)
-    ).select_related('from_user__profile', 'to_user__profile')
-    
-    friends = []
-    for f in friendships:
-        friend = f.to_user if f.from_user == request.user else f.from_user
-        # Перевіряємо чи вже запрошений
-        is_invited = EventParticipant.objects.filter(
-            event=event, 
-            participant=friend
-        ).exists()
-        friends.append({
-            'user': friend,
-            'is_invited': is_invited,
-        })
-    
-    if request.method == "POST":
-        friend_id = request.POST.get("friend_id")
-        if friend_id:
-            friend = get_object_or_404(User, pk=friend_id)
-            
-            # Перевіряємо що це справді друг
-            is_friend = FriendRequest.objects.filter(
-                Q(from_user=request.user, to_user=friend, status=FriendRequest.Status.ACCEPTED) |
-                Q(from_user=friend, to_user=request.user, status=FriendRequest.Status.ACCEPTED)
-            ).exists()
-            
-            if is_friend:
-                EventParticipant.objects.get_or_create(
-                    event=event,
-                    participant=friend,
-                    defaults={
-                        'status': EventParticipant.Status.PENDING,
-                    }
-                )
-                messages.success(request, f"Запрошення надіслано {friend.get_full_name() or friend.email}")
-            else:
-                messages.error(request, "Ви можете запрошувати тільки друзів")
-        
-        return redirect("events:event_invite_friend", pk=pk)
-    
-    return render(request, "events/event_invite_friend.html", {
-        "event": event,
-        "friends": friends,
-    })
+    """Редірект на сторінку учасників (функціонал перенесено туди)."""
+    # Зберігаємо пошуковий запит при редіректі
+    search_query = request.GET.get('q', '').strip()
+    redirect_url = reverse("events:event_participants", kwargs={"pk": pk})
+    if search_query:
+        redirect_url += f"?q={search_query}"
+    return redirect(redirect_url)
 
 
 @require_POST
