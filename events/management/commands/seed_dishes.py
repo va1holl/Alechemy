@@ -156,7 +156,7 @@ class Command(BaseCommand):
                     ('Оливкова олія', 30, IngredientUnit.ML),
                     ('Орегано', 2, IngredientUnit.G),
                 ],
-                'drinks': ['chardonnay', 'sauvignon-blanc', 'pinot-grigio', 'rose-wine'],
+                'drinks': ['chardonnay', 'sauvignon-blanc', 'white-dry-wine', 'rose-wine'],
             },
             {
                 'slug': 'bruschetta-tomato',
@@ -176,7 +176,7 @@ class Command(BaseCommand):
                     ('Оливкова олія', 20, IngredientUnit.ML),
                     ('Сіль', 2, IngredientUnit.G),
                 ],
-                'drinks': ['prosecco', 'champagne-brut', 'pinot-grigio', 'chianti'],
+                'drinks': ['prosecco', 'brut-champagne', 'white-dry-wine', 'red-dry-wine'],
             },
             {
                 'slug': 'cheese-plate-wine',
@@ -198,7 +198,7 @@ class Command(BaseCommand):
                     ('Волоські горіхи', 30, IngredientUnit.G),
                     ('Мед', 20, IngredientUnit.G),
                 ],
-                'drinks': ['cabernet-sauvignon', 'merlot', 'pinot-noir', 'chianti', 'rioja'],
+                'drinks': ['cabernet-sauvignon', 'merlot-wine', 'pinot-noir', 'red-dry-wine'],
             },
             {
                 'slug': 'carpaccio-beef',
@@ -218,7 +218,7 @@ class Command(BaseCommand):
                     ('Бальзамік', 10, IngredientUnit.ML),
                     ('Каперси', 10, IngredientUnit.G),
                 ],
-                'drinks': ['barolo', 'amarone', 'cabernet-sauvignon', 'merlot'],
+                'drinks': ['pinot-noir', 'cabernet-sauvignon', 'merlot-wine'],
             },
             
             # ==================== ДО ПИВА ====================
@@ -240,7 +240,7 @@ class Command(BaseCommand):
                     ('Сіль', 3, IngredientUnit.G),
                     ('Чорний перець', 2, IngredientUnit.G),
                 ],
-                'drinks': ['heineken', 'corona-extra', 'stella-artois', 'budweiser', 'pilsner-urquell'],
+                'drinks': ['lager-beer', 'craft-ipa', 'pilsner-beer', 'wheat-beer'],
             },
             {
                 'slug': 'nachos-supreme',
@@ -261,7 +261,7 @@ class Command(BaseCommand):
                     ('Халапеньо', 20, IngredientUnit.G),
                     ('Кінза', 10, IngredientUnit.G),
                 ],
-                'drinks': ['corona-extra', 'dos-equis', 'modelo-especial', 'tecate'],
+                'drinks': ['lager-beer', 'craft-ipa', 'wheat-beer'],
             },
             {
                 'slug': 'loaded-fries',
@@ -280,7 +280,7 @@ class Command(BaseCommand):
                     ('Сметана', 40, IngredientUnit.G),
                     ('Петрушка', 5, IngredientUnit.G),
                 ],
-                'drinks': ['guinness', 'heineken', 'stella-artois', 'leffe-blonde'],
+                'drinks': ['dark-stout', 'lager-beer', 'belgian-ale'],
             },
             {
                 'slug': 'beer-cheese-dip',
@@ -299,7 +299,7 @@ class Command(BaseCommand):
                     ('Гірчиця', 10, IngredientUnit.G),
                     ('Багет', 150, IngredientUnit.G),
                 ],
-                'drinks': ['guinness', 'leffe-blonde', 'hoegaarden', 'paulaner-weissbier'],
+                'drinks': ['dark-stout', 'belgian-ale', 'wheat-beer', 'porter-beer'],
             },
             
             # ==================== ДО ВІСКІ ====================
@@ -320,7 +320,7 @@ class Command(BaseCommand):
                     ('Каперси', 10, IngredientUnit.G),
                     ('Лимон', 0.25, IngredientUnit.PCS),
                 ],
-                'drinks': ['jameson', 'jack-daniels', 'chivas-regal', 'johnnie-walker-black'],
+                'drinks': ['jameson', 'jack-daniels', 'chivas-regal-12', 'johnnie-walker-black'],
             },
             {
                 'slug': 'beef-tartare',
@@ -341,7 +341,7 @@ class Command(BaseCommand):
                     ('Оливкова олія', 15, IngredientUnit.ML),
                     ('Хліб тостовий', 2, IngredientUnit.PCS),
                 ],
-                'drinks': ['macallan-12', 'glenfiddich-12', 'glenlivet-12', 'johnnie-walker-black'],
+                'drinks': ['glenfiddich-12', 'johnnie-walker-black'],
             },
             {
                 'slug': 'dark-chocolate-truffles',
@@ -357,7 +357,7 @@ class Command(BaseCommand):
                     ('Вершки', 100, IngredientUnit.ML),
                     ('Вершкове масло', 20, IngredientUnit.G),
                 ],
-                'drinks': ['macallan-12', 'hennessy-vs', 'remy-martin-vsop', 'courvoisier-vs'],
+                'drinks': ['hennessy-vs', 'remy-martin-vsop', 'courvoisier-vs'],
             },
             
             # ==================== ДО РОМУ ====================
@@ -376,7 +376,7 @@ class Command(BaseCommand):
                     ('Яйця', 1, IngredientUnit.PCS),
                     ('Лайм', 0.5, IngredientUnit.PCS),
                 ],
-                'drinks': ['bacardi-white', 'captain-morgan', 'havana-club-3', 'malibu'],
+                'drinks': ['bacardi-white', 'captain-morgan-spiced', 'havana-club-7', 'malibu-rum'],
             },
             {
                 'slug': 'jerk-chicken-bites',
@@ -395,7 +395,7 @@ class Command(BaseCommand):
                     ('Лайм', 1, IngredientUnit.PCS),
                     ('Кінза', 10, IngredientUnit.G),
                 ],
-                'drinks': ['captain-morgan', 'havana-club-3', 'appleton-estate'],
+                'drinks': ['captain-morgan-spiced', 'havana-club-7', 'diplomatico-rum'],
             },
             
             # ==================== ДО ТЕКІЛИ ====================
@@ -418,7 +418,7 @@ class Command(BaseCommand):
                     ('Халапеньо', 10, IngredientUnit.G),
                     ('Чіпси тортилья', 100, IngredientUnit.G),
                 ],
-                'drinks': ['jose-cuervo', 'patron-silver', 'don-julio-blanco', 'olmeca-gold'],
+                'drinks': ['jose-cuervo-gold', 'patron-silver', 'don-julio-blanco', 'olmeca-gold'],
             },
             {
                 'slug': 'fish-tacos',
@@ -437,7 +437,7 @@ class Command(BaseCommand):
                     ('Лайм', 1, IngredientUnit.PCS),
                     ('Кінза', 10, IngredientUnit.G),
                 ],
-                'drinks': ['jose-cuervo', 'patron-silver', 'corona-extra', 'modelo-especial'],
+                'drinks': ['jose-cuervo-gold', 'patron-silver', 'lager-beer', 'craft-ipa'],
             },
             
             # ==================== ДО ДЖИНУ ====================
@@ -458,7 +458,7 @@ class Command(BaseCommand):
                     ('Сіль', 2, IngredientUnit.G),
                     ('Чорний перець', 1, IngredientUnit.G),
                 ],
-                'drinks': ['tanqueray', 'bombay-sapphire', 'hendricks', 'gordons-gin'],
+                'drinks': ['tanqueray-gin', 'bombay-sapphire', 'hendricks-gin', 'gordon-gin'],
             },
             {
                 'slug': 'shrimp-cocktail',
@@ -475,7 +475,7 @@ class Command(BaseCommand):
                     ('Лимон', 0.5, IngredientUnit.PCS),
                     ('Петрушка', 10, IngredientUnit.G),
                 ],
-                'drinks': ['tanqueray', 'bombay-sapphire', 'hendricks', 'beefeater'],
+                'drinks': ['tanqueray-gin', 'bombay-sapphire', 'hendricks-gin', 'beefeater-gin'],
             },
             
             # ==================== ДО ГОРІЛКИ ====================
@@ -494,7 +494,7 @@ class Command(BaseCommand):
                     ('Помідори', 100, IngredientUnit.G),
                     ('Часник', 20, IngredientUnit.G),
                 ],
-                'drinks': ['absolut-vodka', 'finlandia', 'grey-goose', 'belvedere', 'stolichnaya'],
+                'drinks': ['absolut-vodka', 'finlandia-vodka', 'grey-goose', 'beluga-vodka', 'smirnoff-vodka'],
             },
             {
                 'slug': 'salo-with-garlic',
@@ -512,7 +512,7 @@ class Command(BaseCommand):
                     ('Багет', 100, IngredientUnit.G),
                     ('Чорний перець', 2, IngredientUnit.G),
                 ],
-                'drinks': ['absolut-vodka', 'finlandia', 'nemiroff', 'khortytsia'],
+                'drinks': ['absolut-vodka', 'finlandia-vodka', 'nemiroff-honey-pepper', 'khortytsia-vodka'],
             },
             
             # ==================== УНІВЕРСАЛЬНІ ====================
@@ -533,7 +533,7 @@ class Command(BaseCommand):
                     ('Сіль', 3, IngredientUnit.G),
                     ('Паприка', 2, IngredientUnit.G),
                 ],
-                'drinks': ['jameson', 'heineken', 'corona-extra', 'jack-daniels', 'absolut-vodka'],
+                'drinks': ['jameson', 'lager-beer', 'craft-ipa', 'jack-daniels', 'absolut-vodka'],
             },
             {
                 'slug': 'hummus-veggies',
@@ -558,6 +558,7 @@ class Command(BaseCommand):
         
         created = 0
         updated = 0
+        images_loaded = 0
         
         for dish_data in dishes_data:
             ingredients = dish_data.pop('ingredients')
@@ -572,6 +573,11 @@ class Command(BaseCommand):
                 created += 1
             else:
                 updated += 1
+            
+            # Завантажуємо зображення якщо ще немає
+            if not dish.image:
+                if self.download_dish_image(dish):
+                    images_loaded += 1
             
             # Очищаємо та додаємо інгредієнти
             DishIngredient.objects.filter(dish=dish).delete()
@@ -593,4 +599,66 @@ class Command(BaseCommand):
             drinks = Drink.objects.filter(slug__in=drink_slugs)
             dish.drinks.set(drinks)
         
-        self.stdout.write(f'  ✓ Страв: {len(dishes_data)} (нових: {created}, оновлено: {updated})')
+        self.stdout.write(f'  ✓ Страв: {len(dishes_data)} (нових: {created}, оновлено: {updated}, зображень: {images_loaded})')
+    
+    def download_dish_image(self, dish):
+        """Завантажуємо зображення для страви з TheMealDB."""
+        import requests
+        from django.core.files.base import ContentFile
+        
+        # Прямі URL для типових страв
+        dish_images = {
+            'bruschetta': 'https://www.themealdb.com/images/media/meals/1520084413.jpg',  # Bruschetta
+            'caprese': 'https://www.themealdb.com/images/media/meals/k29viq1585565980.jpg',  # Caprese
+            'greek-salad': 'https://www.themealdb.com/images/media/meals/k29viq1585565980.jpg',  # Salad
+            'caesar-salad': 'https://www.themealdb.com/images/media/meals/k29viq1585565980.jpg',  # Salad
+            'cheese-platter': 'https://www.themealdb.com/images/media/meals/sytuqu1511553755.jpg',  # Cheese
+            'meat-platter': 'https://www.themealdb.com/images/media/meals/1548772327.jpg',  # Meat
+            'hummus': 'https://www.themealdb.com/images/media/meals/wuxrtu1483564410.jpg',  # Falafel
+            'guacamole': 'https://www.themealdb.com/images/media/meals/1529444830.jpg',  # Mexican
+            'nachos': 'https://www.themealdb.com/images/media/meals/1529444830.jpg',  # Nachos
+            'chicken-wings': 'https://www.themealdb.com/images/media/meals/rwuyqx1507025522.jpg',  # Chicken
+            'shrimp-cocktail': 'https://www.themealdb.com/images/media/meals/1529445434.jpg',  # Shrimp
+            'salmon-tartare': 'https://www.themealdb.com/images/media/meals/1548772327.jpg',  # Salmon
+            'beef-carpaccio': 'https://www.themealdb.com/images/media/meals/bc8v651619789840.jpg',  # Beef
+            'grilled-vegetables': 'https://www.themealdb.com/images/media/meals/hqaejl1695738653.jpg',  # Vegetables
+            'french-fries': 'https://www.themealdb.com/images/media/meals/sxysrt1468240488.jpg',  # Fries
+            'onion-rings': 'https://www.themealdb.com/images/media/meals/sxysrt1468240488.jpg',  # Fried
+            'mozzarella-sticks': 'https://www.themealdb.com/images/media/meals/sytuqu1511553755.jpg',  # Cheese
+            'spring-rolls': 'https://www.themealdb.com/images/media/meals/1525876468.jpg',  # Spring Rolls
+            'tacos': 'https://www.themealdb.com/images/media/meals/ypxvwv1505333929.jpg',  # Tacos
+            'sliders': 'https://www.themealdb.com/images/media/meals/k420tj1585565244.jpg',  # Burger
+            'pizza-margherita': 'https://www.themealdb.com/images/media/meals/x0lk931587671540.jpg',  # Pizza
+        }
+        
+        image_url = dish_images.get(dish.slug)
+        
+        if image_url:
+            try:
+                img_response = requests.get(image_url, timeout=15)
+                if img_response.status_code == 200:
+                    filename = f'{dish.slug}.jpg'
+                    dish.image.save(filename, ContentFile(img_response.content), save=True)
+                    return True
+            except Exception:
+                pass
+        
+        # Fallback - пошук в TheMealDB
+        try:
+            api_url = f'https://www.themealdb.com/api/json/v1/1/random.php'
+            response = requests.get(api_url, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('meals') and len(data['meals']) > 0:
+                    image_url = data['meals'][0].get('strMealThumb')
+                    if image_url:
+                        img_response = requests.get(image_url, timeout=15)
+                        if img_response.status_code == 200:
+                            filename = f'{dish.slug}.jpg'
+                            dish.image.save(filename, ContentFile(img_response.content), save=True)
+                            return True
+        except Exception:
+            pass
+        
+        return False
