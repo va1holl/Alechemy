@@ -10,4 +10,5 @@ urlpatterns = [
     path("ai-sommelier/api/", views.ai_sommelier_api, name="ai_sommelier_api"),
     path("<slug:slug>/", views.cocktail_detail, name="cocktail_detail"),
     path("<slug:slug>/review/", views.add_cocktail_review, name="add_cocktail_review"),
+    path("<slug:slug>/add-to-event/", views.add_cocktail_to_event, name="add_cocktail_to_event"),
 ]

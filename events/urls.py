@@ -39,4 +39,7 @@ urlpatterns = [
         views.event_recommendations_preview,
         name="event_recommendations_preview",
     ),
+    
+    # AJAX API для пошуку подій
+    path("api/events/search/", views.event_search_api, name="event_search_api"),
 ]
