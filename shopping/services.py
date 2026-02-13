@@ -2,6 +2,7 @@ from collections import defaultdict
 from decimal import Decimal
 
 from events.models import DishIngredient
+from recipes.models import CocktailIngredient
 
 from .models import ItemCategoryChoices, ScenarioSupplyTemplate, UnitChoices
 
@@ -29,6 +30,7 @@ def build_shopping_items(
     people_count: int,
     duration_hours: int,
     dishes=None,
+    cocktails=None,
 ):
     """
     Рахує підсумковий список покупок.
@@ -64,6 +66,19 @@ def build_shopping_items(
             name = di.ingredient.name.strip()
             category = ItemCategoryChoices.FOOD
             unit = di.unit  # значення співпадають з UnitChoices: pcs/g/kg/ml/l
+            bucket[(name, category, unit)] += qty
+
+    # інгредієнти з обраних коктейлів (якщо є)
+    if cocktails:
+        ci_qs = CocktailIngredient.objects.filter(cocktail__in=cocktails).select_related("ingredient", "cocktail")
+        for ci in ci_qs:
+            qty = ci.amount * Decimal(people_count)
+            if qty <= 0:
+                continue
+            name = ci.ingredient.name.strip()
+            # Коктейльні інгредієнти - це ALCOHOL або FOOD залежно від типу інгредієнта
+            category = ItemCategoryChoices.ALCOHOL if getattr(ci.ingredient, "is_alcoholic", False) else ItemCategoryChoices.FOOD
+            unit = ci.unit
             bucket[(name, category, unit)] += qty
 
     # базові позиції (без "інтенсивності")
