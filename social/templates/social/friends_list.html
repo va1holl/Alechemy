@@ -7,7 +7,8 @@
 <style nonce="{{ csp_nonce }}">
 .friends-page {
     padding: 30px 40px;
-    max-width: 1000px;
+    width: 70%;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
@@ -358,10 +359,10 @@
         <div class="friends-grid">
             {% for u in friends %}
             <div class="friend-card">
-                <div class="friend-avatar">{{ u.email|slice:":1"|upper }}</div>
+                <div class="friend-avatar">{{ u.profile.nickname|slice:":1"|upper|default:u.first_name|slice:":1"|upper|default:"U" }}</div>
                 <div class="friend-info">
-                    <div class="friend-name">{{ u.get_full_name|default:u.email }}</div>
-                    <div class="friend-email">{{ u.email }}</div>
+                    <div class="friend-name">{{ u.profile.get_display_name }}</div>
+                    {% if u.profile.unique_tag %}<div class="friend-tag">#{{ u.profile.unique_tag }}</div>{% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -386,10 +387,10 @@
         <div class="friends-grid">
             {% for r in incoming %}
             <div class="friend-card">
-                <div class="friend-avatar">{{ r.from_user.email|slice:":1"|upper }}</div>
+                <div class="friend-avatar">{{ r.from_user.profile.nickname|slice:":1"|upper|default:r.from_user.first_name|slice:":1"|upper|default:"U" }}</div>
                 <div class="friend-info">
-                    <div class="friend-name">{{ r.from_user.get_full_name|default:r.from_user.email }}</div>
-                    <div class="friend-email">{{ r.from_user.email }}</div>
+                    <div class="friend-name">{{ r.from_user.profile.get_display_name }}</div>
+                    {% if r.from_user.profile.unique_tag %}<div class="friend-tag">#{{ r.from_user.profile.unique_tag }}</div>{% endif %}
                 </div>
                 <div class="friend-actions">
                     <form method="post" action="{% url 'social:accept_friend_request' r.id %}" style="display: inline;">
@@ -424,10 +425,10 @@
         <div class="friends-grid">
             {% for r in outgoing %}
             <div class="friend-card">
-                <div class="friend-avatar">{{ r.to_user.email|slice:":1"|upper }}</div>
+                <div class="friend-avatar">{{ r.to_user.profile.nickname|slice:":1"|upper|default:r.to_user.first_name|slice:":1"|upper|default:"U" }}</div>
                 <div class="friend-info">
-                    <div class="friend-name">{{ r.to_user.get_full_name|default:r.to_user.email }}</div>
-                    <div class="friend-email">{{ r.to_user.email }}</div>
+                    <div class="friend-name">{{ r.to_user.profile.get_display_name }}</div>
+                    {% if r.to_user.profile.unique_tag %}<div class="friend-tag">#{{ r.to_user.profile.unique_tag }}</div>{% endif %}
                 </div>
                 <span class="status-badge status-pending">{% trans "Очікує" %}</span>
             </div>

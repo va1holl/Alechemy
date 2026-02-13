@@ -11,6 +11,11 @@
     margin: 0 auto;
 }
 
+/* Hidden state */
+.hidden {
+    display: none !important;
+}
+
 .page-header {
     text-align: center;
     margin-bottom: 40px;
@@ -306,10 +311,10 @@
             <p>{% trans "Завантаження питання..." %}</p>
         </div>
         
-        <div id="question-content" style="display: none;">
+        <div id="question-content" class="hidden">
             <div class="question-label">{% trans "Які інгредієнти?" %}</div>
             <div class="ingredients-list" id="ingredients"></div>
-            <div class="question-description" id="description" style="display: none;"></div>
+            <div class="question-description hidden" id="description"></div>
             <div class="options-grid" id="options"></div>
         </div>
     </div>
@@ -353,16 +358,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function loadQuestion() {
-        loading.style.display = 'block';
-        questionContent.style.display = 'none';
+        loading.classList.remove('hidden');
+        questionContent.classList.add('hidden');
         
         fetch('{% url "gamification:cocktail_quiz_question" %}')
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
                     ingredientsEl.innerHTML = `<p style="color: #FF6B6B;">${data.error}</p>`;
-                    loading.style.display = 'none';
-                    questionContent.style.display = 'block';
+                    loading.classList.add('hidden');
+                    questionContent.classList.remove('hidden');
                     return;
                 }
                 
@@ -376,9 +381,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show description if available
                 if (data.description) {
                     descriptionEl.textContent = data.description + '...';
-                    descriptionEl.style.display = 'block';
+                    descriptionEl.classList.remove('hidden');
                 } else {
-                    descriptionEl.style.display = 'none';
+                    descriptionEl.classList.add('hidden');
                 }
                 
                 // Show options
@@ -391,8 +396,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     btn.addEventListener('click', handleAnswer);
                 });
                 
-                loading.style.display = 'none';
-                questionContent.style.display = 'block';
+                loading.classList.add('hidden');
+                questionContent.classList.remove('hidden');
             })
             .catch(err => {
                 console.error('Error loading question:', err);

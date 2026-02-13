@@ -21,7 +21,8 @@
     border: 3px solid rgba(255, 255, 255, 0.2);
     border-radius: 40px;
     padding: 50px 40px;
-    max-width: 1000px;
+    width: 70%;
+    max-width: 1100px;
     width: 100%;
 }
 
@@ -101,6 +102,9 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .form-label {
@@ -129,6 +133,8 @@
     padding: 0 18px;
     outline: none;
     transition: all 0.3s;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 .form-input::placeholder {
@@ -142,7 +148,7 @@
 
 .form-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 20px;
 }
 
@@ -345,11 +351,15 @@
                         {% trans "Будь ласка, введіть дані картки для оформлення підписки Premium." %}
                     </p>
 
-                    <div class="error-message" id="errorMessage"></div>
+                    <div class="error-message {% if errors %}show{% endif %}" id="errorMessage">
+                        {% if errors %}
+                            {% for error in errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                        {% endif %}
+                    </div>
 
-                    <form class="payment-form" id="paymentForm" method="POST">
+                    <form class="payment-form" id="paymentForm" method="POST" action="">
                         {% csrf_token %}
-                        <input type="hidden" name="trial" value="{{ trial }}">
+                        <input type="hidden" name="trial" value="{{ trial|yesno:'1,0' }}">
 
                         <!-- Full Name -->
                         <div class="form-group">

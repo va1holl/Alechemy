@@ -25,3 +25,7 @@ qrcode>=7.4.0
 
 # CAPTCHA for registration
 django-hcaptcha>=0.2.0
+
+# Image processing
+Pillow>=10.0.0
+requests>=2.31.0

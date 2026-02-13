@@ -11,7 +11,8 @@
     background: transparent;
     min-height: 100vh;
     padding: 40px 24px;
-    max-width: 700px;
+    width: 55%;
+    max-width: 750px;
     margin: 0 auto;
 }
 
@@ -265,6 +266,56 @@
         padding: 24px 20px;
     }
 }
+
+/* Tag display */
+.form-row.single-column {
+    grid-template-columns: 1fr;
+}
+
+.tag-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: rgba(52, 168, 83, 0.1);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 14px;
+}
+
+.tag-icon {
+    font-size: 20px;
+}
+
+.tag-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #34A853;
+}
+
+.tag-copy-btn {
+    margin-left: auto;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.tag-copy-btn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.form-hint {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+}
+
+.section-title.with-margin {
+    margin-top: 24px;
+}
 </style>
 {% endblock %}
 
@@ -305,29 +356,29 @@
                 {% trans "Профіль" %}
             </h3>
             
-            <div class="form-row" style="grid-template-columns: 1fr;">
+            <div class="form-row single-column">
                 <div class="form-group">
                     <label class="form-label">{% trans "Ваш унікальний тег" %}</label>
-                    <div style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: rgba(52, 168, 83, 0.1); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 14px;">
-                        <span style="font-size: 20px;">🏷️</span>
-                        <span style="font-size: 18px; font-weight: 600; color: #34A853;">@{{ profile.unique_tag }}</span>
-                        <button type="button" onclick="copyTag()" style="margin-left: auto; padding: 6px 12px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: #fff; cursor: pointer; font-size: 12px;">📋 {% trans "Копіювати" %}</button>
+                    <div class="tag-display">
+                        <span class="tag-icon">🏷️</span>
+                        <span class="tag-value">@{{ profile.unique_tag }}</span>
+                        <button type="button" onclick="copyTag()" class="tag-copy-btn">📋 {% trans "Копіювати" %}</button>
                     </div>
-                    <span style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px;">{% trans "Друзі можуть знайти вас за цим тегом. Тег генерується автоматично." %}</span>
+                    <span class="form-hint">{% trans "Друзі можуть знайти вас за цим тегом. Тег генерується автоматично." %}</span>
                 </div>
             </div>
             
-            <div class="form-row" style="grid-template-columns: 1fr;">
+            <div class="form-row single-column">
                 <div class="form-group">
                     <label class="form-label">{% trans "Відображуване ім'я" %}</label>
                     <input type="text" name="display_name" class="form-input" 
                            value="{{ profile.display_name|default:'' }}" 
                            placeholder="{% trans 'Як вас називати?' %}" maxlength="50">
-                    <span style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px;">{% trans "Це ім'я бачитимуть інші у коментарях, чатах та списках учасників." %}</span>
+                    <span class="form-hint">{% trans "Це ім'я бачитимуть інші у коментарях, чатах та списках учасників." %}</span>
                 </div>
             </div>
             
-            <h3 class="section-title" style="margin-top: 24px;">
+            <h3 class="section-title with-margin">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
                     <path d="M12 6v6l4 2"/>
@@ -399,7 +450,7 @@
                         </svg>
                     </span>
                     <span class="checkbox-text">
-                        {% trans "Погоджуюсь з" %} <a href="{% url 'pages:privacy_policy' %}" target="_blank" style="color: #34A853; text-decoration: underline;">{% trans "політикою конфіденційності" %}</a> {% trans "та обробкою персональних даних" %}
+                        {% trans "Погоджуюсь з" %} <a href="{% url 'pages:privacy_policy' %}" target="_blank">{% trans "політикою конфіденційності" %}</a> {% trans "та обробкою персональних даних" %}
                     </span>
                 </label>
             </div>

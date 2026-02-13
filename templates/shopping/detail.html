@@ -8,7 +8,8 @@
 <style nonce="{{ csp_nonce }}">
 .shopping-detail-page {
     padding: 30px 40px;
-    max-width: 900px;
+    width: 70%;
+    max-width: 1000px;
     margin: 0 auto;
 }
 
@@ -338,6 +339,93 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Header row with delete button */
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* Delete button */
+.delete-btn {
+    background: rgba(255, 107, 107, 0.15);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    border-radius: 12px;
+    padding: 10px 18px;
+    color: #FF6B6B;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+.delete-btn:hover {
+    background: rgba(255, 107, 107, 0.25);
+}
+
+/* Delete Modal */
+.delete-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.delete-modal-content {
+    background: #0a0f0c;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 400px;
+    text-align: center;
+    margin: 20px;
+}
+.delete-modal-title {
+    font-family: 'Poppins', sans-serif;
+    color: #FF6B6B;
+    margin-bottom: 16px;
+}
+.delete-modal-text {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 24px;
+}
+.delete-modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+.modal-btn {
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.modal-btn-cancel {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+.modal-btn-danger {
+    background: rgba(255, 107, 107, 0.15);
+    color: #FF6B6B;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+/* CSP-compliant styles */
+.progress-fill-initial {
+    width: 0%;
+}
 </style>
 {% endblock %}
 
@@ -351,9 +439,9 @@
             </svg>
             {% trans "Мої списки" %}
         </a>
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div class="header-row">
             <h1>{% trans "Список покупок" %} #{{ sl.id }}</h1>
-            <button type="button" class="delete-list-btn" onclick="showDeleteModal()" style="background: rgba(255, 107, 107, 0.15); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 12px; padding: 10px 18px; color: #FF6B6B; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.3s;">
+            <button type="button" class="delete-btn" id="deleteModalBtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="3 6 5 6 21 6"/>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -398,7 +486,7 @@
             <span class="progress-count" id="progress-count">0 / {{ sl.items.count }}</span>
         </div>
         <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+            <div class="progress-fill progress-fill-initial" id="progress-fill"></div>
         </div>
     </div>
 
@@ -507,29 +595,41 @@
 </script>
 
 <!-- Delete Modal -->
-<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: #0a0f0c; border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 20px; padding: 32px; max-width: 400px; text-align: center; margin: 20px;">
-        <h3 style="font-family: 'Poppins', sans-serif; color: #FF6B6B; margin-bottom: 16px;">🗑️ {% trans "Видалити список?" %}</h3>
-        <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 24px;">{% trans "Ви впевнені, що хочете видалити цей список покупок? Цю дію неможливо скасувати." %}</p>
-        <div style="display: flex; gap: 12px; justify-content: center;">
-            <button type="button" onclick="hideDeleteModal()" style="padding: 14px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15);">{% trans "Скасувати" %}</button>
-            <form action="{% url 'shopping:delete_list' sl.pk %}" method="post" style="display: inline;">
+<div id="deleteModal" class="delete-modal">
+    <div class="delete-modal-content">
+        <h3 class="delete-modal-title">🗑️ {% trans "Видалити список?" %}</h3>
+        <p class="delete-modal-text">{% trans "Ви впевнені, що хочете видалити цей список покупок? Цю дію неможливо скасувати." %}</p>
+        <div class="delete-modal-buttons">
+            <button type="button" id="deleteModalCancelBtn" class="modal-btn modal-btn-cancel">{% trans "Скасувати" %}</button>
+            <form action="{% url 'shopping:delete_list' sl.pk %}" method="post">
                 {% csrf_token %}
-                <button type="submit" style="padding: 14px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; background: rgba(255, 107, 107, 0.15); color: #FF6B6B; border: 1px solid rgba(255, 107, 107, 0.3);">{% trans "Видалити" %}</button>
+                <button type="submit" class="modal-btn modal-btn-danger">{% trans "Видалити" %}</button>
             </form>
         </div>
     </div>
 </div>
 
 <script nonce="{{ csp_nonce }}">
-function showDeleteModal() {
-    document.getElementById('deleteModal').style.display = 'flex';
+const deleteModal = document.getElementById('deleteModal');
+const deleteModalBtn = document.getElementById('deleteModalBtn');
+const deleteModalCancelBtn = document.getElementById('deleteModalCancelBtn');
+
+if (deleteModalBtn) {
+    deleteModalBtn.addEventListener('click', function() {
+        deleteModal.style.display = 'flex';
+    });
 }
-function hideDeleteModal() {
-    document.getElementById('deleteModal').style.display = 'none';
+
+if (deleteModalCancelBtn) {
+    deleteModalCancelBtn.addEventListener('click', function() {
+        deleteModal.style.display = 'none';
+    });
 }
-document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) hideDeleteModal();
-});
+
+if (deleteModal) {
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
+}
 </script>
 {% endblock %}

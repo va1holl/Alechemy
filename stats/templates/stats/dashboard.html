@@ -120,6 +120,107 @@
     .donut-container { flex-direction: column; }
     .donut-legend { margin-left: 0; margin-top: 20px; flex-direction: row; flex-wrap: wrap; justify-content: center; }
   }
+
+  /* Favorite Scenario */
+  .favorite-scenario {
+    margin-top: 40px;
+    text-align: center;
+    padding: 24px;
+    background: rgba(52,168,83,0.08);
+    border-radius: 16px;
+    border: 1px solid rgba(52,168,83,0.2);
+  }
+  .favorite-scenario-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+  .favorite-scenario-label {
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+  }
+  .favorite-scenario-name {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    color: #34a853;
+    margin-top: 4px;
+  }
+  .favorite-scenario-count {
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  /* Events Section */
+  .events-section { margin-bottom: 40px; }
+  .events-section-title { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .events-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .event-mini-card {
+    background: linear-gradient(145deg, rgba(52,168,83,0.08), rgba(0,0,0,0.4));
+    border: 1px solid rgba(52,168,83,0.2);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+  .event-mini-card:hover { transform: translateY(-2px); border-color: rgba(52,168,83,0.5); }
+  .event-mini-card.archived { opacity: 0.7; border-color: rgba(255,255,255,0.1); }
+  .event-mini-icon { font-size: 28px; }
+  .event-mini-info { flex: 1; }
+  .event-mini-title { font-weight: 600; color: #fff; font-size: 15px; }
+  .event-mini-date { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 2px; }
+  .event-mini-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .event-mini-badge.upcoming { background: rgba(52,168,83,0.2); color: #34a853; }
+  .event-mini-badge.past { background: rgba(255,193,7,0.2); color: #ffc107; }
+  .event-mini-badge.archived { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+  .events-empty { color: rgba(255,255,255,0.4); font-size: 14px; padding: 20px; text-align: center; background: rgba(255,255,255,0.03); border-radius: 12px; }
+
+  /* Action Buttons */
+  .dashboard-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 50px;
+    padding: 14px 28px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+  .action-btn:hover {
+    transform: translateY(-2px);
+  }
+  .action-btn-game {
+    background: rgba(255,193,7,0.15);
+    border: 1px solid rgba(255,193,7,0.3);
+    color: #FFC107;
+  }
+  .action-btn-pdf {
+    background: rgba(52,168,83,0.15);
+    border: 1px solid rgba(52,168,83,0.3);
+    color: #34A853;
+  }
+  .action-btn-locked {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* Empty state */
+  .chart-empty {
+    text-align: center;
+    color: rgba(255,255,255,0.4);
+    width: 100%;
+  }
 </style>
 
 <div class="dashboard-page">
@@ -161,7 +262,7 @@
       </div>
       <div class="progress-container">
         <div class="progress-bar-bg">
-          <div class="progress-bar-fill" style="width: {{ progress_to_next }}%;"></div>
+          <div class="progress-bar-fill" data-width="{{ progress_to_next }}%"></div>
         </div>
         <div class="progress-text">
           <span>{{ progress_to_next }} / 100 XP</span>
@@ -169,6 +270,63 @@
         </div>
       </div>
     </div>
+
+    <!-- Upcoming Events -->
+    <div class="events-section">
+      <h3 class="events-section-title">📅 {% trans "Майбутні події" %}</h3>
+      <div class="events-row">
+        {% for event in upcoming_events %}
+          <a href="{% url 'events:event_detail' event.pk %}" class="event-mini-card">
+            <span class="event-mini-icon">🎉</span>
+            <div class="event-mini-info">
+              <div class="event-mini-title">{{ event.title|default:event.scenario.name }}</div>
+              <div class="event-mini-date">{{ event.date|date:"d M Y" }}</div>
+            </div>
+            <span class="event-mini-badge upcoming">{% trans "Скоро" %}</span>
+          </a>
+        {% empty %}
+          <div class="events-empty">{% trans "Немає запланованих подій" %}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Past Events (need attention) -->
+    {% if past_events %}
+    <div class="events-section">
+      <h3 class="events-section-title">⏳ {% trans "Потребують завершення" %}</h3>
+      <div class="events-row">
+        {% for event in past_events %}
+          <a href="{% url 'events:event_detail' event.pk %}" class="event-mini-card">
+            <span class="event-mini-icon">📝</span>
+            <div class="event-mini-info">
+              <div class="event-mini-title">{{ event.title|default:event.scenario.name }}</div>
+              <div class="event-mini-date">{{ event.date|date:"d M Y" }}</div>
+            </div>
+            <span class="event-mini-badge past">{% trans "Завершіть" %}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Archived Events -->
+    {% if archived_events %}
+    <div class="events-section">
+      <h3 class="events-section-title">📦 {% trans "Архів" %}</h3>
+      <div class="events-row">
+        {% for event in archived_events %}
+          <a href="{% url 'events:event_detail' event.pk %}" class="event-mini-card archived">
+            <span class="event-mini-icon">✅</span>
+            <div class="event-mini-info">
+              <div class="event-mini-title">{{ event.title|default:event.scenario.name }}</div>
+              <div class="event-mini-date">{{ event.date|date:"d M Y" }}</div>
+            </div>
+            <span class="event-mini-badge archived">{% trans "Завершено" %}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
 
     <!-- Charts -->
     <div class="charts-section">
@@ -180,12 +338,12 @@
             {% for item in monthly_events %}
               <div class="bar-item">
                 <span class="bar-value">{{ item.count }}</span>
-                <div class="bar" style="height: {% widthratio item.count 10 100 %}%;"></div>
+                <div class="bar" data-height="{% widthratio item.count 10 100 %}%"></div>
                 <span class="bar-label">{{ item.month|date:"M" }}</span>
               </div>
             {% endfor %}
           {% else %}
-            <div style="text-align:center;color:rgba(255,255,255,0.4);width:100%;">{% trans "Ще немає даних" %}</div>
+            <div class="chart-empty">{% trans "Ще немає даних" %}</div>
           {% endif %}
         </div>
       </div>
@@ -196,7 +354,7 @@
         <div class="donut-container">
           {% with total=challenges_completed|add:challenges_in_progress %}
           {% if total > 0 %}
-            <div class="donut" style="--completed-deg: {% widthratio challenges_completed total 360 %}deg; --progress-deg: {% widthratio total total 360 %}deg;">
+            <div class="donut" data-completed-deg="{% widthratio challenges_completed total 360 %}deg" data-progress-deg="{% widthratio total total 360 %}deg">
               <div class="donut-hole">
                 <span class="donut-value">{{ total }}</span>
                 <span class="donut-label">{% trans "всього" %}</span>
@@ -207,7 +365,7 @@
               <div class="legend-item"><span class="legend-dot progress"></span> {% trans "В процесі:" %} {{ challenges_in_progress }}</div>
             </div>
           {% else %}
-            <div style="text-align:center;color:rgba(255,255,255,0.4);">{% trans "Почни свій перший челендж!" %}</div>
+            <div class="chart-empty">{% trans "Почни свій перший челендж!" %}</div>
           {% endif %}
           {% endwith %}
         </div>
@@ -239,29 +397,44 @@
 
     <!-- Favorite Scenario -->
     {% if favorite_scenario %}
-    <div style="margin-top:40px;text-align:center;padding:24px;background:rgba(52,168,83,0.08);border-radius:16px;border:1px solid rgba(52,168,83,0.2);">
-      <div style="font-size:32px;margin-bottom:8px;">🎭</div>
-      <div style="color:rgba(255,255,255,0.6);font-size:14px;">{% trans "Улюблений сценарій" %}</div>
-      <div style="font-family:'Poppins',sans-serif;font-weight:600;font-size:20px;color:#34a853;margin-top:4px;">{{ favorite_scenario.scenario__name }}</div>
-      <div style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:4px;">{{ favorite_scenario.count }} {% trans "подій" %}</div>
+    <div class="favorite-scenario">
+      <div class="favorite-scenario-icon">🎭</div>
+      <div class="favorite-scenario-label">{% trans "Улюблений сценарій" %}</div>
+      <div class="favorite-scenario-name">{{ favorite_scenario.scenario__name }}</div>
+      <div class="favorite-scenario-count">{{ favorite_scenario.count }} {% trans "подій" %}</div>
     </div>
     {% endif %}
 
     <!-- Actions -->
-    <div style="display:flex;gap:16px;margin-top:40px;flex-wrap:wrap;justify-content:center;">
-      <a href="{% url 'gamification:cocktail_quiz' %}" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,193,7,0.15);border:1px solid rgba(255,193,7,0.3);border-radius:50px;padding:14px 28px;color:#FFC107;font-weight:600;text-decoration:none;transition:all 0.3s;">
+    <div class="dashboard-actions">
+      <a href="{% url 'gamification:cocktail_quiz' %}" class="action-btn action-btn-game">
         🎮 {% trans "Міні-гра" %}
       </a>
       {% if request.user.profile.is_premium %}
-      <a href="{% url 'stats:export_pdf' %}" style="display:inline-flex;align-items:center;gap:8px;background:rgba(52,168,83,0.15);border:1px solid rgba(52,168,83,0.3);border-radius:50px;padding:14px 28px;color:#34A853;font-weight:600;text-decoration:none;transition:all 0.3s;">
+      <a href="{% url 'stats:export_pdf' %}" class="action-btn action-btn-pdf">
         📄 {% trans "Завантажити PDF-звіт" %}
       </a>
       {% else %}
-      <a href="{% url 'pages:plan_choice' %}" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:50px;padding:14px 28px;color:rgba(255,255,255,0.5);font-weight:600;text-decoration:none;transition:all 0.3s;">
+      <a href="{% url 'pages:plan_choice' %}" class="action-btn action-btn-locked">
         🔒 {% trans "PDF-звіт (Premium)" %}
       </a>
       {% endif %}
     </div>
   </div>
 </div>
+
+<script nonce="{{ csp_nonce }}">
+// Apply dynamic widths/heights from data attributes (CSP safe)
+document.querySelectorAll('[data-width]').forEach(function(el) {
+  el.style.width = el.dataset.width;
+});
+document.querySelectorAll('[data-height]').forEach(function(el) {
+  el.style.height = el.dataset.height;
+});
+// Apply CSS variables from data attributes
+document.querySelectorAll('[data-completed-deg]').forEach(function(el) {
+  el.style.setProperty('--completed-deg', el.dataset.completedDeg);
+  el.style.setProperty('--progress-deg', el.dataset.progressDeg);
+});
+</script>
 {% endblock %}

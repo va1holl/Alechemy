@@ -7,7 +7,8 @@
 <style nonce="{{ csp_nonce }}">
 .create-event-page {
     padding: 30px 40px;
-    max-width: 900px;
+    width: 65%;
+    max-width: 1000px;
     margin: 0 auto;
 }
 
@@ -376,6 +377,12 @@
                 {% if form.date.errors %}<div class="errors">{{ form.date.errors.0 }}</div>{% endif %}
             </div>
 
+            {% if people_count_readonly %}
+            {# Hidden fields - values from scenario page #}
+            <input type="hidden" name="people_count" value="{{ form.people_count.value }}">
+            <input type="hidden" name="duration_hours" value="{{ form.duration_hours.value }}">
+            <input type="hidden" name="intensity" value="{{ intensity }}">
+            {% else %}
             <div class="time-row">
                 <div class="form-group">
                     <label class="form-label">{% trans "Кількість учасників" %}</label>
@@ -388,10 +395,7 @@
                     {% if form.duration_hours.errors %}<div class="errors">{{ form.duration_hours.errors.0 }}</div>{% endif %}
                 </div>
             </div>
-
-            <div class="form-group">
-                <!-- Intensity selection removed: only one intensity per event, set on scenario step -->
-            </div>
+            {% endif %}
 
             <div class="form-group">
                 <label class="form-label">{% trans "Опис / Нотатки" %}</label>

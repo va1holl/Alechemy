@@ -2,6 +2,7 @@ services:
   web:
     build: .
     container_name: alechemy_web
+    entrypoint: ["/bin/bash", "/app/docker-entrypoint.dev.sh"]
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
@@ -10,7 +11,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:16
@@ -23,6 +25,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-alechemy}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

@@ -8,7 +8,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Montserrat:wght@400;500;600&family=Roboto:wght@500&display=swap');
 
 .recipes-page {
-    max-width: 1440px;
+    width: 90%;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 45px 50px;
 }
@@ -476,48 +477,51 @@
         </a>
 
         <!-- Search Bar -->
-        <form method="get" class="search-bar">
+        <form method="get" class="search-bar" id="search-form">
             <svg class="search-icon" viewBox="0 0 24 24" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/>
                 <path d="M21 21l-4.35-4.35"/>
             </svg>
-            <input type="text" name="q" class="search-input" placeholder="{% trans 'Пошук коктейлів...' %}" value="{{ q }}">
-            <input type="hidden" name="alcohol" value="{{ alcohol }}">
-            <input type="hidden" name="rating" value="{{ min_rating }}">
+            <input type="text" name="q" class="search-input" id="search-input" placeholder="{% trans 'Пошук коктейлів...' %}" value="{{ q }}">
+            <input type="hidden" name="alcohol" id="filter-alcohol" value="{{ alcohol }}">
+            <input type="hidden" name="rating" id="filter-rating" value="{{ min_rating }}">
+            <input type="hidden" name="category" id="filter-category" value="{{ category }}">
+            <input type="hidden" name="strength" id="filter-strength" value="{{ strength }}">
         </form>
         
         <!-- Filters -->
-        <div class="filters-section">
+        <div class="filters-section" id="filters-section">
             <div class="filter-group">
                 <span class="filter-label">{% trans "Алкоголь:" %}</span>
-                <a href="?q={{ q }}&rating={{ min_rating }}&category={{ category }}&strength={{ strength }}" class="filter-btn{% if not alcohol %} active{% endif %}">{% trans "Усі" %}</a>
-                <a href="?q={{ q }}&alcohol=with&rating={{ min_rating }}&category={{ category }}&strength={{ strength }}" class="filter-btn{% if alcohol == 'with' %} active{% endif %}">{% trans "З алкоголем" %}</a>
-                <a href="?q={{ q }}&alcohol=without&rating={{ min_rating }}&category={{ category }}&strength={{ strength }}" class="filter-btn{% if alcohol == 'without' %} active{% endif %}">{% trans "Безалкогольні" %}</a>
+                <button type="button" class="filter-btn{% if not alcohol %} active{% endif %}" data-filter="alcohol" data-value="">{% trans "Усі" %}</button>
+                <button type="button" class="filter-btn{% if alcohol == 'with' %} active{% endif %}" data-filter="alcohol" data-value="with">{% trans "З алкоголем" %}</button>
+                <button type="button" class="filter-btn{% if alcohol == 'without' %} active{% endif %}" data-filter="alcohol" data-value="without">{% trans "Безалкогольні" %}</button>
             </div>
             <div class="filter-group">
                 <span class="filter-label">{% trans "Тип:" %}</span>
-                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&strength={{ strength }}" class="filter-btn{% if not category %} active{% endif %}">{% trans "Усі" %}</a>
+                <button type="button" class="filter-btn{% if not category %} active{% endif %}" data-filter="category" data-value="">{% trans "Усі" %}</button>
                 {% for cat_value, cat_label in categories %}
-                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ cat_value }}&strength={{ strength }}" class="filter-btn{% if category == cat_value %} active{% endif %}">{{ cat_label }}</a>
+                <button type="button" class="filter-btn{% if category == cat_value %} active{% endif %}" data-filter="category" data-value="{{ cat_value }}">{{ cat_label }}</button>
                 {% endfor %}
             </div>
             <div class="filter-group">
                 <span class="filter-label">{% trans "Міцність:" %}</span>
-                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ category }}" class="filter-btn{% if not strength %} active{% endif %}">{% trans "Усі" %}</a>
-                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ category }}&strength=light" class="filter-btn{% if strength == 'light' %} active{% endif %}">🍃 {% trans "Легкий" %}</a>
-                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ category }}&strength=medium" class="filter-btn{% if strength == 'medium' %} active{% endif %}">⭐ {% trans "Середній" %}</a>
-                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ category }}&strength=strong" class="filter-btn{% if strength == 'strong' %} active{% endif %}">🔥 {% trans "Міцний" %}</a>
-                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating={{ min_rating }}&category={{ category }}&strength=very_strong" class="filter-btn{% if strength == 'very_strong' %} active{% endif %}">💀 {% trans "Дуже міцний" %}</a>
+                <button type="button" class="filter-btn{% if not strength %} active{% endif %}" data-filter="strength" data-value="">{% trans "Усі" %}</button>
+                <button type="button" class="filter-btn{% if strength == 'light' %} active{% endif %}" data-filter="strength" data-value="light">🍃 {% trans "Легкий" %}</button>
+                <button type="button" class="filter-btn{% if strength == 'medium' %} active{% endif %}" data-filter="strength" data-value="medium">⭐ {% trans "Середній" %}</button>
+                <button type="button" class="filter-btn{% if strength == 'strong' %} active{% endif %}" data-filter="strength" data-value="strong">🔥 {% trans "Міцний" %}</button>
+                <button type="button" class="filter-btn{% if strength == 'very_strong' %} active{% endif %}" data-filter="strength" data-value="very_strong">💀 {% trans "Дуже міцний" %}</button>
             </div>
             <div class="filter-group">
                 <span class="filter-label">{% trans "Рейтинг:" %}</span>
-                <a href="?q={{ q }}&alcohol={{ alcohol }}&category={{ category }}&strength={{ strength }}" class="filter-btn{% if not min_rating %} active{% endif %}">{% trans "Усі" %}</a>
-                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating=4&category={{ category }}&strength={{ strength }}" class="filter-btn{% if min_rating == '4' %} active{% endif %}">4+ ⭐</a>
-                <a href="?q={{ q }}&alcohol={{ alcohol }}&rating=5&category={{ category }}&strength={{ strength }}" class="filter-btn{% if min_rating == '5' %} active{% endif %}">5 ⭐</a>
+                <button type="button" class="filter-btn{% if not min_rating %} active{% endif %}" data-filter="rating" data-value="">{% trans "Усі" %}</button>
+                <button type="button" class="filter-btn{% if min_rating == '4' %} active{% endif %}" data-filter="rating" data-value="4">4+ ⭐</button>
+                <button type="button" class="filter-btn{% if min_rating == '5' %} active{% endif %}" data-filter="rating" data-value="5">5 ⭐</button>
             </div>
         </div>
 
         <!-- Cocktails Section -->
+        <div id="cocktails-container">
         {% if cocktails %}
         <section class="recipes-section">
             <div class="section-header">
@@ -551,6 +555,7 @@
             <p>{% trans "Коктейлів не знайдено" %}</p>
         </div>
         {% endif %}
+        </div>
 
         <!-- History Section -->
         <section class="history-section">
@@ -582,27 +587,150 @@
 
 <script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function() {
-    // Smooth drag scroll for carousels
-    const carousels = document.querySelectorAll('.recipes-carousel');
-    carousels.forEach(carousel => {
-        let isDown = false, startX, scrollLeft;
-
-        carousel.addEventListener('mousedown', e => {
-            isDown = true;
-            startX = e.pageX - carousel.offsetLeft;
-            scrollLeft = carousel.scrollLeft;
-            carousel.style.cursor = 'grabbing';
-        });
-
-        carousel.addEventListener('mouseleave', () => { isDown = false; carousel.style.cursor = 'grab'; });
-        carousel.addEventListener('mouseup', () => { isDown = false; carousel.style.cursor = 'grab'; });
-
-        carousel.addEventListener('mousemove', e => {
-            if (!isDown) return;
-            e.preventDefault();
-            carousel.scrollLeft = scrollLeft - (e.pageX - carousel.offsetLeft - startX) * 2;
-        });
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+    const filtersSection = document.getElementById('filters-section');
+    const cocktailsContainer = document.getElementById('cocktails-container');
+    
+    // Hidden filter inputs
+    const filterAlcohol = document.getElementById('filter-alcohol');
+    const filterRating = document.getElementById('filter-rating');
+    const filterCategory = document.getElementById('filter-category');
+    const filterStrength = document.getElementById('filter-strength');
+    
+    let searchTimer = null;
+    
+    function renderCocktails(data) {
+        if (data.cocktails.length === 0) {
+            cocktailsContainer.innerHTML = `
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" stroke-width="1.5">
+                        <path d="M9.5 3.5v0c0 2.07-1.68 3.75-3.75 3.75H3.75M14.5 3.5v0c0 2.07 1.68 3.75 3.75 3.75h2"/>
+                        <path d="M8.75 7.25L4.25 20.75h15.5l-4.5-13.5"/>
+                    </svg>
+                    <p>{% trans "Коктейлів не знайдено" %}</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const cardsHtml = data.cocktails.map(c => `
+            <a href="${c.url}" class="recipe-card">
+                ${c.has_image && c.image_url 
+                    ? `<img src="${c.image_url}" alt="${c.name}">`
+                    : `<div class="placeholder-img">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+                            <path d="M8 2v4M16 2v4M6 10l4 4-4 4"/>
+                            <path d="M18 6H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/>
+                        </svg>
+                    </div>`
+                }
+                <p>${c.name.length > 12 ? c.name.substring(0, 11) + '…' : c.name}</p>
+            </a>
+        `).join('');
+        
+        const title = data.q ? '{% trans "Результати пошуку" %}' : '{% trans "Популярні" %}';
+        
+        cocktailsContainer.innerHTML = `
+            <section class="recipes-section">
+                <div class="section-header">
+                    <h2>${title}</h2>
+                    <a href="?all=1" class="see-all">{% trans "Усі" %}</a>
+                </div>
+                <div class="recipes-carousel">
+                    ${cardsHtml}
+                </div>
+            </section>
+        `;
+        
+        // Re-init carousel drag
+        initCarouselDrag();
+    }
+    
+    function doSearch() {
+        const params = new URLSearchParams();
+        if (searchInput.value) params.set('q', searchInput.value);
+        if (filterAlcohol.value) params.set('alcohol', filterAlcohol.value);
+        if (filterRating.value) params.set('rating', filterRating.value);
+        if (filterCategory.value) params.set('category', filterCategory.value);
+        if (filterStrength.value) params.set('strength', filterStrength.value);
+        
+        const queryString = params.toString();
+        const url = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+        
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            renderCocktails(data);
+            history.replaceState(null, '', url);
+        })
+        .catch(err => console.error('Search error:', err));
+    }
+    
+    // Search input with debounce
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(doSearch, 300);
     });
+    
+    // Form submit
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearTimeout(searchTimer);
+        doSearch();
+    });
+    
+    // Filter buttons
+    filtersSection.addEventListener('click', function(e) {
+        const btn = e.target.closest('.filter-btn');
+        if (!btn) return;
+        
+        e.preventDefault();
+        
+        const filterType = btn.dataset.filter;
+        const filterValue = btn.dataset.value;
+        
+        // Update hidden input
+        if (filterType === 'alcohol') filterAlcohol.value = filterValue;
+        if (filterType === 'rating') filterRating.value = filterValue;
+        if (filterType === 'category') filterCategory.value = filterValue;
+        if (filterType === 'strength') filterStrength.value = filterValue;
+        
+        // Update active state in this group
+        const group = btn.closest('.filter-group');
+        group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        doSearch();
+    });
+    
+    function initCarouselDrag() {
+        const carousels = document.querySelectorAll('.recipes-carousel');
+        carousels.forEach(carousel => {
+            let isDown = false, startX, scrollLeft;
+
+            carousel.addEventListener('mousedown', e => {
+                isDown = true;
+                startX = e.pageX - carousel.offsetLeft;
+                scrollLeft = carousel.scrollLeft;
+                carousel.style.cursor = 'grabbing';
+            });
+
+            carousel.addEventListener('mouseleave', () => { isDown = false; carousel.style.cursor = 'grab'; });
+            carousel.addEventListener('mouseup', () => { isDown = false; carousel.style.cursor = 'grab'; });
+
+            carousel.addEventListener('mousemove', e => {
+                if (!isDown) return;
+                e.preventDefault();
+                carousel.scrollLeft = scrollLeft - (e.pageX - carousel.offsetLeft - startX) * 2;
+            });
+        });
+    }
+    
+    // Init carousel drag on load
+    initCarouselDrag();
 });
 </script>
 {% endblock %}

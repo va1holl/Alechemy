@@ -11,7 +11,8 @@
     background: transparent;
     min-height: 100vh;
     padding: 24px 52px;
-    max-width: 800px;
+    width: 60%;
+    max-width: 900px;
     margin: 0 auto;
 }
 
@@ -100,6 +101,11 @@
     font-size: 14px;
     color: rgba(255, 255, 255, 0.7);
     margin: 0;
+}
+
+/* Hidden file input */
+#avatar-upload {
+    display: none !important;
 }
 
 /* Menu Items */
@@ -297,6 +303,11 @@
         font-size: 12px;
     }
 }
+
+/* CSP-compliant styles */
+.menu-icon-premium {
+    background: rgba(255, 215, 0, 0.15);
+}
 </style>
 {% endblock %}
 
@@ -318,7 +329,7 @@
                     <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
                 </svg>
             </label>
-            <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+            <input type="file" id="avatar-upload" accept="image/*">
         </div>
         <h2 class="user-name">{{ user.username }}</h2>
         <p class="user-email">{{ user.email }}</p>
@@ -488,7 +499,7 @@
 
         <!-- Premium -->
         <a href="{% url 'pages:plan_choice' %}" class="menu-item">
-            <div class="menu-icon" style="background: rgba(255, 215, 0, 0.15);">
+            <div class="menu-icon menu-icon-premium">
                 <svg viewBox="0 0 24 24" fill="#FFD700">
                     <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                 </svg>

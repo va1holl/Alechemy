@@ -7,7 +7,8 @@
 <style nonce="{{ csp_nonce }}">
 .feedback-page {
     padding: 24px;
-    max-width: 700px;
+    width: 55%;
+    max-width: 750px;
     margin: 0 auto;
 }
 
@@ -368,14 +369,10 @@
             <div class="review-header">
                 <div class="reviewer">
                     <div class="reviewer-avatar">
-                        {{ p.participant.email|first|upper }}
+                        {{ p.participant.profile.nickname|slice:":1"|upper|default:p.participant.first_name|slice:":1"|upper|default:"U" }}
                     </div>
                     <div class="reviewer-name">
-                        {% if p.participant.profile.unique_tag %}
-                        @{{ p.participant.profile.unique_tag }}
-                        {% else %}
-                        {{ p.participant.email|truncatechars:15 }}
-                        {% endif %}
+                        {{ p.participant.profile.get_display_name }}
                     </div>
                 </div>
                 <div class="review-stars">

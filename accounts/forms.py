@@ -1,4 +1,5 @@
 # accounts/forms.py
+import random
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -8,7 +9,65 @@ from django.core.exceptions import ValidationError
 User = get_user_model()
 
 
-class SignUpForm(forms.ModelForm):
+class SimpleCaptchaMixin:
+    """Міксін для простої математичної капчі."""
+    
+    def setup_captcha(self):
+        """Налаштовує поля капчі."""
+        # Генеруємо два числа для прикладу
+        num1 = random.randint(1, 10)
+        num2 = random.randint(1, 10)
+        
+        # Визначаємо операцію (+ або -)
+        if random.choice([True, False]):
+            operation = '+'
+            answer = num1 + num2
+        else:
+            # Для віднімання робимо так, щоб результат був додатнім
+            if num1 < num2:
+                num1, num2 = num2, num1
+            operation = '-'
+            answer = num1 - num2
+        
+        self.captcha_question = f"{num1} {operation} {num2} = ?"
+        self.captcha_answer = answer
+        
+        # Додаємо поля
+        self.fields['captcha_answer'] = forms.IntegerField(
+            label=f"Скільки буде {num1} {operation} {num2}?",
+            widget=forms.NumberInput(attrs={
+                'class': 'w-full bg-transparent outline-none text-[18px] text-[#111]',
+                'placeholder': 'Введіть відповідь',
+                'autocomplete': 'off',
+            }),
+            required=True,
+        )
+        self.fields['captcha_hash'] = forms.CharField(
+            widget=forms.HiddenInput(),
+            initial=self._make_hash(answer),
+        )
+    
+    def _make_hash(self, answer):
+        """Створює простий хеш для перевірки відповіді."""
+        import hashlib
+        secret = getattr(settings, 'SECRET_KEY', 'fallback')[:16]
+        return hashlib.sha256(f"{answer}{secret}".encode()).hexdigest()[:16]
+    
+    def clean_captcha_answer(self):
+        """Перевіряє відповідь капчі."""
+        answer = self.cleaned_data.get('captcha_answer')
+        expected_hash = self.data.get('captcha_hash', '')
+        
+        if answer is None:
+            raise ValidationError("Введіть відповідь на математичний приклад")
+        
+        if self._make_hash(answer) != expected_hash:
+            raise ValidationError("Неправильна відповідь. Спробуйте ще раз.")
+        
+        return answer
+
+
+class SignUpForm(SimpleCaptchaMixin, forms.ModelForm):
     password1 = forms.CharField(
         label="Пароль",
         strip=False,
@@ -30,10 +89,6 @@ class SignUpForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add hCaptcha field if enabled
-        if getattr(settings, 'HCAPTCHA_ENABLED', False):
-            from hcaptcha.fields import hCaptchaField
-            self.fields['hcaptcha'] = hCaptchaField()
         
         # Проставляємо класи і плейсхолдери під верстку
         common_input = {
@@ -46,12 +101,15 @@ class SignUpForm(forms.ModelForm):
         }
 
         for name, field in self.fields.items():
-            if name == 'hcaptcha':
-                continue  # Skip captcha field styling
+            if name in ('captcha_answer', 'captcha_hash'):
+                continue  # Капча вже має свої стилі
             attrs = dict(common_input)
             if placeholders.get(name):
                 attrs["placeholder"] = placeholders[name]
             field.widget.attrs.update(attrs)
+        
+        # Додаємо просту капчу
+        self.setup_captcha()
 
     def clean_email(self):
         email = self.cleaned_data.get("email")

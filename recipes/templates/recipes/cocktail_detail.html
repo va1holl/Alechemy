@@ -8,7 +8,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Montserrat:wght@400;500;600&display=swap');
 
 .recipe-page {
-    max-width: 800px;
+    width: 60%;
+    max-width: 900px;
     margin: 0 auto;
     padding-bottom: 40px;
 }
@@ -517,6 +518,198 @@
         flex-direction: column;
     }
 }
+
+/* CSP-compliant styles for inline replacements */
+.review-star-wrapper {
+    cursor: pointer;
+}
+
+.review-star-input {
+    display: none;
+}
+
+.review-star {
+    font-size: 28px;
+    opacity: 0.3;
+    transition: opacity 0.2s;
+}
+
+.review-textarea-wrapper {
+    margin-bottom: 16px;
+}
+
+.review-textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 12px;
+    color: #fff;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.rating-display-mb {
+    margin-bottom: 8px;
+}
+
+/* Add to Event Modal */
+.event-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.event-modal {
+    background: #0a0f0c;
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 450px;
+    width: 90%;
+    margin: 20px;
+}
+
+.event-modal-title {
+    font-family: 'Poppins', sans-serif;
+    color: #34A853;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.event-modal-desc {
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.event-modal-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.event-modal-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    text-decoration: none;
+    transition: all 0.3s;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+}
+
+.event-modal-item:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(52, 168, 83, 0.3);
+}
+
+.event-modal-item:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.event-modal-emoji {
+    font-size: 24px;
+}
+
+.event-modal-info {
+    flex: 1;
+}
+
+.event-modal-name {
+    color: #fff;
+    font-weight: 500;
+}
+
+.event-modal-date {
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+}
+
+.event-modal-empty {
+    text-align: center;
+    padding: 30px;
+    color: rgba(255,255,255,0.5);
+}
+
+.event-modal-empty-icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.event-modal-empty a {
+    color: #34A853;
+    text-decoration: underline;
+}
+
+.event-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.event-modal-close {
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: all 0.3s;
+}
+
+.event-modal-close:hover {
+    background: rgba(255,255,255,0.12);
+}
+
+.event-modal-result {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-top: 12px;
+    text-align: center;
+    font-size: 14px;
+    display: none;
+}
+
+.event-modal-result.loading {
+    display: block;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.event-modal-result.success {
+    display: block;
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+}
+
+.event-modal-result.error {
+    display: block;
+    background: rgba(255, 59, 48, 0.2);
+    color: #FF3B30;
+}
 </style>
 {% endblock %}
 
@@ -688,15 +881,15 @@
                         <label style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 8px; display: block;">{% trans "Оцінка" %}</label>
                         <div style="display: flex; gap: 8px;">
                             {% for i in "12345" %}
-                            <label style="cursor: pointer;">
-                                <input type="radio" name="rating" value="{{ forloop.counter }}" {% if user_review.rating == forloop.counter or not user_review and forloop.counter == 5 %}checked{% endif %} style="display: none;">
-                                <span class="review-star" data-value="{{ forloop.counter }}" style="font-size: 28px; opacity: 0.3; transition: opacity 0.2s;">⭐</span>
+                            <label class="review-star-wrapper">
+                                <input type="radio" name="rating" value="{{ forloop.counter }}" {% if user_review.rating == forloop.counter or not user_review and forloop.counter == 5 %}checked{% endif %} class="review-star-input">
+                                <span class="review-star" data-value="{{ forloop.counter }}">⭐</span>
                             </label>
                             {% endfor %}
                         </div>
                     </div>
-                    <div style="margin-bottom: 16px;">
-                        <textarea name="text" rows="3" placeholder="{% trans 'Поділіться враженнями про цей коктейль...' %}" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; color: #fff; font-size: 14px; resize: vertical;">{{ user_review.text|default:'' }}</textarea>
+                    <div class="review-textarea-wrapper">
+                        <textarea name="text" rows="3" placeholder="{% trans 'Поділіться враженнями про цей коктейль...' %}" class="review-textarea">{{ user_review.text|default:'' }}</textarea>
                     </div>
                     <button type="submit" class="add-review-btn">{% if user_review %}{% trans "Оновити відгук" %}{% else %}{% trans "Надіслати" %}{% endif %}</button>
                 </form>
@@ -709,7 +902,7 @@
                     <span class="reviewer-name">{{ review.user.profile.get_display_name }}</span>
                     <span class="review-date">{{ review.created_at|date:"d.m.Y" }}</span>
                 </div>
-                <div class="rating-display" style="margin-bottom: 8px;">
+                <div class="rating-display rating-display-mb">
                     {% for i in "12345" %}
                     <svg class="star{% if forloop.counter > review.rating %} empty{% endif %}" viewBox="0 0 24 24" stroke-width="1.5">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -735,7 +928,7 @@
                 </svg>
                 {% trans "Назад" %}
             </a>
-            <button class="btn btn-primary" id="addToEventBtn" onclick="showAddToEventModal()">
+            <button class="btn btn-primary" id="addToEventBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 5v14M5 12h14"/>
                 </svg>
@@ -747,38 +940,40 @@
 
 <!-- Add to Event Modal -->
 {% if request.user.is_authenticated %}
-<div id="addToEventModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: #0a0f0c; border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 20px; padding: 32px; max-width: 450px; width: 90%; margin: 20px;">
-        <h3 style="font-family: 'Poppins', sans-serif; color: #34A853; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+<div id="addToEventModal" class="event-modal-overlay">
+    <div class="event-modal">
+        <h3 class="event-modal-title">
             🍸 {% trans "Додати до події" %}
         </h3>
         
         {% if user_events %}
-        <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px; font-size: 14px;">{% trans "Оберіть подію, до якої хочете додати цей коктейль:" %}</p>
-        <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+        <p class="event-modal-desc">{% trans "Оберіть подію, до якої хочете додати цей коктейль:" %}</p>
+        <div class="event-modal-list">
             {% for event in user_events %}
-            <a href="{% url 'events:event_edit' event.pk %}" style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 8px; text-decoration: none; transition: all 0.3s;">
-                <span style="font-size: 24px;">🎉</span>
-                <div style="flex: 1;">
-                    <div style="color: #fff; font-weight: 500;">{{ event.title|default:event.scenario.name }}</div>
-                    <div style="color: rgba(255,255,255,0.5); font-size: 13px;">{{ event.date|date:"d.m.Y" }}</div>
+            <button type="button" class="event-modal-item" data-event-id="{{ event.pk }}">
+                <span class="event-modal-emoji">🎉</span>
+                <div class="event-modal-info">
+                    <div class="event-modal-name">{{ event.title|default:event.scenario.name }}</div>
+                    <div class="event-modal-date">{{ event.date|date:"d.m.Y" }}</div>
                 </div>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
-                    <path d="M9 18l6-6-6-6"/>
+                    <path d="M12 5v14M5 12h14"/>
                 </svg>
-            </a>
+            </button>
             {% endfor %}
         </div>
         {% else %}
-        <div style="text-align: center; padding: 30px; color: rgba(255,255,255,0.5);">
-            <span style="font-size: 40px; display: block; margin-bottom: 10px;">📅</span>
+        <div class="event-modal-empty">
+            <span class="event-modal-empty-icon">📅</span>
             <p>{% trans "У вас ще немає подій." %}</p>
-            <a href="{% url 'events:scenario_list' %}" style="color: #34A853; text-decoration: underline;">{% trans "Створити подію" %}</a>
+            <a href="{% url 'events:scenario_list' %}">{% trans "Створити подію" %}</a>
         </div>
         {% endif %}
         
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
-            <button type="button" onclick="hideAddToEventModal()" style="padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15);">{% trans "Закрити" %}</button>
+        <div id="addToEventResult" class="event-modal-result"></div>
+        
+        <div class="event-modal-actions">
+            <button type="button" id="closeEventModalBtn" class="event-modal-close">{% trans "Закрити" %}</button>
         </div>
     </div>
 </div>
@@ -830,14 +1025,85 @@ document.addEventListener('DOMContentLoaded', function() {
 function showAddToEventModal() {
     {% if request.user.is_authenticated %}
     document.getElementById('addToEventModal').style.display = 'flex';
+    document.getElementById('addToEventResult').innerHTML = '';
+    document.getElementById('addToEventResult').className = 'event-modal-result';
     {% else %}
     window.location.href = '{% url "accounts:login" %}?next={{ request.path }}';
     {% endif %}
 }
 
+// Add event listener for "Додати до події" button (CSP-compliant)
+document.getElementById('addToEventBtn').addEventListener('click', showAddToEventModal);
+
 function hideAddToEventModal() {
     document.getElementById('addToEventModal').style.display = 'none';
 }
+
+{% if request.user.is_authenticated %}
+function addCocktailToEvent(eventId) {
+    const resultDiv = document.getElementById('addToEventResult');
+    const button = document.querySelector(`[data-event-id="${eventId}"]`);
+    
+    // Disable button and show loading
+    if (button) {
+        button.disabled = true;
+        button.style.opacity = '0.6';
+    }
+    resultDiv.innerHTML = '{% trans "Додаємо..." %}';
+    resultDiv.className = 'event-modal-result loading';
+    
+    fetch('{% url "recipes:add_cocktail_to_event" cocktail.slug %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'event_id=' + eventId
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            resultDiv.innerHTML = '✅ ' + data.message;
+            resultDiv.className = 'event-modal-result success';
+            // Update button to show added state
+            if (button) {
+                button.innerHTML = `
+                    <span class="event-modal-emoji">✅</span>
+                    <div class="event-modal-info">
+                        <div class="event-modal-name">{% trans "Додано!" %}</div>
+                    </div>
+                `;
+            }
+        } else {
+            resultDiv.innerHTML = '❌ ' + data.error;
+            resultDiv.className = 'event-modal-result error';
+            if (button) {
+                button.disabled = false;
+                button.style.opacity = '1';
+            }
+        }
+    })
+    .catch(error => {
+        resultDiv.innerHTML = '❌ {% trans "Помилка при додаванні" %}';
+        resultDiv.className = 'event-modal-result error';
+        if (button) {
+            button.disabled = false;
+            button.style.opacity = '1';
+        }
+    });
+}
+
+// Attach event listeners to event buttons (CSP-compliant, no inline handlers)
+document.querySelectorAll('.event-modal-item[data-event-id]').forEach(function(button) {
+    button.addEventListener('click', function() {
+        var eventId = this.getAttribute('data-event-id');
+        addCocktailToEvent(eventId);
+    });
+});
+
+// Close button
+document.getElementById('closeEventModalBtn').addEventListener('click', hideAddToEventModal);
+{% endif %}
 
 // Close modal on outside click
 {% if request.user.is_authenticated %}

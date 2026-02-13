@@ -13,7 +13,8 @@
     background: transparent;
     min-height: 100vh;
     padding: 40px 50px;
-    max-width: 1400px;
+    width: 85%;
+    max-width: 1600px;
     margin: 0 auto;
 }
 
@@ -187,6 +188,10 @@
 }
 
 /* Search Bar */
+.search-container {
+    position: relative;
+}
+
 .search-bar {
     height: 54px;
     background: rgba(255, 255, 255, 0.05);
@@ -221,6 +226,94 @@
 
 .search-input::placeholder {
     color: rgba(255, 255, 255, 0.4);
+}
+
+/* Search Results Dropdown */
+.search-results-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(30, 30, 30, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    margin-top: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.search-results-dropdown.active {
+    display: block;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: rgba(52, 168, 83, 0.15);
+}
+
+.search-result-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.search-result-title {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 15px;
+}
+
+.search-result-date {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+}
+
+.search-result-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-active {
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+}
+
+.badge-finished {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.search-no-results {
+    padding: 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.search-loading {
+    padding: 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 /* Cocktail Button */
@@ -628,6 +721,49 @@
         font-size: 14px;
     }
 }
+
+/* CSP-compliant styles for inline replacements */
+.avatar-gradient {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.rec-image-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rec-image-ai {
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.4), rgba(0, 100, 50, 0.6));
+}
+
+.rec-image-calc {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(200, 150, 0, 0.4));
+}
+
+.rec-image-shop {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.3), rgba(100, 20, 120, 0.4));
+}
+
+.rec-image-premium {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(200, 150, 0, 0.4));
+}
+
+.rec-image-quiz {
+    background: linear-gradient(135deg, rgba(233, 30, 99, 0.3), rgba(180, 20, 80, 0.4));
+}
+
+.rec-image-search {
+    background: linear-gradient(135deg, rgba(0, 188, 212, 0.3), rgba(0, 130, 150, 0.4));
+}
+
+.rec-emoji {
+    font-size: 48px;
+}
+
+.rec-title-premium {
+    color: #FFD700;
+}
 </style>
 {% endblock %}
 
@@ -678,13 +814,16 @@
         <!-- Content Area -->
         <div class="content-area">
             <!-- Search Bar -->
-            <form method="get" action="{% url 'events:event_list' %}" class="search-bar">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="M21 21l-4.35-4.35"/>
-                </svg>
-                <input type="text" name="q" class="search-input" placeholder="{% trans "Пошук подій..." %}" />
-            </form>
+            <div class="search-container">
+                <div class="search-bar">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="event-search-input" class="search-input" placeholder="{% trans 'Пошук подій...' %}" autocomplete="off" />
+                </div>
+                <div id="search-results" class="search-results-dropdown"></div>
+            </div>
 
             <!-- Cocktail Database Button -->
             <a href="{% url 'recipes:cocktail_list' %}" class="cocktail-btn">
@@ -740,7 +879,7 @@
                                 <div class="avatars">
                                     <div class="avatar"></div>
                                     {% if event.guests > 1 %}
-                                        <div class="avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
+                                        <div class="avatar avatar-gradient"></div>
                                     {% endif %}
                                     {% if event.guests > 2 %}
                                         <div class="avatar-count">+{{ event.guests|add:"-2" }}</div>
@@ -798,8 +937,8 @@
             
             <div class="recommendations-grid">
                 <a href="{% url 'recipes:ai_sommelier' %}" class="recommendation-card">
-                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(52, 168, 83, 0.4), rgba(0, 100, 50, 0.6));display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size: 48px;">🍷</span>
+                    <div class="rec-image rec-image-icon rec-image-ai">
+                        <span class="rec-emoji">🍷</span>
                     </div>
                     <h4 class="rec-title">{% trans "AI-Сомельє" %}</h4>
                     <div class="rec-details">
@@ -808,8 +947,8 @@
                 </a>
 
                 <a href="{% url 'pages:calculator' %}" class="recommendation-card">
-                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(200, 150, 0, 0.4));display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size: 48px;">🧮</span>
+                    <div class="rec-image rec-image-icon rec-image-calc">
+                        <span class="rec-emoji">🧮</span>
                     </div>
                     <h4 class="rec-title">{% trans "BAC Калькулятор" %}</h4>
                     <div class="rec-details">
@@ -818,8 +957,8 @@
                 </a>
 
                 <a href="{% url 'shopping:my_lists' %}" class="recommendation-card">
-                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(156, 39, 176, 0.3), rgba(100, 20, 120, 0.4));display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size: 48px;">🛒</span>
+                    <div class="rec-image rec-image-icon rec-image-shop">
+                        <span class="rec-emoji">🛒</span>
                     </div>
                     <h4 class="rec-title">{% trans "Списки покупок" %}</h4>
                     <div class="rec-details">
@@ -828,18 +967,18 @@
                 </a>
 
                 <a href="{% url 'pages:plan_choice' %}" class="recommendation-card">
-                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(200, 150, 0, 0.4));display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size: 48px;">⭐</span>
+                    <div class="rec-image rec-image-icon rec-image-premium">
+                        <span class="rec-emoji">⭐</span>
                     </div>
-                    <h4 class="rec-title" style="color: #FFD700;">Premium</h4>
+                    <h4 class="rec-title rec-title-premium">Premium</h4>
                     <div class="rec-details">
                         <span>{% trans "Розблокуйте всі функції" %}</span>
                     </div>
                 </a>
 
                 <a href="{% url 'gamification:cocktail_quiz' %}" class="recommendation-card">
-                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(233, 30, 99, 0.3), rgba(180, 20, 80, 0.4));display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size: 48px;">🎯</span>
+                    <div class="rec-image rec-image-icon rec-image-quiz">
+                        <span class="rec-emoji">🎯</span>
                     </div>
                     <h4 class="rec-title">{% trans "Коктейльна вікторина" %}</h4>
                     <div class="rec-details">
@@ -848,8 +987,8 @@
                 </a>
 
                 <a href="{% url 'recipes:cocktail_search_by_ingredients' %}" class="recommendation-card">
-                    <div class="rec-image" style="background: linear-gradient(135deg, rgba(0, 188, 212, 0.3), rgba(0, 130, 150, 0.4));display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size: 48px;">🔍</span>
+                    <div class="rec-image rec-image-icon rec-image-search">
+                        <span class="rec-emoji">🔍</span>
                     </div>
                     <h4 class="rec-title">{% trans "Пошук за інгредієнтами" %}</h4>
                     <div class="rec-details">
@@ -860,4 +999,75 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">
+(function() {
+    const searchInput = document.getElementById('event-search-input');
+    const searchResults = document.getElementById('search-results');
+    let searchTimeout = null;
+    
+    if (!searchInput || !searchResults) return;
+    
+    function performSearch(query) {
+        if (query.length < 2) {
+            searchResults.classList.remove('active');
+            return;
+        }
+        
+        searchResults.innerHTML = '<div class="search-loading">{% trans "Пошук..." %}</div>';
+        searchResults.classList.add('active');
+        
+        fetch('/events/api/events/search/?q=' + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                if (data.events.length === 0) {
+                    searchResults.innerHTML = '<div class="search-no-results">{% trans "Нічого не знайдено" %}</div>';
+                } else {
+                    let html = '';
+                    data.events.forEach(event => {
+                        const badgeClass = event.is_finished ? 'badge-finished' : 'badge-active';
+                        const badgeText = event.is_finished ? '{% trans "Завершено" %}' : '{% trans "Активна" %}';
+                        html += `
+                            <a href="${event.url}" class="search-result-item">
+                                <div class="search-result-info">
+                                    <span class="search-result-title">${event.title}</span>
+                                    <span class="search-result-date">${event.date}</span>
+                                </div>
+                                <span class="search-result-badge ${badgeClass}">${badgeText}</span>
+                            </a>
+                        `;
+                    });
+                    searchResults.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                searchResults.innerHTML = '<div class="search-no-results">{% trans "Помилка пошуку" %}</div>';
+            });
+    }
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        searchTimeout = setTimeout(() => {
+            performSearch(query);
+        }, 300);
+    });
+    
+    searchInput.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2) {
+            searchResults.classList.add('active');
+        }
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.remove('active');
+        }
+    });
+})();
+</script>
 {% endblock %}

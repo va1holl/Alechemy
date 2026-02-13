@@ -7,8 +7,27 @@
 <style nonce="{{ csp_nonce }}">
 .event-edit-page {
     padding: 30px 40px;
-    max-width: 800px;
+    width: 70%;
+    max-width: 1200px;
     margin: 0 auto;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.event-edit-page > *,
+.event-edit-page form > *,
+.event-edit-page .edit-card,
+.event-edit-page .edit-card > * {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.event-edit-page form {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .page-header {
@@ -44,6 +63,10 @@
     border-radius: 20px;
     padding: 28px;
     margin-bottom: 24px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .card-title {
@@ -121,13 +144,20 @@
 /* Form */
 .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .form-group label {
@@ -146,6 +176,35 @@
     color: #fff;
     font-size: 14px;
     transition: border-color 0.3s;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.form-group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group ul li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.form-group ul li label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .form-group input:focus,
@@ -201,11 +260,27 @@
     border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Drinks, Dishes & Cocktails Grid */
+/* Drinks & Cocktails Grid (2 columns on top) */
 .drinks-cocktails-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 24px;
+    margin-bottom: 24px;
+}
+
+/* Dishes section (full width below) */
+.dishes-section {
+    margin-top: 0;
+}
+
+.dishes-section .selection-column {
+    width: 100%;
+}
+
+.dishes-section .checkbox-grid.scrollable {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    max-height: 250px;
 }
 
 .selection-column {
@@ -226,6 +301,15 @@
     color: rgba(255, 255, 255, 0.6);
     margin-bottom: 12px;
     font-weight: 500;
+}
+
+.section-label-mt {
+    margin-top: 16px;
+}
+
+.error-text {
+    color: #FF6B6B;
+    font-size: 12px;
 }
 
 .checkbox-grid {
@@ -340,6 +424,10 @@
     
     .drinks-cocktails-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .dishes-section .checkbox-grid.scrollable {
+        grid-template-columns: 1fr 1fr;
     }
     
     .reco-list {
@@ -472,10 +560,12 @@
     </div>
     {% endif %}
     
-    <div class="edit-card">
-        <h2 class="card-title">🍹 {% trans "Напої, страви та коктейлі" %}</h2>
-        
-        <div class="drinks-cocktails-grid">
+    <form method="post">
+        {% csrf_token %}
+        <div class="edit-card">
+            <h2 class="card-title">🍹 {% trans "Напої, страви та коктейлі" %}</h2>
+            
+            <div class="drinks-cocktails-grid">
             <!-- Напої -->
             <div class="selection-column">
                 <h3 class="column-title">🍷 {% trans "Напої" %}</h3>
@@ -496,7 +586,7 @@
                 </div>
                 {% endif %}
                 
-                <div class="section-label" style="margin-top: 16px;">📋 {% trans "Всі напої" %}</div>
+                <div class="section-label section-label-mt">📋 {% trans "Всі напої" %}</div>
                 <div class="checkbox-grid scrollable">
                     {% for drink in form.drinks.field.queryset %}
                         {% if drink.id not in form.recommended_drink_ids %}
@@ -507,41 +597,6 @@
                             {% if drink.abv %}<span class="abv-badge">{{ drink.abv }}%</span>{% endif %}
                         </label>
                         {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <!-- Страви -->
-            <div class="selection-column">
-                <h3 class="column-title">🍽️ {% trans "Страви" %}</h3>
-                
-                {% if recommended_dish_ids %}
-                <div class="section-label">⭐ {% trans "Рекомендовані для напоїв" %}</div>
-                <div class="checkbox-grid">
-                    {% for dish in all_dishes %}
-                        {% if dish.id in recommended_dish_ids %}
-                        <label class="checkbox-item recommended">
-                            <input type="checkbox" name="dishes" value="{{ dish.id }}"
-                                {% if dish in form.instance.dishes.all %}checked{% endif %}>
-                            <span class="checkbox-label">{{ dish.name }}</span>
-                        </label>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                {% endif %}
-                
-                <div class="section-label" style="margin-top: 16px;">📋 {% trans "Всі страви" %}</div>
-                <div class="checkbox-grid scrollable">
-                    {% for dish in all_dishes %}
-                        {% if dish.id not in recommended_dish_ids %}
-                        <label class="checkbox-item">
-                            <input type="checkbox" name="dishes" value="{{ dish.id }}"
-                                {% if dish in form.instance.dishes.all %}checked{% endif %}>
-                            <span class="checkbox-label">{{ dish.name }}</span>
-                        </label>
-                        {% endif %}
-                    {% empty %}
-                    <div class="empty-message">{% trans "Страви ще не додано" %}</div>
                     {% endfor %}
                 </div>
             </div>
@@ -572,37 +627,73 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Страви (full width below) -->
+        <div class="dishes-section">
+            <div class="selection-column">
+                <h3 class="column-title">🍽️ {% trans "Страви" %}</h3>
+                
+                {% if recommended_dish_ids %}
+                <div class="section-label">⭐ {% trans "Рекомендовані для напоїв" %}</div>
+                <div class="checkbox-grid">
+                    {% for dish in all_dishes %}
+                        {% if dish.id in recommended_dish_ids %}
+                        <label class="checkbox-item recommended">
+                            <input type="checkbox" name="dishes" value="{{ dish.id }}"
+                                {% if dish in form.instance.dishes.all %}checked{% endif %}>
+                            <span class="checkbox-label">{{ dish.name }}</span>
+                        </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="section-label section-label-mt">📋 {% trans "Всі страви" %}</div>
+                <div class="checkbox-grid scrollable">
+                    {% for dish in all_dishes %}
+                        {% if dish.id not in recommended_dish_ids %}
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="dishes" value="{{ dish.id }}"
+                                {% if dish in form.instance.dishes.all %}checked{% endif %}>
+                            <span class="checkbox-label">{{ dish.name }}</span>
+                        </label>
+                        {% endif %}
+                    {% empty %}
+                    <div class="empty-message">{% trans "Страви ще не додано" %}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        </div>
     </div>
     
     <div class="edit-card">
         <h2 class="card-title">⚙️ {% trans "Параметри" %}</h2>
         
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-grid">
+        <div class="form-grid">
                 {% for field in form %}
-                    {% if field.name != 'drinks' and field.name != 'cocktails' and field.name != 'dishes' %}
+                    {% if field.name != 'drinks' and field.name != 'cocktails' and field.name != 'dishes' and field.name != 'drink' and field.name != 'dish' %}
                 <div class="form-group {% if field.name == 'notes' %}full-width{% endif %}">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
                     {% if field.errors %}
-                    <span style="color: #FF6B6B; font-size: 12px;">{{ field.errors.0 }}</span>
+                    <span class="error-text">{{ field.errors.0 }}</span>
                     {% endif %}
                 </div>
                     {% endif %}
                 {% endfor %}
             </div>
-            
-            <div class="btn-row">
-                <button type="submit" class="btn btn-primary">
-                    💾 {% trans "Зберегти зміни" %}
-                </button>
-                <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline">
-                    ✕ {% trans "Скасувати" %}
-                </a>
-            </div>
-        </form>
+        
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">
+                💾 {% trans "Зберегти зміни" %}
+            </button>
+            <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline">
+                ✕ {% trans "Скасувати" %}
+            </a>
+        </div>
     </div>
+    </form>
 </div>
 
 {% if recommendations %}

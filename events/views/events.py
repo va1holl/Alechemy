@@ -4,10 +4,12 @@ Event CRUD views - list, create, edit, delete, detail.
 import logging
 
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
+from django.utils.translation import gettext_lazy as _
 
 from accounts.decorators import adult_required
 from ..models import Scenario, Event, Dish, Drink, EventParticipant, EventMessage
@@ -73,9 +75,17 @@ def event_create_from_scenario(request, slug):
         dishes = [get_object_or_404(Dish, id=dish_id)] if dish_id else []
 
         if step == "select_dish":
-            form = EventCreateFromScenarioForm()
+            # Pre-fill form with values from scenario page
+            initial_data = {
+                'people_count': request.POST.get('people_count') or 2,
+                'duration_hours': request.POST.get('duration_hours') or 3,
+            }
+            intensity = request.POST.get('intensity') or 'medium'
+            form = EventCreateFromScenarioForm(initial=initial_data)
             recommendations = build_recommendations_placeholder(
-                request.user, scenario, drink, dishes[0] if dishes else None
+                request.user, scenario, drink, dishes[0] if dishes else None,
+                people_count=request.POST.get('people_count'),
+                duration_hours=request.POST.get('duration_hours'),
             )
             return render(
                 request,
@@ -88,17 +98,20 @@ def event_create_from_scenario(request, slug):
                     "difficulty": difficulty,
                     "form": form,
                     "recommendations": recommendations,
+                    "people_count_readonly": True,
+                    "intensity": intensity,
                 },
             )
 
         form = EventCreateFromScenarioForm(request.POST)
+        intensity = request.POST.get('intensity') or 'medium'
         if form.is_valid() and drink:
             event = form.save(commit=False)
             event.user = request.user
             event.scenario = scenario
             event.drink = drink
             event.dish = dishes[0] if dishes else None
-            event.intensity = getattr(scenario, 'intensity', 'medium') or 'medium'
+            event.intensity = intensity
             event.save()
 
             # Нараховуємо бали за створення події
@@ -128,6 +141,8 @@ def event_create_from_scenario(request, slug):
                 "difficulty": difficulty,
                 "form": form,
                 "recommendations": recommendations,
+                "people_count_readonly": True,
+                "intensity": intensity,
             },
         )
 
@@ -139,6 +154,12 @@ def event_create_from_scenario(request, slug):
 def event_edit(request, pk):
     """Редагування події."""
     event = get_object_or_404(Event, pk=pk, user=request.user)
+    
+    # Запобігти редагуванню завершених подій
+    if event.is_finished:
+        messages.warning(request, _("Ви не можете редагувати завершену подію. Переглядайте її деталі або залишьте відгук."))
+        return redirect("events:event_detail", pk=pk)
+    
     scenario = event.scenario
 
     if request.method == "POST":
@@ -356,3 +377,37 @@ def event_discussion(request, pk):
         "messages_list": event_messages,
         "is_owner": is_owner,
     })
+
+
+@login_required
+@adult_required
+def event_search_api(request):
+    """AJAX API для пошуку подій по назві."""
+    query = request.GET.get('q', '').strip()
+    
+    if len(query) < 2:
+        return JsonResponse({'events': []})
+    
+    # Шукаємо події користувача (власні та де учасник)
+    events = Event.objects.filter(
+        Q(user=request.user) |
+        Q(
+            event_participants__participant=request.user,
+            event_participants__status=EventParticipant.Status.ACCEPTED
+        )
+    ).filter(
+        Q(title__icontains=query) |
+        Q(scenario__name__icontains=query)
+    ).select_related("scenario").distinct().order_by("-date")[:10]
+    
+    results = []
+    for event in events:
+        results.append({
+            'id': event.pk,
+            'title': event.title or event.scenario.name,
+            'date': event.date.strftime('%d.%m.%Y') if event.date else '',
+            'url': f'/events/events/{event.pk}/',
+            'is_finished': event.is_finished,
+        })
+    
+    return JsonResponse({'events': results})

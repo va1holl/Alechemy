@@ -6,7 +6,7 @@
 {% block content %}
   <style nonce="{{ csp_nonce }}">
     .events-page { background: #000; color: #fff; min-height: 100vh; padding: 40px 24px; }
-    .events-shell { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+    .events-shell { width: 85%; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
     .events-header { text-align: center; display: flex; flex-direction: column; gap: 8px; }
     .events-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 26px; color: #34a853; }
     .events-sub { opacity: 0.8; font-family: 'Inter', sans-serif; }
@@ -27,6 +27,10 @@
     .btn-primary { flex: 1; height: 52px; background: #34a853; border: none; border-radius: 60px; color: #fff; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 16px; text-align: center; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: background .2s ease; }
     .btn-primary:hover { background: #2d8f47; }
     .btn-ghost { flex: 1; height: 46px; background: transparent; border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; color: #fff; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px; text-align: center; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+    .btn-ghost.active { background: #34a853; border-color: #34a853; }
+    .btn-tab { padding: 10px 24px; }
+    .tabs-container { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
+    .badge-participant { background: rgba(52, 168, 83, 0.3); color: #34A853; }
     .create-row { margin-top: 10px; display: flex; justify-content: center; }
     @media (max-width: 768px) {
       .events-page { padding: 24px 16px; }
@@ -55,15 +59,13 @@
         <p class="events-sub">{% trans "Слідкуй за подіями, місцем і часом на одному екрані." %}</p>
         
         <!-- Перемикач Активні / Архів -->
-        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+        <div class="tabs-container">
           <a href="{% url 'events:event_list' %}" 
-             class="btn-ghost" 
-             style="{% if not show_archive %}background: #34a853; border-color: #34a853;{% endif %} padding: 10px 24px;">
+             class="btn-ghost btn-tab{% if not show_archive %} active{% endif %}">
             {% trans "Активні" %}
           </a>
           <a href="{% url 'events:event_list' %}?archive=1" 
-             class="btn-ghost"
-             style="{% if show_archive %}background: #34a853; border-color: #34a853;{% endif %} padding: 10px 24px;">
+             class="btn-ghost btn-tab{% if show_archive %} active{% endif %}">
             📦 {% trans "Архів" %}{% if archive_count %} ({{ archive_count }}){% endif %}
           </a>
         </div>
@@ -82,7 +84,7 @@
                 <div class="event-header">
                   <span class="badge">{{ event.date }}</span>
                   {% if event.id not in own_event_ids %}
-                  <span class="badge" style="background: rgba(52, 168, 83, 0.3); color: #34A853;">👥 {% trans "Учасник" %}</span>
+                  <span class="badge badge-participant">👥 {% trans "Учасник" %}</span>
                   {% endif %}
                   {% if event.people_count %}<span class="badge">{{ event.people_count }} чел.</span>{% endif %}
                 </div>

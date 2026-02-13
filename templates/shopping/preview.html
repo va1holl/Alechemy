@@ -7,7 +7,8 @@
 <style nonce="{{ csp_nonce }}">
 .shopping-page {
     padding: 30px 40px;
-    max-width: 1400px;
+    width: 85%;
+    max-width: 1600px;
     margin: 0 auto;
 }
 
@@ -76,6 +77,7 @@
     border-radius: 20px;
     padding: 24px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
 }
 
 .card-title {
@@ -132,185 +134,6 @@
 .form-field select option {
     background: #0a0f0c;
     color: #ffffff;
-}
-
-/* Dishes Picker */
-.dishes-picker {
-    background: rgba(15, 20, 16, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 16px;
-}
-
-.picker-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 8px;
-}
-
-.picker-header strong {
-    font-size: 15px;
-    font-weight: 600;
-    color: #34A853;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.picker-header strong svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    fill: none;
-}
-
-.selected-badge {
-    background: rgba(52, 168, 83, 0.15);
-    border: 1px solid rgba(52, 168, 83, 0.3);
-    border-radius: 50px;
-    padding: 6px 14px;
-    font-size: 12px;
-    color: #34A853;
-    font-weight: 500;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.toggle-btn {
-    background: linear-gradient(135deg, rgba(52, 168, 83, 0.2) 0%, rgba(52, 168, 83, 0.1) 100%);
-    border: 1px solid rgba(52, 168, 83, 0.4);
-    border-radius: 10px;
-    padding: 10px 18px;
-    color: #34A853;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.toggle-btn:hover {
-    background: linear-gradient(135deg, rgba(52, 168, 83, 0.3) 0%, rgba(52, 168, 83, 0.2) 100%);
-    transform: translateY(-1px);
-}
-
-.picker-content {
-    display: none;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.picker-content.active {
-    display: block;
-}
-
-.picker-filter {
-    margin-bottom: 16px;
-}
-
-.picker-filter input {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    padding: 12px 16px;
-    padding-left: 42px;
-    color: #ffffff;
-    font-size: 14px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: 14px center;
-}
-
-.picker-filter input:focus {
-    outline: none;
-    border-color: rgba(52, 168, 83, 0.5);
-}
-
-.picker-grid {
-    display: grid;
-    grid-template-columns: 1fr 60px 1fr;
-    gap: 16px;
-    align-items: stretch;
-}
-
-.picker-column {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.picker-column-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding-left: 4px;
-}
-
-.picker-column select {
-    width: 100%;
-    min-height: 200px;
-    background: rgba(10, 12, 10, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 14px;
-    color: #ffffff;
-    padding: 10px;
-    font-size: 13px;
-}
-
-.picker-column select:focus {
-    outline: none;
-    border-color: rgba(52, 168, 83, 0.5);
-}
-
-.picker-column select option {
-    padding: 10px 8px;
-    border-radius: 6px;
-    margin: 2px 0;
-}
-
-.picker-column select option:checked {
-    background: linear-gradient(135deg, rgba(52, 168, 83, 0.3) 0%, rgba(52, 168, 83, 0.2) 100%);
-}
-
-.picker-controls {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 10px;
-}
-
-.picker-controls button {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, rgba(52, 168, 83, 0.25) 0%, rgba(52, 168, 83, 0.15) 100%);
-    border: 1px solid rgba(52, 168, 83, 0.4);
-    border-radius: 12px;
-    color: #34A853;
-    font-size: 22px;
-    font-weight: 300;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.picker-controls button:hover {
-    background: linear-gradient(135deg, rgba(52, 168, 83, 0.4) 0%, rgba(52, 168, 83, 0.3) 100%);
-    transform: scale(1.05);
-}
-
-.picker-controls button:active {
-    transform: scale(0.95);
 }
 
 /* Stages */
@@ -461,15 +284,6 @@
         padding: 16px;
     }
     
-    .picker-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .picker-controls {
-        flex-direction: row;
-        justify-content: center;
-    }
-    
     .params-grid {
         grid-template-columns: 1fr;
     }
@@ -493,6 +307,167 @@
     .section-title {
         font-size: 16px;
     }
+}
+
+/* Result Section Styles (from _result.html partial) */
+.result-section {
+    margin-bottom: 20px;
+}
+
+.result-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #34A853;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.category-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.category-header {
+    font-weight: 600;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 13px;
+}
+
+.item-row:last-child {
+    border-bottom: none;
+}
+
+.item-name {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.item-qty {
+    color: #34A853;
+    font-weight: 500;
+}
+
+/* Recipe Cards */
+.recipe-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.recipe-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.recipe-card h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #34A853;
+    margin: 0 0 8px 0;
+}
+
+.recipe-card .recipe-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 12px;
+    white-space: pre-line;
+    line-height: 1.6;
+}
+
+.recipe-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.recipe-table th,
+.recipe-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.recipe-table th {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+}
+
+.recipe-table td {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Save Button */
+.save-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #34A853 0%, #2d8f47 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 14px 24px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(52, 168, 83, 0.3);
+    margin-top: 16px;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(52, 168, 83, 0.4);
+}
+
+/* Error Card */
+.error-card {
+    background: rgba(255, 100, 100, 0.1);
+    border: 1px solid rgba(255, 100, 100, 0.3);
+    border-radius: 14px;
+    padding: 16px;
+    color: #ffcccc;
+    margin-bottom: 16px;
+}
+
+.error-card strong {
+    color: #ff8888;
+}
+
+.error-card ul {
+    margin: 8px 0 0 16px;
+}
+
+/* Warning Card */
+.warning-card {
+    background: rgba(255, 200, 100, 0.1);
+    border: 1px dashed rgba(255, 200, 100, 0.3);
+    border-radius: 14px;
+    padding: 14px;
+    color: rgba(255, 220, 180, 0.9);
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+/* Button icon */
+.btn-icon {
+    display: inline;
+    vertical-align: middle;
+    margin-right: 8px;
 }
 </style>
 {% endblock %}
@@ -539,45 +514,10 @@
                     {{ form.scenario }}
                 </div>
 
-                <!-- Dishes Picker -->
-                <div class="dishes-picker">
-                    <div class="picker-header">
-                        <strong>
-                            <svg viewBox="0 0 24 24" stroke-width="2">
-                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                                <path d="M2 17l10 5 10-5"/>
-                                <path d="M2 12l10 5 10-5"/>
-                            </svg>
-                            {% trans "Страви" %}
-                        </strong>
-                        <span class="selected-badge" id="selected-dishes-text">{% trans "нічого не обрано" %}</span>
-                        <button type="button" id="toggle-dishes" class="toggle-btn">{% trans "Обрати страви" %}</button>
-                    </div>
-
-                    <div id="dish-picker" class="picker-content">
-                        <div class="picker-filter">
-                            <input type="text" id="dish-filter" placeholder="{% trans 'Пошук страви...' %}">
-                        </div>
-
-                        <div style="display:none;">
-                            {{ form.dishes }}
-                        </div>
-
-                        <div class="picker-grid">
-                            <div class="picker-column">
-                                <div class="picker-column-label">{% trans "Доступні" %}</div>
-                                <select id="available-dishes" multiple size="8"></select>
-                            </div>
-                            <div class="picker-controls">
-                                <button type="button" id="add-dish" title="{% trans 'Додати' %}">→</button>
-                                <button type="button" id="remove-dish" title="{% trans 'Видалити' %}">←</button>
-                            </div>
-                            <div class="picker-column">
-                                <div class="picker-column-label">{% trans "Обрані" %}</div>
-                                <select id="chosen-dishes" multiple size="8"></select>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Hidden form fields for dishes/cocktails -->
+                <div hidden>
+                    {{ form.dishes }}
+                    {{ form.cocktails }}
                 </div>
 
                 <!-- Stages -->
@@ -625,74 +565,9 @@
     const form = document.getElementById("calc-form");
     const result = document.getElementById("result-container");
 
-    const toggleBtn = document.getElementById("toggle-dishes");
-    const picker = document.getElementById("dish-picker");
-    const filterInput = document.getElementById("dish-filter");
-    const hiddenSelect = document.getElementById("id_dishes");
-    const available = document.getElementById("available-dishes");
-    const chosen = document.getElementById("chosen-dishes");
-    const addBtn = document.getElementById("add-dish");
-    const removeBtn = document.getElementById("remove-dish");
-    const selectedText = document.getElementById("selected-dishes-text");
-
     function csrf() {
         return form.querySelector('input[name="csrfmiddlewaretoken"]').value;
     }
-
-    function createOption(text, value) {
-        const opt = document.createElement("option");
-        opt.textContent = text;
-        opt.value = value;
-        return opt;
-    }
-
-    function rebuildLists() {
-        if (!hiddenSelect) return;
-        available.innerHTML = "";
-        chosen.innerHTML = "";
-        const q = (filterInput.value || "").toLowerCase().trim();
-        Array.from(hiddenSelect.options).forEach(opt => {
-            const label = opt.text.trim();
-            const value = opt.value;
-            const match = !q || label.toLowerCase().includes(q);
-            if (opt.selected) chosen.appendChild(createOption(label, value));
-            else if (match) available.appendChild(createOption(label, value));
-        });
-        updateHidden();
-    }
-
-    function updateHidden() {
-        const vals = new Set(Array.from(chosen.options).map(o => o.value));
-        Array.from(hiddenSelect.options).forEach(o => {
-            o.selected = vals.has(o.value);
-        });
-        updateSelectedText();
-    }
-
-    function updateSelectedText() {
-        const names = Array.from(chosen.options).map(o => o.text);
-        selectedText.textContent = names.length ? names.join(", ") : "{% trans 'нічого не обрано' %}";
-    }
-
-    function move(from, to) {
-        const picked = Array.from(from.selectedOptions);
-        if (!picked.length) return;
-        picked.forEach(opt => {
-            to.appendChild(createOption(opt.textContent, opt.value));
-            opt.remove();
-        });
-        updateHidden();
-        debounceRecalc();
-    }
-
-    toggleBtn.addEventListener("click", () => {
-        picker.classList.toggle("active");
-        if (picker.classList.contains("active")) rebuildLists();
-    });
-
-    filterInput.addEventListener("input", rebuildLists);
-    addBtn.addEventListener("click", () => move(available, chosen));
-    removeBtn.addEventListener("click", () => move(chosen, available));
 
     let timer = null;
     function debounceRecalc() {
@@ -747,7 +622,7 @@
         syncScenarioVisibility();
     }
 
-    rebuildLists();
+    // Auto-calculate if event is pre-selected
     if (form.querySelector("#id_event")?.value) recalc();
 })();
 </script>

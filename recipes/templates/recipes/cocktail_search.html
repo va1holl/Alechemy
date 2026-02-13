@@ -7,7 +7,8 @@
 <style nonce="{{ csp_nonce }}">
 .cocktail-search-page {
     padding: 30px 40px;
-    max-width: 1000px;
+    width: 70%;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
@@ -258,12 +259,70 @@
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.search-form');
     const checkboxes = document.querySelectorAll('.ingredient-option input[type="checkbox"]');
     const countEl = document.querySelector('.selected-count');
+    const resultsSection = document.getElementById('results-section');
     
     function updateCount() {
         const count = document.querySelectorAll('.ingredient-option input:checked').length;
         countEl.textContent = `{% trans "Обрано:" %} ${count}`;
+    }
+    
+    function renderResults(data) {
+        if (data.cocktails.length === 0) {
+            resultsSection.innerHTML = `
+                <div class="results-section">
+                    <div class="empty-state">
+                        <span>🤷</span>
+                        <p>{% trans "На жаль, коктейлів з такими інгредієнтами не знайдено" %}</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        let cocktailsHtml = data.cocktails.map(c => `
+            <a href="${c.url}" class="cocktail-card">
+                <div class="cocktail-icon">🍸</div>
+                <span class="cocktail-name">${c.name}</span>
+            </a>
+        `).join('');
+        
+        const title = data.show_all ? '{% trans "Усі коктейлі" %}' : '{% trans "Результати" %}';
+        
+        resultsSection.innerHTML = `
+            <div class="results-section">
+                <h2 class="section-title">
+                    🍹 ${title}
+                    <span class="results-count">${data.count}</span>
+                </h2>
+                <div class="cocktails-grid">
+                    ${cocktailsHtml}
+                </div>
+            </div>
+        `;
+    }
+    
+    function doSearch() {
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        formData.getAll('ingredients').forEach(v => params.append('ingredients', v));
+        
+        const searchUrl = window.location.pathname;
+        const queryString = params.toString();
+        
+        fetch(queryString ? `${searchUrl}?${queryString}` : searchUrl, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            renderResults(data);
+            // Update URL without reload
+            const url = queryString ? `${searchUrl}?${queryString}` : searchUrl;
+            history.replaceState(null, '', url);
+        })
+        .catch(err => console.error('Search error:', err));
     }
     
     checkboxes.forEach(cb => {
@@ -280,7 +339,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateCount();
     
-    // Clear all button
+    // Form submit - use AJAX instead
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        doSearch();
+        return false;
+    });
+    
+    // Also handle button click directly
+    const searchBtn = form.querySelector('button[type="submit"]');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            doSearch();
+            return false;
+        });
+    }
+    
+    // Clear all button - shows all cocktails
     document.querySelector('.btn-outline')?.addEventListener('click', function(e) {
         e.preventDefault();
         checkboxes.forEach(cb => {
@@ -288,6 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cb.closest('.ingredient-option').classList.remove('selected');
         });
         updateCount();
+        doSearch();
     });
 });
 </script>
@@ -334,10 +413,11 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </form>
     
+    <div id="results-section">
     {% if cocktails %}
     <div class="results-section">
         <h2 class="section-title">
-            🍹 {% trans "Результати" %}
+            🍹 {% if selected %}{% trans "Результати" %}{% else %}{% trans "Усі коктейлі" %}{% endif %}
             <span class="results-count">{{ cocktails|length }}</span>
         </h2>
         
@@ -358,5 +438,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
     {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -9,7 +9,8 @@
 
 .event-page {
     padding: 40px;
-    max-width: 1200px;
+    width: 80%;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
@@ -240,6 +241,18 @@
     font-size: 16px;
     font-weight: 600;
     color: #fff;
+}
+
+.info-value .tag {
+    display: inline-block;
+    background: rgba(52, 168, 83, 0.15);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    margin: 4px 6px 4px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #34A853;
 }
 
 /* Steps */
@@ -548,6 +561,39 @@
         padding: 5px 10px;
     }
 }
+
+/* CSP-compliant styles for inline replacements */
+.btn-full {
+    width: 100%;
+    justify-content: center;
+    display: flex;
+}
+
+.btn-full-mt {
+    width: 100%;
+    justify-content: center;
+    margin-top: 16px;
+    display: flex;
+}
+
+.card-title-mb {
+    margin-bottom: 16px;
+}
+
+.status-accepted {
+    color: #34A853;
+}
+
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.form-inline {
+    display: inline;
+}
 </style>
 {% endblock %}
 
@@ -607,7 +653,7 @@
                 🛒 {% trans "Покупки" %}
             </a>
             {% if is_owner %}
-            <button class="btn btn-danger" onclick="showDeleteModal()">
+            <button class="btn btn-danger" id="deleteEventBtn">
                 🗑️ {% trans "Видалити" %}
             </button>
             {% endif %}
@@ -654,14 +700,18 @@
                     </h2>
                 </div>
                 <div class="info-grid">
-                    {% if event.drink %}
-                    <div class="info-item">
-                        <div class="info-label">{% trans "Напій" %}</div>
-                        <div class="info-value">{{ event.drink.name }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">{% trans "Міцність" %}</div>
-                        <div class="info-value">{{ event.drink.abv|default:event.drink.strength }}%</div>
+                    {% if event.drinks.exists or event.drink %}
+                    <div class="info-item" style="grid-column: 1/-1;">
+                        <div class="info-label">🍷 {% trans "Напої" %}</div>
+                        <div class="info-value">
+                            {% for drink in event.drinks.all %}
+                                <span class="tag">{{ drink.name }}{% if drink.abv %} ({{ drink.abv }}%){% endif %}</span>
+                            {% empty %}
+                                {% if event.drink %}
+                                    <span class="tag">{{ event.drink.name }}{% if event.drink.abv %} ({{ event.drink.abv }}%){% endif %}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
                     {% else %}
                     <div class="info-item" style="grid-column: 1/-1;">
@@ -672,14 +722,29 @@
                     </div>
                     {% endif %}
                     
-                    {% if event.dish %}
-                    <div class="info-item">
-                        <div class="info-label">{% trans "Страва" %}</div>
-                        <div class="info-value">{{ event.dish.name }}</div>
+                    {% if event.cocktails.exists %}
+                    <div class="info-item" style="grid-column: 1/-1;">
+                        <div class="info-label">🍸 {% trans "Коктейлі" %}</div>
+                        <div class="info-value">
+                            {% for cocktail in event.cocktails.all %}
+                                <span class="tag">{{ cocktail.name }}</span>
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">{% trans "Складність" %}</div>
-                        <div class="info-value">{{ event.dish.get_difficulty_display }}</div>
+                    {% endif %}
+                    
+                    {% if event.dishes.exists or event.dish %}
+                    <div class="info-item" style="grid-column: 1/-1;">
+                        <div class="info-label">🍽️ {% trans "Страви" %}</div>
+                        <div class="info-value">
+                            {% for dish in event.dishes.all %}
+                                <span class="tag">{{ dish.name }}</span>
+                            {% empty %}
+                                {% if event.dish %}
+                                    <span class="tag">{{ event.dish.name }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
                     {% else %}
                     <div class="info-item" style="grid-column: 1/-1;">
@@ -751,14 +816,14 @@
                         {% endif %}
                     </p>
                 </div>
-                <a href="{% url 'events:event_feedback' event.pk %}" class="btn btn-secondary" style="width: 100%; justify-content: center; display: flex;">
+                <a href="{% url 'events:event_feedback' event.pk %}" class="btn btn-secondary btn-full">
                     {% trans "Залишити відгук" %}
                 </a>
             </div>
             
             <!-- Participants Card -->
             <div class="sidebar-card">
-                <h3 class="card-title" style="margin-bottom: 16px;">
+                <h3 class="card-title card-title-mb">
                     <span class="card-icon">👥</span>
                     {% trans "Учасники" %}
                 </h3>
@@ -777,7 +842,7 @@
                         <div class="participant-avatar">{{ p.participant.profile.get_display_name|slice:":1"|upper }}</div>
                         <div class="participant-info">
                             <div class="participant-name">{{ p.participant.profile.get_display_name }}</div>
-                            <div class="participant-status" style="color: #34A853;">✓ {{ p.get_status_display }}</div>
+                            <div class="participant-status status-accepted">✓ {{ p.get_status_display }}</div>
                         </div>
                     </div>
                     {% empty %}
@@ -787,14 +852,14 @@
                     </div>
                     {% endfor %}
                 </div>
-                <a href="{% url 'events:event_participants' event.pk %}" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 16px; display: flex;">
+                <a href="{% url 'events:event_participants' event.pk %}" class="btn btn-primary btn-full-mt">
                     ➕ {% trans "Запросити друзів" %}
                 </a>
             </div>
             
             <!-- Quick Stats -->
             <div class="sidebar-card">
-                <h3 class="card-title" style="margin-bottom: 16px;">
+                <h3 class="card-title card-title-mb">
                     <span class="card-icon">📊</span>
                     {% trans "Статистика" %}
                 </h3>
@@ -820,18 +885,18 @@
             
             <!-- Quick Links -->
             <div class="sidebar-card">
-                <h3 class="card-title" style="margin-bottom: 16px;">
+                <h3 class="card-title card-title-mb">
                     <span class="card-icon">🔗</span>
                     {% trans "Швидкі дії" %}
                 </h3>
-                <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
-                    <a href="{% url 'events:event_location' event.pk %}" class="btn btn-secondary" style="width: 100%; justify-content: center; display: flex;">
+                <div class="quick-actions">
+                    <a href="{% url 'events:event_location' event.pk %}" class="btn btn-secondary btn-full">
                         📍 {% trans "Локація на карті" %}
                     </a>
-                    <a href="{% url 'events:diary_add_for_event' event.pk %}" class="btn btn-secondary" style="width: 100%; justify-content: center; display: flex;">
+                    <a href="{% url 'events:diary_add_for_event' event.pk %}" class="btn btn-secondary btn-full">
                         📕 {% trans "Додати до щоденника" %}
                     </a>
-                    <a href="{% url 'events:event_list' %}" class="btn btn-secondary" style="width: 100%; justify-content: center; display: flex;">
+                    <a href="{% url 'events:event_list' %}" class="btn btn-secondary btn-full">
                         ← {% trans "Всі події" %}
                     </a>
                 </div>
@@ -846,8 +911,8 @@
         <h3>🗑️ {% trans "Видалити подію?" %}</h3>
         <p>{% trans "Ви впевнені, що хочете видалити цю подію? Цю дію неможливо скасувати." %}</p>
         <div class="delete-modal-actions">
-            <button class="btn btn-secondary" onclick="hideDeleteModal()">{% trans "Скасувати" %}</button>
-            <form action="{% url 'events:event_delete' event.pk %}" method="post" style="display: inline;">
+            <button class="btn btn-secondary" id="deleteEventCancelBtn">{% trans "Скасувати" %}</button>
+            <form action="{% url 'events:event_delete' event.pk %}" method="post" class="form-inline">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger">{% trans "Видалити" %}</button>
             </form>
@@ -856,18 +921,28 @@
 </div>
 
 <script nonce="{{ csp_nonce }}">
-function showDeleteModal() {
-    document.getElementById('deleteModal').classList.add('active');
+const deleteModal = document.getElementById('deleteModal');
+const deleteEventBtn = document.getElementById('deleteEventBtn');
+const deleteEventCancelBtn = document.getElementById('deleteEventCancelBtn');
+
+if (deleteEventBtn) {
+    deleteEventBtn.addEventListener('click', function() {
+        deleteModal.classList.add('active');
+    });
 }
 
-function hideDeleteModal() {
-    document.getElementById('deleteModal').classList.remove('active');
+if (deleteEventCancelBtn) {
+    deleteEventCancelBtn.addEventListener('click', function() {
+        deleteModal.classList.remove('active');
+    });
 }
 
 // Close modal on outside click
-document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) hideDeleteModal();
-});
+if (deleteModal) {
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('active');
+    });
+}
 
 // Rating interaction (preview only, actual save via feedback page)
 document.querySelectorAll('.star').forEach(star => {

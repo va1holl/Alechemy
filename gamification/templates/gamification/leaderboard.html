@@ -429,14 +429,14 @@
             <div class="podium-item second-place">
                 <div class="podium-user">
                     <div class="podium-avatar">
-                        {{ top_3.1.user.username|slice:":2"|upper }}
+                        {{ top_3.1.user.profile.get_display_name|slice:":2"|upper }}
                     </div>
                     <div class="medal-badge silver">
                         <svg viewBox="0 0 24 24" fill="white">
                             <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
                         </svg>
                     </div>
-                    <span class="podium-name">{{ top_3.1.user.username }}</span>
+                    <span class="podium-name">{{ top_3.1.user.profile.get_display_name }}</span>
                     <span class="podium-score">{{ top_3.1.points_total }} {% trans "балів" %}</span>
                 </div>
                 <div class="podium-step step-2">
@@ -450,14 +450,14 @@
             <div class="podium-item first-place">
                 <div class="podium-user">
                     <div class="podium-avatar">
-                        {{ top_3.0.user.username|slice:":2"|upper }}
+                        {{ top_3.0.user.profile.get_display_name|slice:":2"|upper }}
                     </div>
                     <div class="medal-badge gold">
                         <svg viewBox="0 0 24 24" fill="white">
                             <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
                         </svg>
                     </div>
-                    <span class="podium-name">{{ top_3.0.user.username }}</span>
+                    <span class="podium-name">{{ top_3.0.user.profile.get_display_name }}</span>
                     <span class="podium-score">{{ top_3.0.points_total }} {% trans "балів" %}</span>
                 </div>
                 <div class="podium-step step-1">
@@ -471,14 +471,14 @@
             <div class="podium-item third-place">
                 <div class="podium-user">
                     <div class="podium-avatar">
-                        {{ top_3.2.user.username|slice:":2"|upper }}
+                        {{ top_3.2.user.profile.get_display_name|slice:":2"|upper }}
                     </div>
                     <div class="medal-badge bronze">
                         <svg viewBox="0 0 24 24" fill="white">
                             <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
                         </svg>
                     </div>
-                    <span class="podium-name">{{ top_3.2.user.username }}</span>
+                    <span class="podium-name">{{ top_3.2.user.profile.get_display_name }}</span>
                     <span class="podium-score">{{ top_3.2.points_total }} {% trans "балів" %}</span>
                 </div>
                 <div class="podium-step step-3">
@@ -497,9 +497,9 @@
                 {% for score in column_1 %}
                 <div class="leaderboard-row {% if score.user == request.user %}highlight{% endif %}">
                     <span class="rank">{{ forloop.counter }}</span>
-                    <div class="user-avatar">{{ score.user.username|slice:":2"|upper }}</div>
+                    <div class="user-avatar">{{ score.user.profile.get_display_name|slice:":2"|upper }}</div>
                     <div class="user-details">
-                        <span class="user-name">{{ score.user.username }}</span>
+                        <span class="user-name">{{ score.user.profile.get_display_name }}</span>
                         <span class="user-score">{{ score.points_total }} {% trans "балів" %}</span>
                     </div>
                     {% if forloop.counter == 1 %}
@@ -519,9 +519,9 @@
                 {% for score in column_2 %}
                 <div class="leaderboard-row {% if score.user == request.user %}highlight{% endif %}">
                     <span class="rank">{{ forloop.counter|add:5 }}</span>
-                    <div class="user-avatar">{{ score.user.username|slice:":2"|upper }}</div>
+                    <div class="user-avatar">{{ score.user.profile.get_display_name|slice:":2"|upper }}</div>
                     <div class="user-details">
-                        <span class="user-name">{{ score.user.username }}</span>
+                        <span class="user-name">{{ score.user.profile.get_display_name }}</span>
                         <span class="user-score">{{ score.points_total }} {% trans "балів" %}</span>
                     </div>
                 </div>
@@ -535,9 +535,9 @@
                 {% for score in column_3 %}
                 <div class="leaderboard-row {% if score.user == request.user %}highlight{% endif %}">
                     <span class="rank">{{ forloop.counter|add:10 }}</span>
-                    <div class="user-avatar">{{ score.user.username|slice:":2"|upper }}</div>
+                    <div class="user-avatar">{{ score.user.profile.get_display_name|slice:":2"|upper }}</div>
                     <div class="user-details">
-                        <span class="user-name">{{ score.user.username }}</span>
+                        <span class="user-name">{{ score.user.profile.get_display_name }}</span>
                         <span class="user-score">{{ score.points_total }} {% trans "балів" %}</span>
                     </div>
                 </div>

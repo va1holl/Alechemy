@@ -7,7 +7,8 @@
 <style nonce="{{ csp_nonce }}">
 .discussion-page {
     padding: 24px;
-    max-width: 700px;
+    width: 55%;
+    max-width: 750px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -283,7 +284,7 @@
             {% for msg in messages_list %}
             <div class="message-item{% if msg.user == request.user %} own{% endif %}">
                 <div class="message-avatar">
-                    {{ msg.user.email|first|upper }}
+                    {{ msg.user.profile.nickname|slice:":1"|upper|default:msg.user.first_name|slice:":1"|upper|default:"U" }}
                 </div>
                 <div class="message-content">
                     <div class="message-header">

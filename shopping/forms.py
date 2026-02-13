@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from events.models import Event, Scenario, Dish
+from recipes.models import Cocktail
 from .models import StageChoices
 
 
@@ -34,9 +35,17 @@ class ShoppingCalcForm(forms.Form):
     dishes = forms.ModelMultipleChoiceField(
         queryset=Dish.objects.none(),
         required=False,
-        widget=forms.SelectMultiple(attrs={"size": 10}),
+        widget=forms.SelectMultiple(attrs={"size": 10, "style": "display:none !important;"}),
         label=_("Страви"),
         help_text=_("Показуються страви з інгредієнтами."),
+    )
+
+    cocktails = forms.ModelMultipleChoiceField(
+        queryset=Cocktail.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={"size": 10, "style": "display:none !important;"}),
+        label=_("Коктейлі"),
+        help_text=_("Інгредієнти для коктейлів."),
     )
 
     stages = forms.MultipleChoiceField(
@@ -67,16 +76,16 @@ class ShoppingCalcForm(forms.Form):
 
         qs = Dish.objects.filter(dish_ingredients__isnull=False).distinct().order_by("name")
 
-        # Якщо обрано event і в нього є dish (навіть без інгредієнтів) — додамо до списку,
-        # щоб його можна було прибрати/замінити
-        dish_id = None
+        # Якщо обрано event — додаємо всі страви з події до queryset
         ev_id = None
+        ev = None
 
         if self.is_bound:
             ev_id = self.data.get("event") or None
         else:
             initial_event = (self.initial or {}).get("event")
             if isinstance(initial_event, Event):
+                ev = initial_event
                 ev_id = initial_event.id
             else:
                 ev_id = initial_event
@@ -85,18 +94,39 @@ class ShoppingCalcForm(forms.Form):
             from events.models import EventParticipant
             from django.db.models import Q
             # Доступ до власних івентів або тих, де учасник
-            ev = Event.objects.filter(
-                Q(pk=ev_id) & (
-                    Q(user=user) |
-                    Q(event_participants__participant=user, event_participants__status=EventParticipant.Status.ACCEPTED)
-                )
-            ).first()
-            dish_id = getattr(ev, "dish_id", None) if ev else None
-
-        if dish_id:
-            qs = Dish.objects.filter(Q(dish_ingredients__isnull=False) | Q(pk=dish_id)).distinct().order_by("name")
+            if not ev:
+                ev = Event.objects.filter(
+                    Q(pk=ev_id) & (
+                        Q(user=user) |
+                        Q(event_participants__participant=user, event_participants__status=EventParticipant.Status.ACCEPTED)
+                    )
+                ).first()
+            
+            if ev:
+                # Додаємо всі страви з події до queryset (навіть без інгредієнтів)
+                event_dish_ids = list(ev.dishes.values_list('id', flat=True))
+                if event_dish_ids:
+                    qs = Dish.objects.filter(
+                        Q(dish_ingredients__isnull=False) | Q(pk__in=event_dish_ids)
+                    ).distinct().order_by("name")
 
         self.fields["dishes"].queryset = qs
+        
+        # Коктейлі з інгредієнтами
+        cocktails_qs = Cocktail.objects.filter(
+            is_active=True,
+            ingredients__isnull=False
+        ).distinct().order_by("name")
+        
+        # Якщо є event — додаємо коктейлі з події до queryset
+        if ev:
+            event_cocktail_ids = list(ev.cocktails.values_list('id', flat=True))
+            if event_cocktail_ids:
+                cocktails_qs = Cocktail.objects.filter(
+                    Q(is_active=True, ingredients__isnull=False) | Q(pk__in=event_cocktail_ids)
+                ).distinct().order_by("name")
+        
+        self.fields["cocktails"].queryset = cocktails_qs
 
         # Якщо обрано event (initial або POST) — сценарій беремо з нього,
         # а поле сценарію ховаємо, щоб не було плутанини.
@@ -128,6 +158,16 @@ class ShoppingCalcForm(forms.Form):
 
             if not cleaned.get("intensity"):
                 cleaned["intensity"] = getattr(event, "intensity", IntensityChoices.MEDIUM)
+            
+            # Підтягуємо страви з події, якщо не передані явно
+            if not cleaned.get("dishes"):
+                if event.dishes.exists():
+                    cleaned["dishes"] = list(event.dishes.all())
+            
+            # Підтягуємо коктейлі з події, якщо не передані явно
+            if not cleaned.get("cocktails"):
+                if event.cocktails.exists():
+                    cleaned["cocktails"] = list(event.cocktails.all())
 
 
         # значення за замовчуванням, якщо все одно порожньо

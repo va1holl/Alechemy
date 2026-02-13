@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Учасники - {{ event.title|default:event.scenario.name }}{% endblock %}
+{% block title %}{% trans "Учасники" %} - {{ event.title|default:event.scenario.name }}{% endblock %}
 
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
 .participants-page {
     padding: 24px;
-    max-width: 700px;
+    width: 65%;
+    max-width: 800px;
     margin: 0 auto;
 }
 
@@ -53,103 +54,76 @@
 /* Invite Section */
 .invite-section {
     background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(52, 168, 83, 0.2);
     border-radius: 16px;
-    padding: 24px;
+    padding: 20px;
     margin-bottom: 24px;
 }
 
 .section-title {
     color: #ffffff;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-count {
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Search */
+.search-form {
+    display: flex;
+    gap: 12px;
     margin-bottom: 16px;
 }
 
-.invite-form {
-    display: flex;
-    gap: 12px;
-}
-
-.invite-input {
+.search-input {
     flex: 1;
-    height: 48px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    padding: 0 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 16px;
     color: #ffffff;
     font-size: 15px;
+    transition: border-color 0.3s;
 }
 
-.invite-input:focus {
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.search-input:focus {
     outline: none;
     border-color: #34A853;
 }
 
-.invite-input::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-    .participants-page {
-        padding: 16px;
-    }
-    
-    .page-title {
-        font-size: 20px;
-    }
-    
-    .invite-section {
-        padding: 16px;
-    }
-    
-    .invite-form {
-        flex-direction: column;
-    }
-    
-    .invite-input {
-        width: 100%;
-    }
-    
-    .invite-btn {
-        width: 100%;
-    }
-    
-    .participant-item {
-        padding: 12px;
-    }
-}
-
-.invite-btn {
-    height: 48px;
-    padding: 0 24px;
+.search-btn {
+    padding: 12px 20px;
     background: #34A853;
-    border: none;
-    border-radius: 12px;
     color: white;
-    font-size: 15px;
+    border: none;
+    border-radius: 10px;
     font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.3s;
 }
 
-.invite-btn:hover {
-    background: #2d9046;
+.search-btn:hover {
+    background: #2d8c46;
 }
 
-/* Friends Quick Select */
-.friends-section {
-    margin-top: 20px;
-}
-
-.friends-label {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 14px;
-    margin-bottom: 12px;
-}
-
-.friends-list {
+/* Friends Quick List */
+.friends-quick {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -159,12 +133,12 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
     color: #ffffff;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     transition: all 0.3s;
 }
@@ -174,10 +148,16 @@
     border-color: #34A853;
 }
 
-.friend-avatar {
+.friend-chip.invited {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.chip-avatar {
     width: 24px;
     height: 24px;
-    background: linear-gradient(135deg, #34A853, #1a5a2a);
+    background: linear-gradient(135deg, #34A853, #1e6530);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -186,19 +166,98 @@
     font-weight: 600;
 }
 
+/* Search Results */
+.search-results {
+    margin-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 16px;
+}
+
+.result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.result-item:hover {
+    background: rgba(52, 168, 83, 0.1);
+}
+
+.result-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.result-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #34A853, #1e6530);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.result-name {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.result-tag {
+    color: rgba(52, 168, 83, 0.8);
+    font-size: 12px;
+}
+
+.invite-btn-small {
+    padding: 8px 16px;
+    background: #34A853;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.invite-btn-small:hover {
+    background: #2d8c46;
+}
+
+.invite-btn-small.invited {
+    background: rgba(100, 100, 100, 0.5);
+    cursor: not-allowed;
+}
+
+.no-results {
+    text-align: center;
+    padding: 16px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
 /* Participants List */
 .participants-section {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 16px;
-    padding: 24px;
+    padding: 20px;
 }
 
 .participant {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .participant:last-child {
@@ -243,7 +302,7 @@
 .participant-status {
     padding: 6px 12px;
     border-radius: 20px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
 }
 
@@ -260,11 +319,6 @@
 .status-declined {
     background: rgba(255, 59, 48, 0.2);
     color: #FF3B30;
-}
-
-.status-maybe {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
 }
 
 .no-participants {
@@ -318,11 +372,6 @@
     color: #FFC107;
 }
 
-.role-participant {
-    background: rgba(52, 168, 83, 0.2);
-    color: #34A853;
-}
-
 .btn-admin {
     background: rgba(255, 193, 7, 0.2);
     color: #FFC107;
@@ -340,6 +389,67 @@
 .btn-demote:hover {
     background: rgba(255, 255, 255, 0.2);
 }
+
+/* Utility classes */
+.inline-form {
+    display: inline;
+}
+
+.messages-container {
+    margin-bottom: 16px;
+}
+
+.message-item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.message-success {
+    background: rgba(52, 168, 83, 0.2);
+    color: #34A853;
+}
+
+.message-error {
+    background: rgba(255, 59, 48, 0.2);
+    color: #FF3B30;
+}
+
+.friends-section {
+    margin-top: 12px;
+}
+
+.friends-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .participants-page {
+        width: 95%;
+        padding: 16px;
+    }
+    
+    .search-form {
+        flex-direction: column;
+    }
+    
+    .search-btn {
+        width: 100%;
+    }
+    
+    .friends-quick {
+        flex-direction: column;
+    }
+    
+    .friend-chip {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
 </style>
 {% endblock %}
 
@@ -351,16 +461,13 @@
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
         </a>
-        <h1 class="page-title">Учасники</h1>
+        <h1 class="page-title">{% trans "Учасники" %}</h1>
     </div>
     
     {% if messages %}
-    <div style="margin-bottom: 16px;">
+    <div class="messages-container">
         {% for message in messages %}
-        <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;
-            {% if message.tags == 'success' %}background: rgba(52, 168, 83, 0.2); color: #34A853;
-            {% elif message.tags == 'error' %}background: rgba(255, 59, 48, 0.2); color: #FF3B30;
-            {% else %}background: rgba(255, 255, 255, 0.1); color: #fff;{% endif %}">
+        <div class="message-item message-{{ message.tags }}">
             {{ message }}
         </div>
         {% endfor %}
@@ -370,36 +477,85 @@
     <!-- Invite Section - Only for admins -->
     {% if is_admin %}
     <div class="invite-section">
-        <div class="section-title">Запросити друзів</div>
-        <form method="post" action="{% url 'events:event_invite_friend' event.pk %}" class="invite-form">
-            {% csrf_token %}
-            <input type="text" name="friend_tag" class="invite-input" placeholder="@тег користувача">
-            <button type="submit" class="invite-btn">Запросити</button>
+        <div class="section-title">
+            {% trans "Запросити користувача" %}
+        </div>
+        
+        <!-- Search Form -->
+        <form method="get" class="search-form">
+            <input type="text" name="q" class="search-input" 
+                   placeholder="{% trans 'Пошук за тегом або іменем...' %}" 
+                   value="{{ search_query }}">
+            <button type="submit" class="search-btn">{% trans "Шукати" %}</button>
         </form>
         
-        {% if friends %}
+        <!-- Search Results -->
+        {% if search_query %}
+        <div class="search-results">
+            <div class="section-title">
+                {% trans "Результати пошуку" %}
+                <span class="section-count">{{ search_results|length }}</span>
+            </div>
+            {% if search_results %}
+                {% for user in search_results %}
+                <div class="result-item">
+                    <div class="result-info">
+                        <div class="result-avatar">{{ user.profile.get_display_name|first|upper }}</div>
+                        <div>
+                            <div class="result-name">{{ user.profile.get_display_name }}</div>
+                            {% if user.profile.unique_tag %}
+                            <div class="result-tag">@{{ user.profile.unique_tag }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if user.is_invited %}
+                    <button class="invite-btn-small invited" disabled>{% trans "Запрошено" %}</button>
+                    {% else %}
+                    <form method="post" class="inline-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.pk }}">
+                        <button type="submit" class="invite-btn-small">{% trans "Запросити" %}</button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-results">{% trans "Нікого не знайдено" %}</div>
+            {% endif %}
+        </div>
+        {% else %}
+        <!-- Friends Quick Select -->
+        {% if friends_preview %}
         <div class="friends-section">
-            <div class="friends-label">Швидкий вибір з друзів:</div>
-            <div class="friends-list">
-                {% for friend in friends %}
-                <form method="post" action="{% url 'events:event_invite_friend' event.pk %}" style="display: inline;">
+            <div class="friends-label">
+                {% trans "Швидкий вибір з друзів:" %}
+            </div>
+            <div class="friends-quick">
+                {% for friend in friends_preview %}
+                <form method="post" class="inline-form">
                     {% csrf_token %}
-                    <input type="hidden" name="friend_id" value="{{ friend.user.id }}">
-                    <button type="submit" class="friend-chip">
-                        <span class="friend-avatar">{{ friend.get_display_name|first|upper }}</span>
+                    <input type="hidden" name="user_id" value="{{ friend.user.pk }}">
+                    <button type="submit" class="friend-chip {% if friend.is_invited %}invited{% endif %}"
+                            {% if friend.is_invited %}disabled{% endif %}>
+                        <span class="chip-avatar">{{ friend.get_display_name|first|upper }}</span>
                         {{ friend.get_display_name }}
+                        {% if friend.is_invited %}✓{% endif %}
                     </button>
                 </form>
                 {% endfor %}
             </div>
         </div>
         {% endif %}
+        {% endif %}
     </div>
     {% endif %}
     
     <!-- Participants List -->
     <div class="participants-section">
-        <div class="section-title">Запрошені ({{ participants|length }})</div>
+        <div class="section-title">
+            {% trans "Запрошені" %}
+            <span class="section-count">{{ participants|length }}</span>
+        </div>
         
         {% if participants %}
         {% for p in participants %}
@@ -412,7 +568,7 @@
                     <span class="participant-name">
                         {{ p.participant.profile.get_display_name }}
                         {% if p.role == 'head' %}
-                        <span class="role-badge role-head">👑 Адмін</span>
+                        <span class="role-badge role-head">👑 {% trans "Адмін" %}</span>
                         {% endif %}
                     </span>
                     {% if p.participant.profile.unique_tag %}
@@ -426,16 +582,16 @@
                 </span>
                 {% if is_owner and p.status == 'accepted' %}
                 <!-- Toggle admin button - only for owner -->
-                <form method="post" action="{% url 'events:event_toggle_admin' event.pk p.pk %}" style="display: inline;">
+                <form method="post" action="{% url 'events:event_toggle_admin' event.pk p.pk %}" class="inline-form">
                     {% csrf_token %}
                     {% if p.role == 'head' %}
-                    <button type="submit" class="action-btn-small btn-demote" title="Зняти адміна">
+                    <button type="submit" class="action-btn-small btn-demote" title="{% trans 'Зняти адміна' %}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5"/>
                         </svg>
                     </button>
                     {% else %}
-                    <button type="submit" class="action-btn-small btn-admin" title="Зробити адміном">
+                    <button type="submit" class="action-btn-small btn-admin" title="{% trans 'Зробити адміном' %}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                         </svg>
@@ -444,9 +600,9 @@
                 </form>
                 {% endif %}
                 {% if is_admin %}
-                <form method="post" action="{% url 'events:event_remove_participant' event.pk p.pk %}" style="display: inline;">
+                <form method="post" action="{% url 'events:event_remove_participant' event.pk p.pk %}" class="inline-form">
                     {% csrf_token %}
-                    <button type="submit" class="action-btn-small btn-kick" title="Видалити">
+                    <button type="submit" class="action-btn-small btn-kick" title="{% trans 'Видалити' %}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 6L6 18M6 6l12 12"/>
                         </svg>
@@ -458,7 +614,7 @@
         {% endfor %}
         {% else %}
         <div class="no-participants">
-            Поки що немає запрошених учасників
+            {% trans "Поки що немає запрошених учасників" %}
         </div>
         {% endif %}
     </div>

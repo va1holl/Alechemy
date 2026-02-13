@@ -7,7 +7,8 @@
 <style nonce="{{ csp_nonce }}">
 .user-profile-page {
     padding: 24px;
-    max-width: 600px;
+    width: 50%;
+    max-width: 650px;
     margin: 0 auto;
 }
 
@@ -178,14 +179,10 @@
     <!-- Profile Card -->
     <div class="profile-card">
         <div class="profile-avatar">
-            {{ target_profile.user.email|first|upper }}
+            {{ target_profile.nickname|slice:":1"|upper|default:target_profile.user.first_name|slice:":1"|upper|default:"U" }}
         </div>
         <div class="profile-name">
-            {% if target_profile.user.first_name %}
-            {{ target_profile.user.first_name }} {{ target_profile.user.last_name }}
-            {% else %}
-            {% trans "Користувач" %}
-            {% endif %}
+            {{ target_profile.get_display_name }}
         </div>
         {% if target_profile.unique_tag %}
         <div class="profile-tag">@{{ target_profile.unique_tag }}</div>
