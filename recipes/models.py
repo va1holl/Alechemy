@@ -34,6 +34,7 @@ class Cocktail(models.Model):
     description = models.TextField(blank=True)
     instructions = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
+    image = models.ImageField(upload_to='cocktails/', blank=True, null=True)
     
     category = models.CharField(
         max_length=20,
