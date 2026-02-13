@@ -78,17 +78,20 @@ def challenges_list(request):
     active_challenges = Challenge.objects.filter(is_active=True).order_by("-created_at")
     
     # Отримуємо або створюємо UserChallenge для кожного активного челенджу
-    user_challenges = {}
+    # та готуємо дані у форматі зручній для шаблону
+    challenges_data = []
     for challenge in active_challenges:
         uc, created = UserChallenge.objects.get_or_create(
             user=request.user,
             challenge=challenge,
         )
-        user_challenges[challenge.id] = uc
+        challenges_data.append({
+            'challenge': challenge,
+            'user_challenge': uc,
+        })
     
     return render(request, "gamification/challenges.html", {
-        "challenges": active_challenges,
-        "user_challenges": user_challenges,
+        "challenges_data": challenges_data,
     })
 
 
@@ -131,14 +134,22 @@ def cocktail_quiz(request):
 @login_required
 def cocktail_quiz_question(request):
     """API: Get random cocktail question."""
+    from django.db.models import Q
+    
+    # Get cocktails that are active AND have ingredients
     cocktails = list(
-        Cocktail.objects.filter(is_active=True)
+        Cocktail.objects.filter(
+            is_active=True,
+            ingredients__isnull=False
+        )
         .prefetch_related('ingredients__ingredient')
-        .exclude(ingredients__isnull=True)
+        .distinct()
     )
     
     if len(cocktails) < 4:
-        return JsonResponse({"error": "Not enough cocktails in database"}, status=400)
+        return JsonResponse({
+            "error": f"Not enough cocktails in database (found {len(cocktails)}, need 4)"
+        }, status=400)
     
     # Pick correct answer
     correct = random.choice(cocktails)

@@ -213,12 +213,34 @@ def export_pdf_report(request):
 
 @login_required
 def dashboard(request):
+    from datetime import datetime, date
     user = request.user
     profile = getattr(user, "profile", None)
     
     # Основна статистика
     events_count = Event.objects.filter(user=user).count()
     diary_entries = AlcoholLog.objects.filter(user=user).count()
+    
+    # Прямі та майбутні події
+    today = date.today()
+    upcoming_events = Event.objects.filter(
+        user=user,
+        date__gte=today,
+        is_finished=False
+    ).order_by('date')[:5]
+    
+    # Завершені і архівовані події
+    past_events = Event.objects.filter(
+        user=user,
+        date__lt=today,
+        is_finished=False
+    ).order_by('-date')[:5]
+    
+    # Завершені (з фідбеком) - можна назвати "архівованими"
+    archived_events = Event.objects.filter(
+        user=user,
+        is_finished=True
+    ).order_by('-date')[:5]
     
     # Улюблений сценарій
     favorite_scenario = (
@@ -281,6 +303,9 @@ def dashboard(request):
         "challenges_in_progress": challenges_in_progress,
         "challenges_completed": challenges_completed,
         "recent_logs": recent_logs,
+        "upcoming_events": upcoming_events,
+        "past_events": past_events,
+        "archived_events": archived_events,
     }
     
     return render(request, "stats/dashboard.html", context)

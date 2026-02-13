@@ -11,15 +11,29 @@ from django.utils.translation import gettext as _
 
 from accounts.decorators import adult_required, premium_required
 from events.models import DishIngredient, Event, Scenario
+from recipes.models import CocktailIngredient
 from .forms import ShoppingCalcForm
 from .models import ShoppingItem, ShoppingList
 from .services import build_shopping_items
+
+
+def _format_qty(value: Decimal) -> str:
+    """Форматирует количество, убирая лишние нули после запятой."""
+    if value == value.to_integral_value():
+        return str(int(value))
+    # Убираем trailing zeros
+    formatted = str(value.normalize())
+    # Если число очень маленькое и показывается в экспоненциальной форме, вернём обычный формат
+    if 'E' in formatted:
+        formatted = f"{value:.3f}".rstrip('0').rstrip('.')
+    return formatted
 
 
 def _build_result_context(form: ShoppingCalcForm):
     items = None
     grouped = {}
     dish_cards = []
+    cocktail_cards = []
     missing_dishes = []
 
     if not form.is_valid():
@@ -27,11 +41,13 @@ def _build_result_context(form: ShoppingCalcForm):
             "items": None,
             "grouped": {},
             "dish_cards": [],
+            "cocktail_cards": [],
             "missing_dishes": [],
         }
 
     scenario = form.cleaned_data["scenario"]
     dishes = list(form.cleaned_data.get("dishes") or [])
+    cocktails = list(form.cleaned_data.get("cocktails") or [])
     stages = form.cleaned_data["stages"]
     people_count = form.cleaned_data["people_count"]
     duration_hours = form.cleaned_data["duration_hours"]
@@ -42,6 +58,7 @@ def _build_result_context(form: ShoppingCalcForm):
         people_count=people_count,
         duration_hours=duration_hours,
         dishes=dishes,
+        cocktails=cocktails,
     )
 
     for i in items:
@@ -71,17 +88,47 @@ def _build_result_context(form: ShoppingCalcForm):
                 ing_rows.append(
                     {
                         "name": di.ingredient.name,
-                        "qty": qty_total,
+                        "qty": _format_qty(qty_total),
                         "unit": di.get_unit_display() if hasattr(di, "get_unit_display") else di.unit,
                     }
                 )
 
             dish_cards.append({"dish": d, "ingredients": ing_rows})
 
+    # Обробка коктейлів
+    if cocktails:
+        ci_qs = (
+            CocktailIngredient.objects
+            .filter(cocktail__in=cocktails)
+            .select_related("cocktail", "ingredient")
+            .order_by("cocktail_id", "ingredient__name")
+        )
+
+        by_cocktail = {}
+        for ci in ci_qs:
+            by_cocktail.setdefault(ci.cocktail_id, []).append(ci)
+
+        for c in cocktails:
+            ing_rows = []
+            cis = by_cocktail.get(c.id, [])
+            if cis:
+                for ci in cis:
+                    # Кількість = amount * people_count (кожен коктейль на кожну людину)
+                    qty_total = (ci.amount * Decimal(people_count)).quantize(Decimal("0.001"))
+                    ing_rows.append(
+                        {
+                            "name": ci.ingredient.name,
+                            "qty": _format_qty(qty_total),
+                            "unit": ci.unit,
+                        }
+                    )
+                cocktail_cards.append({"cocktail": c, "ingredients": ing_rows})
+
     return {
         "items": items,
         "grouped": grouped,
         "dish_cards": dish_cards,
+        "cocktail_cards": cocktail_cards,
         "missing_dishes": missing_dishes,
     }
 
@@ -93,6 +140,7 @@ def preview(request):
     items = None
     grouped = {}
     dish_cards = []
+    cocktail_cards = []
     missing_dishes = []
 
     if request.method == "POST":
@@ -101,6 +149,7 @@ def preview(request):
         items = result["items"]
         grouped = result["grouped"]
         dish_cards = result["dish_cards"]
+        cocktail_cards = result["cocktail_cards"]
         missing_dishes = result["missing_dishes"]
     else:
         initial = {}
@@ -130,8 +179,14 @@ def preview(request):
                     "stages": ["prep", "during", "recovery"],
                 }
             )
-            if getattr(ev, "dish_id", None):
+            # Підтягуємо всі страви з події (M2M)
+            if ev.dishes.exists():
+                initial["dishes"] = list(ev.dishes.all())
+            elif getattr(ev, "dish_id", None):
                 initial["dishes"] = [ev.dish]
+            # Підтягуємо всі коктейлі з події (M2M)
+            if ev.cocktails.exists():
+                initial["cocktails"] = list(ev.cocktails.all())
         elif scenario_id:
             sc = get_object_or_404(Scenario, pk=scenario_id)
             initial.update({"scenario": sc, "stages": ["prep", "during", "recovery"]})
@@ -146,6 +201,7 @@ def preview(request):
             "items": items,
             "grouped": grouped,
             "dish_cards": dish_cards,
+            "cocktail_cards": cocktail_cards,
             "missing_dishes": missing_dishes,
         },
     )
@@ -198,6 +254,7 @@ def create_from_preview(request):
     people_count = form.cleaned_data["people_count"]
     duration_hours = form.cleaned_data["duration_hours"]
     dishes = form.cleaned_data.get("dishes")
+    cocktails = form.cleaned_data.get("cocktails")
 
     items = build_shopping_items(
         scenario=scenario,
@@ -205,6 +262,7 @@ def create_from_preview(request):
         people_count=people_count,
         duration_hours=duration_hours,
         dishes=dishes,
+        cocktails=cocktails,
     )
 
     sl = ShoppingList.objects.create(
@@ -218,6 +276,9 @@ def create_from_preview(request):
 
     if dishes:
         sl.dishes.set(dishes)
+
+    if cocktails:
+        sl.cocktails.set(cocktails)
 
     ShoppingItem.objects.bulk_create(
         [

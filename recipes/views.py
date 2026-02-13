@@ -4,16 +4,19 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+from django.db.models import Q
 
 from accounts.decorators import premium_required
 from .models import Cocktail, CocktailIngredient, CocktailReview, CocktailCategory, CocktailStrength
-from events.models import Ingredient, Drink, Scenario, Event
+from events.models import Ingredient, Drink, Scenario, Event, EventParticipant
 
 
 # Список коктейлів, пошук за назвою
 
 def cocktail_list(request):
     from django.db.models import Avg
+    from django.http import JsonResponse
+    from django.urls import reverse
     
     q = request.GET.get("q", "")
     alcohol = request.GET.get("alcohol", "")  # all, with, without
@@ -48,6 +51,24 @@ def cocktail_list(request):
         except ValueError:
             pass
     
+    # AJAX request - return JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        results = []
+        for c in cocktails:
+            results.append({
+                "name": c.name,
+                "slug": c.slug,
+                "url": reverse("recipes:cocktail_detail", args=[c.slug]),
+                "has_image": bool(c.image) if hasattr(c, 'image') else False,
+                "image_url": c.image.url if hasattr(c, 'image') and c.image else None,
+            })
+        
+        return JsonResponse({
+            "cocktails": results,
+            "count": len(results),
+            "q": q,
+        })
+    
     # Список категорій та міцностей для фільтрів
     categories = CocktailCategory.choices
     strengths = CocktailStrength.choices
@@ -73,16 +94,59 @@ def cocktail_detail(request, slug):
     )
     
     # Отримуємо події користувача для можливості додавання коктейлю
+    # (тільки активні події, де користувач owner або admin)
     user_events = []
     user_review = None
     if request.user.is_authenticated:
-        user_events = Event.objects.filter(user=request.user).select_related('scenario').order_by('-date')[:10]
+        # Події де користувач власник або адмін
+        user_events = Event.objects.filter(
+            Q(user=request.user) |
+            Q(
+                event_participants__participant=request.user,
+                event_participants__role=EventParticipant.Role.HEAD
+            )
+        ).filter(is_finished=False).select_related('scenario').distinct().order_by('-date')[:10]
         user_review = CocktailReview.objects.filter(cocktail=cocktail, user=request.user).first()
     
     return render(request, "recipes/cocktail_detail.html", {
         "cocktail": cocktail,
         "user_events": user_events,
         "user_review": user_review,
+    })
+
+
+@login_required
+@require_POST
+def add_cocktail_to_event(request, slug):
+    """Додати коктейль до події (в cocktails M2M)."""
+    cocktail = get_object_or_404(Cocktail, slug=slug, is_active=True)
+    event_id = request.POST.get("event_id")
+    
+    if not event_id:
+        return JsonResponse({"success": False, "error": "Не вказано подію"}, status=400)
+    
+    try:
+        event = Event.objects.get(pk=event_id)
+    except Event.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Подію не знайдено"}, status=404)
+    
+    # Перевіряємо права - користувач owner або admin
+    is_owner = event.user == request.user
+    is_admin = EventParticipant.objects.filter(
+        event=event,
+        participant=request.user,
+        role=EventParticipant.Role.HEAD
+    ).exists()
+    
+    if not is_owner and not is_admin:
+        return JsonResponse({"success": False, "error": "Немає прав для редагування події"}, status=403)
+    
+    # Додаємо коктейль до M2M зв'язку cocktails
+    event.cocktails.add(cocktail)
+    
+    return JsonResponse({
+        "success": True,
+        "message": f"Коктейль «{cocktail.name}» додано до події «{event.title or event.scenario.name}»"
     })
 
 
@@ -127,8 +191,33 @@ def cocktail_search_by_ingredients(request):
     
     selected = request.GET.getlist("ingredients")
     cocktails = Cocktail.objects.filter(is_active=True).prefetch_related('ingredients__ingredient')
+    
     if selected:
-        cocktails = cocktails.filter(ingredients__ingredient__in=selected).distinct()
+        # AND логіка: коктейль повинен мати ВСІ обрані інгредієнти
+        for ingredient_id in selected:
+            cocktails = cocktails.filter(ingredients__ingredient__id=ingredient_id)
+        cocktails = cocktails.distinct()
+    
+    # AJAX request - return JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.http import JsonResponse
+        from django.urls import reverse
+        
+        results = []
+        for c in cocktails:
+            results.append({
+                "name": c.name,
+                "slug": c.slug,
+                "url": reverse("recipes:cocktail_detail", args=[c.slug]),
+            })
+        
+        return JsonResponse({
+            "cocktails": results,
+            "count": len(results),
+            "has_selection": bool(selected),
+            "show_all": not bool(selected),
+        })
+    
     return render(request, "recipes/cocktail_search.html", {"ingredients": ingredients, "selected": selected, "cocktails": cocktails})
 
 
@@ -336,15 +425,69 @@ def ai_sommelier(request):
     })
 
 
+def _parse_query_intent(query):
+    """Парсить текстовий запит користувача та визначає параметри."""
+    query_lower = query.lower()
+    
+    # Визначаємо смак
+    taste = "balanced"
+    if any(w in query_lower for w in ["солодк", "sweet", "цукер", "фрукт", "ягід", "десерт"]):
+        taste = "sweet"
+    elif any(w in query_lower for w in ["сух", "dry", "терпк", "гірк", "bitter"]):
+        taste = "dry"
+    
+    # Визначаємо міцність
+    strength = "regular"
+    if any(w in query_lower for w in ["легк", "light", "слаб", "низьк", "освіж", "м'як"]):
+        strength = "light"
+    elif any(w in query_lower for w in ["міцн", "strong", "крепк", "потужн", "серйоз"]):
+        strength = "strong"
+    
+    # Визначаємо настрій
+    mood = "relaxed"
+    if any(w in query_lower for w in ["вечір", "party", "тусов", "гуляти", "весел", "танц"]):
+        mood = "party"
+    elif any(w in query_lower for w in ["романт", "побачен", "кохан", "інтим", "вдвох"]):
+        mood = "romantic"
+    
+    # Визначаємо тип
+    prefer_type = "any"
+    if any(w in query_lower for w in ["коктейль", "cocktail", "змішан", "mix"]):
+        prefer_type = "cocktail"
+    elif any(w in query_lower for w in ["напій", "drink", "вино", "пиво", "віскі", "горілк", "джин", "ром"]):
+        prefer_type = "drink"
+    
+    return {
+        "taste": taste,
+        "strength": strength,
+        "mood": mood,
+        "prefer_type": prefer_type,
+        "query": query,
+    }
+
+
 @login_required
 @premium_required
 def ai_sommelier_api(request):
     """JSON API для AJAX запитів від AI-Сомельє."""
-    scenario_id = request.GET.get("scenario")
-    taste = request.GET.get("taste", "balanced")
-    strength = request.GET.get("strength", "regular")
-    mood = request.GET.get("mood", "relaxed")
-    prefer_type = request.GET.get("prefer_type", "any")
+    # Підтримка текстових запитів
+    query = request.GET.get("query") or request.POST.get("query", "")
+    
+    if query:
+        # Парсимо текстовий запит
+        intent = _parse_query_intent(query)
+        taste = intent["taste"]
+        strength = intent["strength"]
+        mood = intent["mood"]
+        prefer_type = intent["prefer_type"]
+        scenario_id = None
+    else:
+        # Старий формат з параметрами
+        scenario_id = request.GET.get("scenario")
+        taste = request.GET.get("taste", "balanced")
+        strength = request.GET.get("strength", "regular")
+        mood = request.GET.get("mood", "relaxed")
+        prefer_type = request.GET.get("prefer_type", "any")
     
     drinks = Drink.objects.all()
     cocktails = Cocktail.objects.filter(is_active=True).prefetch_related('ingredients', 'reviews')
@@ -379,26 +522,43 @@ def ai_sommelier_api(request):
     if all_recommendations:
         item, score, item_type = all_recommendations[0]
         
+        # Альтернативи
+        alternatives = []
+        for alt_item, alt_score, alt_type in all_recommendations[1:4]:
+            alt_data = {
+                "type": alt_type,
+                "name": alt_item.name,
+            }
+            if alt_type == "cocktail" and hasattr(alt_item, 'slug'):
+                alt_data["slug"] = alt_item.slug
+            alternatives.append(alt_data)
+        
+        base_response = {
+            "query": query,
+            "alternatives": alternatives,
+            "score": score,
+        }
+        
         if item_type == "drink":
-            return JsonResponse({
+            base_response.update({
                 "type": "drink",
                 "name": item.name,
                 "description": item.description or "",
                 "abv": str(item.abv) if item.abv else None,
                 "explanation": _generate_smart_drink_explanation(item, scenario, mood, taste, score),
-                "score": score,
             })
         else:
-            return JsonResponse({
+            base_response.update({
                 "type": "cocktail",
                 "name": item.name,
                 "slug": item.slug,
                 "description": item.description or "",
                 "explanation": _generate_smart_cocktail_explanation(item, mood, taste, score),
-                "score": score,
             })
+        
+        return JsonResponse(base_response)
     
-    return JsonResponse({"error": "Рекомендацій не знайдено"}, status=404)
+    return JsonResponse({"error": "Рекомендацій не знайдено", "query": query}, status=404)
 
 
 def _generate_smart_drink_explanation(drink, scenario, mood, taste, score):

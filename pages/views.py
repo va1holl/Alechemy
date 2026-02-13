@@ -1,9 +1,11 @@
+import json
 from django.views.generic import TemplateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.utils import timezone
+from django.core.serializers.json import DjangoJSONEncoder
 from datetime import timedelta
 from functools import wraps
 
@@ -34,19 +36,34 @@ class HomeView(TemplateView):
 @login_required
 def dashboard_view(request):
     """Dashboard for authenticated users."""
-    from events.models import Event
+    from events.models import Event, EventParticipant
+    from django.db.models import Q
     
     profile, _ = Profile.objects.get_or_create(user=request.user)
     today = timezone.now()
     
-    # Get user's upcoming events with related scenario/drink for display
+    # Get user's upcoming events (own + where participant, only active)
     events = (
-        Event.objects.filter(user=request.user)
+        Event.objects.filter(
+            Q(user=request.user) |
+            Q(
+                event_participants__participant=request.user,
+                event_participants__status=EventParticipant.Status.ACCEPTED
+            )
+        )
+        .filter(is_finished=False)
         .select_related('scenario', 'drink', 'dish')
+        .distinct()
         .order_by('date')[:4]
     )
-    # Use a single query with count
-    events_count = events.count() if len(events) < 4 else Event.objects.filter(user=request.user).count()
+    # Count only active events (own + participant)
+    events_count = Event.objects.filter(
+        Q(user=request.user) |
+        Q(
+            event_participants__participant=request.user,
+            event_participants__status=EventParticipant.Status.ACCEPTED
+        )
+    ).filter(is_finished=False).distinct().count()
     
     return render(request, "pages/dashboard.html", {
         "profile": profile,
@@ -257,6 +274,8 @@ def notification_action(request, notification_id, action):
 @login_required
 def calculator_view(request):
     """BAC калькулятор."""
+    from recipes.models import Cocktail
+    
     profile, _ = Profile.objects.get_or_create(user=request.user)
     
     # Значення за замовчуванням з профілю
@@ -264,11 +283,16 @@ def calculator_view(request):
     default_height = profile.height_cm or 180
     default_gender = "male" if profile.sex == "m" else "female"
     
+    # Список коктейлів для пошуку (тільки name і slug)
+    cocktails = Cocktail.objects.filter(is_active=True).values('name', 'slug').order_by('name')
+    cocktails_list = list(cocktails)
+    
     return render(request, "pages/calculator.html", {
         "profile": profile,
         "default_weight": default_weight,
         "default_height": default_height,
         "default_gender": default_gender,
+        "cocktails_json": json.dumps(cocktails_list, cls=DjangoJSONEncoder),
     })
 
 
@@ -314,27 +338,15 @@ def payment_form_view(request):
         elif not re.match(r'^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s\-\']+$', full_name):
             errors.append("Ім'я містить недопустимі символи")
         
-        # Валідація номера картки (алгоритм Луна)
+        # Валідація номера картки (16 цифр)
         if len(card_number) != 16:
             errors.append("Номер картки має містити 16 цифр")
-        else:
-            # Luhn algorithm validation
-            def luhn_check(card):
-                digits = [int(d) for d in card]
-                odd_digits = digits[-1::-2]
-                even_digits = digits[-2::-2]
-                total = sum(odd_digits)
-                for d in even_digits:
-                    d *= 2
-                    if d > 9:
-                        d -= 9
-                    total += d
-                return total % 10 == 0
-            
-            if not luhn_check(card_number):
-                errors.append("Невірний номер картки")
+        # DEMO MODE: приймаємо будь-які 16 цифр без Luhn перевірки
+        # В production потрібно розкоментувати Luhn validation або підключити платіжний шлюз
         
-        # Валідація CVV
+        # ПРИМІТКА: В production потрібно підключити реальний платіжний шлюз (Stripe, LiqPay тощо)
+        
+        # Валідація CVV (будь-які 3 цифри для demo)
         if len(cvv) != 3:
             errors.append("CVV має містити 3 цифри")
         

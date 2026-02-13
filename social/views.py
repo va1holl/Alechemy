@@ -97,14 +97,13 @@ def send_friend_request(request, user_id):
     if created:
         from accounts.models import Notification
         
-        sender_name = request.user.profile.get_display_name() if hasattr(request.user, 'profile') else request.user.email
-        
         Notification.objects.create(
             user=to_user,
             notification_type=Notification.NotificationType.FRIEND_REQUEST,
             title=_("Новий запит у друзі"),
-            message=_("%(name)s хоче додати тебе в друзі") % {"name": sender_name},
+            message=_("хоче додати тебе в друзі"),
             related_user=request.user,
+            action_required=True,
             action_url=f"/social/friends/",
         )
         
@@ -128,13 +127,11 @@ def accept_friend_request(request, req_id):
     # Сповіщення відправнику про прийняття
     from accounts.models import Notification
     
-    accepter_name = request.user.profile.get_display_name() if hasattr(request.user, 'profile') else request.user.email
-    
     Notification.objects.create(
         user=req.from_user,
         notification_type=Notification.NotificationType.FRIEND_REQUEST,
         title=_("Запит прийнято!"),
-        message=_("%(name)s прийняв твій запит у друзі") % {"name": accepter_name},
+        message=_("прийняв твій запит у друзі"),
         related_user=request.user,
         response_action=Notification.ResponseAction.ACCEPTED,
     )
