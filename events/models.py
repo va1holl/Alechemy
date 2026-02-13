@@ -39,6 +39,7 @@ class Drink(models.Model):
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    image = models.ImageField(upload_to='drinks/', blank=True, null=True)
 
     category = models.ForeignKey(
         DrinkCategory,
@@ -78,6 +79,7 @@ class Dish(models.Model):
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    image = models.ImageField(upload_to='dishes/', blank=True, null=True)
     recipe_text = models.TextField(
         blank=True,
         help_text="Короткий рецепт или инструкция для этого блюда.",
