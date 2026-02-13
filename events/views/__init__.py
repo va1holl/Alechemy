@@ -22,6 +22,7 @@ from .events import (
     event_location,
     event_feedback,
     event_discussion,
+    event_search_api,
 )
 
 # Diary
