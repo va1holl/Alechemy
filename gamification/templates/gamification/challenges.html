@@ -4,9 +4,9 @@
 {% block title %}{% trans "Челенджі" %} — Alechemy{% endblock %}
 
 {% block content %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .challenges-page { background: transparent; min-height: 100vh; padding: 40px 24px; }
-  .challenges-shell { max-width: 900px; margin: 0 auto; }
+  .challenges-shell { width: 65%; max-width: 1000px; margin: 0 auto; }
   .challenges-header { text-align: center; margin-bottom: 32px; }
   .challenges-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 28px; color: #34a853; margin-bottom: 8px; }
   .challenges-sub { color: rgba(255,255,255,0.7); font-family: 'Inter', sans-serif; }
@@ -73,6 +73,14 @@
   .no-challenges { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.5); }
 </style>
 
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[data-width]').forEach(function(el) {
+    el.style.width = el.dataset.width;
+  });
+});
+</script>
+
 <div class="challenges-page">
   <div class="challenges-shell">
     <div class="challenges-header">
@@ -80,56 +88,50 @@
       <p class="challenges-sub">{% trans "Виконуй завдання та отримуй бали для рейтингу" %}</p>
     </div>
 
-    {% if challenges %}
+    {% if challenges_data %}
       <div class="challenges-grid">
-        {% for challenge in challenges %}
-          {% with uc=user_challenges|default_if_none:""|dictsort:challenge.id %}
-          {% with user_ch=user_challenges %}
-            {% for ch_id, uch in user_ch.items %}
-              {% if ch_id == challenge.id %}
-                <div class="challenge-card {% if uch.is_complete %}completed{% endif %} {% if uch.status == 'claimed' %}claimed{% endif %}">
-                  <div class="challenge-header">
-                    <span class="challenge-icon">{{ challenge.icon }}</span>
-                    <div class="challenge-info">
-                      <h3 class="challenge-name">{{ challenge.title }}</h3>
-                      <span class="challenge-difficulty {{ challenge.difficulty }}">
-                        {% if challenge.difficulty == 'easy' %}{% trans "Легко" %}{% elif challenge.difficulty == 'medium' %}{% trans "Середнє" %}{% else %}{% trans "Складно" %}{% endif %}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {% if challenge.description %}
-                    <p class="challenge-desc">{{ challenge.description }}</p>
-                  {% endif %}
-                  
-                  <div class="challenge-progress">
-                    <div class="progress-bar-bg">
-                      <div class="progress-bar-fill" style="width: {{ uch.progress_percent }}%;"></div>
-                    </div>
-                    <div class="progress-text">
-                      <span>{{ uch.progress }} / {{ challenge.target_count }}</span>
-                      <span>{{ uch.progress_percent }}%</span>
-                    </div>
-                  </div>
-                  
-                  <div class="challenge-footer">
-                    <div class="challenge-reward">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-                      <span>{{ challenge.points_reward }} {% trans "балів" %}</span>
-                    </div>
-                    
-                    {% if uch.status == 'claimed' %}
-                      <span class="btn-claimed">✓ {% trans "Отримано" %}</span>
-                    {% elif uch.is_complete %}
-                      <a href="{% url 'gamification:claim_challenge' challenge.id %}" class="btn-claim">{% trans "Отримати нагороду" %}</a>
-                    {% else %}
-                      <button class="btn-claim" disabled>{% trans "В процесі" %}</button>
-                    {% endif %}
-                  </div>
+        {% for item in challenges_data %}
+          {% with challenge=item.challenge uch=item.user_challenge %}
+            <div class="challenge-card {% if uch.is_complete %}completed{% endif %} {% if uch.status == 'claimed' %}claimed{% endif %}">
+              <div class="challenge-header">
+                <span class="challenge-icon">{{ challenge.icon }}</span>
+                <div class="challenge-info">
+                  <h3 class="challenge-name">{{ challenge.title }}</h3>
+                  <span class="challenge-difficulty {{ challenge.difficulty }}">
+                    {% if challenge.difficulty == 'easy' %}{% trans "Легко" %}{% elif challenge.difficulty == 'medium' %}{% trans "Середнє" %}{% else %}{% trans "Складно" %}{% endif %}
+                  </span>
                 </div>
+              </div>
+              
+              {% if challenge.description %}
+                <p class="challenge-desc">{{ challenge.description }}</p>
               {% endif %}
-            {% endfor %}
-          {% endwith %}
+              
+              <div class="challenge-progress">
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" data-width="{{ uch.progress_percent }}%"></div>
+                </div>
+                <div class="progress-text">
+                  <span>{{ uch.progress }} / {{ challenge.target_count }}</span>
+                  <span>{{ uch.progress_percent }}%</span>
+                </div>
+              </div>
+              
+              <div class="challenge-footer">
+                <div class="challenge-reward">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                  <span>{{ challenge.points_reward }} {% trans "балів" %}</span>
+                </div>
+                
+                {% if uch.status == 'claimed' %}
+                  <span class="btn-claimed">✓ {% trans "Отримано" %}</span>
+                {% elif uch.is_complete %}
+                  <a href="{% url 'gamification:claim_challenge' challenge.id %}" class="btn-claim">{% trans "Отримати нагороду" %}</a>
+                {% else %}
+                  <button class="btn-claim" disabled>{% trans "В процесі" %}</button>
+                {% endif %}
+              </div>
+            </div>
           {% endwith %}
         {% endfor %}
       </div>
