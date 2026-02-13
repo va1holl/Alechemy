@@ -4,14 +4,15 @@
 {% block title %}{% trans "Калькулятор" %} — Alechemy{% endblock %}
 
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@700&family=Montserrat:wght@400;600&display=swap');
 
 .calculator-page {
     background: transparent;
     min-height: 100vh;
     padding: 45px 52px 30px;
-    max-width: 1200px;
+    width: 80%;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
@@ -39,6 +40,7 @@
     width: 20px;
     height: 20px;
     opacity: 0.5;
+    z-index: 1;
 }
 
 .search-input {
@@ -60,6 +62,69 @@
 
 .search-input::placeholder {
     color: rgba(255, 255, 255, 0.5);
+}
+
+/* Search Dropdown */
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1a1f1c;
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 16px;
+    margin-top: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+}
+
+.search-dropdown.active {
+    display: block;
+}
+
+.search-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-decoration: none;
+}
+
+.search-item:last-child {
+    border-bottom: none;
+}
+
+.search-item:hover {
+    background: rgba(52, 168, 83, 0.15);
+}
+
+.search-item-name {
+    color: #ffffff;
+    font-size: 15px;
+}
+
+.search-item-arrow {
+    color: #34A853;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.search-item-abv {
+    color: #34A853;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.search-no-results {
+    padding: 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
 }
 
 /* Cocktail Button */
@@ -296,6 +361,59 @@
     line-height: 1.5;
 }
 
+/* Premium Extended Results */
+.premium-results {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(52, 168, 83, 0.3);
+}
+
+.premium-results-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #34A853;
+    margin-bottom: 12px;
+}
+
+.download-pdf-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: linear-gradient(135deg, #34A853 0%, #2d8f47 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 20px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 16px;
+}
+
+.download-pdf-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 168, 83, 0.4);
+}
+
+.download-pdf-btn svg {
+    flex-shrink: 0;
+}
+
+.download-pdf-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+    transform: none;
+}
+
+#pdf-capture {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+}
+
 .link {
     color: #34A853;
     text-decoration: none;
@@ -403,7 +521,8 @@
             <circle cx="11" cy="11" r="8" stroke-width="2"/>
             <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
         </svg>
-        <input type="text" placeholder="{% trans 'Пошук напою...' %}" class="search-input" id="drink-search">
+        <input type="text" placeholder="{% trans 'Пошук коктейлю...' %}" class="search-input" id="drink-search" autocomplete="off">
+        <div class="search-dropdown" id="search-dropdown"></div>
     </div>
 
     <!-- Cocktail Database Button -->
@@ -426,11 +545,11 @@
             <div class="form-group">
                 <label>{% trans "Стать" %}</label>
                 <div class="gender-toggle">
-                    <div class="gender-option {% if default_gender == 'male' %}active{% endif %}" data-gender="male" onclick="selectGender(this)">
+                    <div class="gender-option {% if default_gender == 'male' %}active{% endif %}" data-gender="male">
                         <span class="radio-check"></span>
                         <span>{% trans "Чоловік" %}</span>
                     </div>
-                    <div class="gender-option {% if default_gender == 'female' %}active{% endif %}" data-gender="female" onclick="selectGender(this)">
+                    <div class="gender-option {% if default_gender == 'female' %}active{% endif %}" data-gender="female">
                         <span class="radio-check"></span>
                         <span>{% trans "Жінка" %}</span>
                     </div>
@@ -504,11 +623,11 @@
             <div class="form-group">
                 <label>{% trans "Наповненість шлунку" %}</label>
                 <div class="gender-toggle">
-                    <div class="gender-option active" data-stomach="full" onclick="selectStomach(this)">
+                    <div class="gender-option active" data-stomach="full">
                         <span class="radio-check"></span>
                         <span>{% trans "Ситий" %}</span>
                     </div>
-                    <div class="gender-option" data-stomach="empty" onclick="selectStomach(this)">
+                    <div class="gender-option" data-stomach="empty">
                         <span class="radio-check"></span>
                         <span>{% trans "Голодний" %}</span>
                     </div>
@@ -516,7 +635,7 @@
             </div>
 
             <!-- Calculate Button -->
-            <button class="calculate-btn" onclick="calculateBAC()">{% trans "Розрахувати" %}</button>
+            <button class="calculate-btn" id="calculate-btn">{% trans "Розрахувати" %}</button>
 
             <!-- Results -->
             <div class="results" id="results">
@@ -526,9 +645,31 @@
                     <li id="result-status">{% trans "Рівень" %}: {% trans "Тверезий" %}</li>
                     <li id="result-time">{% trans "Час до тверезості" %}: 0 {% trans "год" %}</li>
                 </ul>
+                
+                {% if request.user.is_authenticated and request.user.profile.is_premium %}
+                <!-- Premium: Extended Results -->
+                <div class="premium-results" id="premium-results">
+                    <h4 class="premium-results-title">📊 {% trans "Детальний аналіз" %}</h4>
+                    <ul class="results-list">
+                        <li id="result-peak">📈 {% trans "Пік сп'яніння" %}: <span>—</span></li>
+                        <li id="result-drive">🚗 {% trans "Безпечно водити через" %}: <span>—</span></li>
+                        <li id="result-calories">🔥 {% trans "Калорії від алкоголю" %}: <span>—</span></li>
+                        <li id="result-water">💧 {% trans "Рекомендовано води" %}: <span>—</span></li>
+                    </ul>
+                    <button class="download-pdf-btn" id="download-pdf-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        {% trans "Завантажити PDF-звіт" %}
+                    </button>
+                </div>
+                {% else %}
                 <p class="premium-note">
-                    {% trans "Отримайте детальніший аналіз та PDF-звіт з" %} <a href="#" class="link">Alechemy Premium</a>
+                    {% trans "Отримайте детальніший аналіз та PDF-звіт з" %} <a href="{% url 'pages:plan_choice' %}" class="link">Alechemy Premium</a>
                 </p>
+                {% endif %}
             </div>
         </div>
 
@@ -569,9 +710,63 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-let selectedGender = '{{ default_gender }}';
+<script nonce="{{ csp_nonce }}">
+// Cocktails database for search
+const cocktailsDB = {{ cocktails_json|default:"[]"|safe }};
+
+let selectedGender = '{{ default_gender|default:"male" }}';
 let selectedStomach = 'full';
+
+// Cocktail search functionality
+const searchInput = document.getElementById('drink-search');
+const searchDropdown = document.getElementById('search-dropdown');
+
+searchInput.addEventListener('input', function() {
+    const query = this.value.toLowerCase().trim();
+    
+    if (query.length < 2) {
+        searchDropdown.classList.remove('active');
+        return;
+    }
+    
+    const results = cocktailsDB.filter(cocktail => 
+        cocktail.name.toLowerCase().includes(query)
+    ).slice(0, 10);
+    
+    if (results.length === 0) {
+        searchDropdown.innerHTML = '<div class="search-no-results">{% trans "Нічого не знайдено" %}</div>';
+    } else {
+        searchDropdown.innerHTML = results.map(cocktail => `
+            <a href="/recipes/${cocktail.slug}/" class="search-item">
+                <span class="search-item-name">🍹 ${escapeHtml(cocktail.name)}</span>
+                <span class="search-item-arrow">→</span>
+            </a>
+        `).join('');
+    }
+    
+    searchDropdown.classList.add('active');
+});
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.search-bar')) {
+        searchDropdown.classList.remove('active');
+    }
+});
+
+// Close on Escape
+searchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        searchDropdown.classList.remove('active');
+        this.blur();
+    }
+});
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 function selectGender(el) {
     document.querySelectorAll('[data-gender]').forEach(btn => btn.classList.remove('active'));
@@ -652,9 +847,236 @@ function calculateBAC() {
     
     document.getElementById('results').classList.add('show');
     
+    // Premium extended results
+    const premiumResults = document.getElementById('premium-results');
+    if (premiumResults) {
+        // Peak BAC (usually 30-60 min after drinking)
+        const peakBac = bacPromile * 1.1;
+        document.getElementById('result-peak').querySelector('span').textContent = 
+            `${peakBac.toFixed(2)}‰ (через ~45 хв)`;
+        
+        // Safe to drive (when BAC < 0.2‰ in Ukraine)
+        const safeLimit = 0.2;
+        const hoursToSafe = bacPromile > safeLimit ? Math.ceil((bacPromile - safeLimit) / eliminationRate) : 0;
+        document.getElementById('result-drive').querySelector('span').textContent = 
+            hoursToSafe > 0 ? `${hoursToSafe} год` : 'Зараз безпечно';
+        
+        // Calories from alcohol (7.1 kcal per gram of alcohol)
+        const calories = Math.round(totalAlcoholGrams * 7.1);
+        document.getElementById('result-calories').querySelector('span').textContent = `${calories} ккал`;
+        
+        // Recommended water (roughly 250ml per 10g alcohol)
+        const waterMl = Math.round(totalAlcoholGrams * 25);
+        document.getElementById('result-water').querySelector('span').textContent = 
+            waterMl > 0 ? `${(waterMl / 1000).toFixed(1)} л` : '—';
+        
+        // Store data for PDF
+        window.bacReportData = {
+            date: new Date().toLocaleString('uk-UA'),
+            weight: weight,
+            height: height,
+            gender: selectedGender === 'male' ? 'Чоловік' : 'Жінка',
+            stomach: selectedStomach === 'full' ? 'Ситий' : 'Голодний',
+            drinks: [
+                { percent: drink1Percent, ml: drink1Ml },
+                { percent: drink2Percent, ml: drink2Ml },
+                { percent: drink3Percent, ml: drink3Ml }
+            ].filter(d => d.ml > 0),
+            totalAlcohol: totalAlcoholGrams.toFixed(1),
+            bac: bacPromile.toFixed(2),
+            bacPercent: bacPercent.toFixed(3),
+            status: status,
+            emoji: emoji,
+            hours: hours,
+            minutes: minutes,
+            peak: peakBac.toFixed(2),
+            hoursToSafe: hoursToSafe,
+            calories: calories,
+            waterL: (waterMl / 1000).toFixed(1)
+        };
+    }
+    
     if (bacPromile >= 2.5) {
         alert('⚠️ Увага! Небезпечний рівень алкоголю. Зверніться за медичною допомогою!');
     }
+}
+
+// Event listeners for gender selection
+document.querySelectorAll('[data-gender]').forEach(function(el) {
+    el.addEventListener('click', function() {
+        document.querySelectorAll('[data-gender]').forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        this.classList.add('active');
+        selectedGender = this.dataset.gender;
+    });
+});
+
+// Event listeners for stomach selection
+document.querySelectorAll('[data-stomach]').forEach(function(el) {
+    el.addEventListener('click', function() {
+        document.querySelectorAll('[data-stomach]').forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        this.classList.add('active');
+        selectedStomach = this.dataset.stomach;
+    });
+});
+
+// Event listener for calculate button
+document.getElementById('calculate-btn').addEventListener('click', calculateBAC);
+
+// PDF download button (Premium) - using html2canvas + jsPDF
+const pdfBtn = document.getElementById('download-pdf-btn');
+if (pdfBtn) {
+    pdfBtn.addEventListener('click', async function() {
+        if (!window.bacReportData) {
+            alert('Спочатку розрахуйте BAC!');
+            return;
+        }
+        
+        pdfBtn.disabled = true;
+        pdfBtn.textContent = 'Генерується...';
+        
+        try {
+            // Load libraries dynamically
+            const loadScript = (url) => new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = url;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            
+            if (!window.html2canvas) {
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+            }
+            if (!window.jspdf) {
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+            }
+            
+            // Create printable element
+            const printArea = document.createElement('div');
+            printArea.id = 'pdf-capture';
+            printArea.innerHTML = createPDFContent(window.bacReportData);
+            document.body.appendChild(printArea);
+            
+            // Capture with html2canvas
+            const canvas = await html2canvas(printArea, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#0a0f0c'
+            });
+            
+            // Remove temp element
+            document.body.removeChild(printArea);
+            
+            // Create PDF
+            const { jsPDF } = window.jspdf;
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            const imgWidth = 190;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+            pdf.save(`alechemy-bac-report-${new Date().toISOString().slice(0,10)}.pdf`);
+            
+        } catch (err) {
+            console.error('PDF generation error:', err);
+            alert('Помилка генерації PDF');
+        } finally {
+            pdfBtn.disabled = false;
+            pdfBtn.textContent = '📄 Завантажити PDF звіт';
+        }
+    });
+}
+
+function createPDFContent(d) {
+    const drinksHtml = d.drinks.map((drink, i) => 
+        `<div style="color: #fff; margin: 4px 0;">Напій ${i + 1}: ${drink.ml} мл @ ${drink.percent}%</div>`
+    ).join('');
+    
+    return `
+    <div style="width: 600px; padding: 30px; background: #0a0f0c; font-family: Arial, sans-serif;">
+        <!-- Header -->
+        <div style="background: #34a853; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <div style="color: #fff; font-size: 28px; font-weight: bold;">ALECHEMY</div>
+            <div style="color: #fff; font-size: 14px; margin-top: 5px;">BAC Calculator Report</div>
+        </div>
+        
+        <!-- Date -->
+        <div style="text-align: center; color: #969696; padding: 15px 0; font-size: 12px;">
+            ${d.date}
+        </div>
+        
+        <!-- User Info -->
+        <div style="background: #1e2823; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+            <div style="color: #34a853; font-size: 16px; font-weight: bold; margin-bottom: 12px;">
+                ПАРАМЕТРИ КОРИСТУВАЧА
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; color: #fff;">
+                <div>Вага: ${d.weight} кг</div>
+                <div>Зріст: ${d.height} см</div>
+                <div>Стать: ${d.gender}</div>
+                <div>Стан шлунку: ${d.stomach}</div>
+                <div>Чистий алкоголь: ${d.totalAlcohol} г</div>
+            </div>
+        </div>
+        
+        <!-- Drinks -->
+        ${d.drinks.length > 0 ? `
+        <div style="background: #1e2823; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+            <div style="color: #34a853; font-size: 16px; font-weight: bold; margin-bottom: 12px;">
+                НАПОЇ
+            </div>
+            ${drinksHtml}
+        </div>
+        ` : ''}
+        
+        <!-- Main Result -->
+        <div style="background: linear-gradient(135deg, #1e4d2b 0%, #0a0f0c 100%); padding: 25px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #34a853;">
+            <div style="color: #34a853; font-size: 16px; font-weight: bold; margin-bottom: 12px;">
+                РЕЗУЛЬТАТ
+            </div>
+            <div style="color: #34a853; font-size: 28px; font-weight: bold; margin-bottom: 10px;">
+                BAC: ${d.bac} ‰ (${d.bacPercent}%)
+            </div>
+            <div style="color: #fff; font-size: 18px; margin-bottom: 8px;">
+                ${d.emoji} Рівень: ${d.status}
+            </div>
+            <div style="color: #fff; font-size: 16px;">
+                Час до тверезості: ${d.hours} год ${d.minutes} хв
+            </div>
+        </div>
+        
+        <!-- Premium Analysis -->
+        <div style="background: #1e2823; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+            <div style="color: #34a853; font-size: 16px; font-weight: bold; margin-bottom: 12px;">
+                ДЕТАЛЬНИЙ АНАЛІЗ (Premium)
+            </div>
+            <div style="display: grid; gap: 10px;">
+                <div><span style="color: #969696;">Пік сп'яніння:</span> <span style="color: #fff;">${d.peak} ‰ (через ~45 хв)</span></div>
+                <div><span style="color: #969696;">Безпечно водити через:</span> <span style="color: #fff;">${d.hoursToSafe > 0 ? d.hoursToSafe + ' год' : 'Зараз безпечно'}</span></div>
+                <div><span style="color: #969696;">Калорії від алкоголю:</span> <span style="color: #fff;">${d.calories} ккал</span></div>
+                <div><span style="color: #969696;">Рекомендовано води:</span> <span style="color: #fff;">${d.waterL} л</span></div>
+            </div>
+        </div>
+        
+        <!-- Warning -->
+        <div style="background: #502828; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <div style="color: #ffb4b4; font-size: 12px;">
+                ⚠️ УВАГА: Це приблизний розрахунок. Реальний рівень може відрізнятися.<br>
+                Не керуйте транспортом у стані сп'яніння!
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="text-align: center; color: #969696; font-size: 10px; padding-top: 10px;">
+            Generated by Alechemy Premium • www.alechemy.com
+        </div>
+    </div>
+    `;
 }
 </script>
 {% endblock %}
