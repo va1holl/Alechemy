@@ -4,10 +4,12 @@
 {% block title %}{% trans "AI-Сомельє" %} — Alechemy{% endblock %}
 
 {% block extra_css %}
+<style nonce="{{ csp_nonce }}">
 @import url('https://fonts.googleapis.com/css2?family=Sedgwick+Ave+Display&family=Montserrat:wght@500;600;700&family=Urbanist:wght@400;500&display=swap');
 
 .sommelier-page {
-    max-width: 1200px;
+    width: 80%;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 30px 24px;
     min-height: calc(100vh - 80px);
@@ -464,6 +466,88 @@
         flex-direction: column;
     }
 }
+
+/* Typing indicator */
+.typing-dots {
+    display: flex;
+    gap: 4px;
+    padding: 8px 0;
+}
+
+.typing-dots span {
+    width: 8px;
+    height: 8px;
+    background: rgba(52, 168, 83, 0.6);
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out both;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+.typing-dots span:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* Alternatives section */
+.alternatives-section {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.alternatives-label {
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.alternatives-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.alternative-item {
+    background: rgba(52, 168, 83, 0.1);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+}
+
+.alt-link {
+    color: #34A853;
+    text-decoration: none;
+}
+
+.alt-link:hover {
+    text-decoration: underline;
+}
+
+/* Error message */
+.error-message .ai-content p {
+    color: #ff6b6b;
+}
+
+/* Disabled state */
+#queryInput:disabled,
+#send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Hidden utility class */
+.hidden {
+    display: none !important;
+}
+
+/* Welcome chips spacing */
+.welcome-chips {
+    margin-top: 16px;
+}
 </style>
 {% endblock %}
 
@@ -507,173 +591,283 @@
 
         <!-- Chat Area -->
         <main class="chat-area">
-            {% if recommendation %}
-            <!-- Show Conversation -->
-            <div class="conversation">
-                <!-- User Message -->
-                <div class="message user-message">
-                    <div class="message-avatar">
-                        {% if request.user.first_name %}{{ request.user.first_name.0 }}{% else %}U{% endif %}
-                    </div>
-                    <div class="message-content">
-                        <p>{{ user_query|default:"Порекомендуй мені коктейль" }}</p>
-                    </div>
-                </div>
-
-                <!-- AI Response -->
-                <div class="message ai-message">
+            <!-- Conversation Container (always visible) -->
+            <div class="conversation" id="conversation">
+                <!-- Welcome message -->
+                <div class="message ai-message" id="welcome-message">
                     <div class="ai-header">
                         <div class="message-avatar ai"></div>
-                        <div class="ai-actions">
-                            <button class="action-btn" title="{% trans 'Копіювати' %}" onclick="copyResponse()">
-                                <svg viewBox="0 0 24 24" stroke-width="2">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                                </svg>
-                            </button>
-                            <button class="action-btn" title="{% trans 'Поділитися' %}" onclick="shareResponse()">
-                                <svg viewBox="0 0 24 24" stroke-width="2">
-                                    <circle cx="18" cy="5" r="3"/>
-                                    <circle cx="6" cy="12" r="3"/>
-                                    <circle cx="18" cy="19" r="3"/>
-                                    <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
-                                </svg>
-                            </button>
-                        </div>
                     </div>
-
                     <div class="ai-content">
-                        <p>{{ explanation }}</p>
-
-                        <div class="recipe-result">
-                            <h4>
-                                {% if recommendation_type == 'drink' %}🍾 {% trans "Напій" %}{% else %}🍹 {% trans "Коктейль" %}{% endif %}:
-                                {{ recommendation.name }}
-                            </h4>
-                            {% if recommendation.description %}
-                            <p>{{ recommendation.description }}</p>
-                            {% endif %}
-                            {% if recommendation_type == 'cocktail' %}
-                            <a href="{% url 'recipes:cocktail_detail' recommendation.slug %}" class="recipe-link">
-                                {% trans "Переглянути рецепт" %} →
-                            </a>
-                            {% endif %}
-                        </div>
+                        <p>👋 {% trans "Привіт! Я AI-Сомельє. Розкажи, що ти хочеш спробувати, і я підберу ідеальний напій або коктейль для тебе." %}</p>
                         
-                        {% if alternatives %}
-                        <div class="alternatives-section" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
-                            <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 12px;">{% trans "Також рекомендуємо:" %}</p>
-                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                                {% for item, itype in alternatives %}
-                                <div style="background: rgba(52, 168, 83, 0.1); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 12px; padding: 10px 14px;">
-                                    <span style="font-size: 13px;">
-                                        {% if itype == 'drink' %}🍾{% else %}🍹{% endif %}
-                                        {% if itype == 'cocktail' %}
-                                        <a href="{% url 'recipes:cocktail_detail' item.slug %}" style="color: #34A853; text-decoration: none;">{{ item.name }}</a>
-                                        {% else %}
-                                        {{ item.name }}
-                                        {% endif %}
-                                    </span>
-                                </div>
-                                {% endfor %}
-                            </div>
+                        <div class="suggestion-chips welcome-chips">
+                            <button class="suggestion-chip" data-query="Порекомендуй солодкий коктейль">🍬 {% trans "Солодкий коктейль" %}</button>
+                            <button class="suggestion-chip" data-query="Щось для вечірки">🎉 {% trans "Для вечірки" %}</button>
+                            <button class="suggestion-chip" data-query="Легкий романтичний напій">💕 {% trans "Романтика" %}</button>
+                            <button class="suggestion-chip" data-query="Міцний класичний коктейль">💪 {% trans "Міцний класика" %}</button>
                         </div>
-                        {% endif %}
-
-                        <p class="hint">{% trans "Переформулюйте запит, якщо відповідь не задовільна." %}</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Bottom Bar -->
+            <!-- Bottom Bar (always visible) -->
             <div class="bottom-bar">
-                <button class="regenerate-btn" onclick="window.location.href='{% url 'recipes:ai_sommelier' %}'">
+                <button class="regenerate-btn hidden" id="regenerate-btn">
                     <svg viewBox="0 0 24 24">
                         <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4C7.58 4 4.01 7.58 4.01 12C4.01 16.42 7.58 20 12 20C15.73 20 18.84 17.45 19.73 14H17.65C16.83 16.33 14.61 18 12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C13.66 6 15.14 6.69 16.22 7.78L13 11H20V4L17.65 6.35Z"/>
                     </svg>
-                    {% trans "Регенерація" %}
+                    {% trans "Новий чат" %}
                 </button>
 
-                <form method="post" class="input-container">
-                    {% csrf_token %}
-                    <input type="hidden" name="quick_query" value="1">
-                    <input type="text" name="query" placeholder="{% trans 'Введіть запит...' %}" class="chat-input" />
-                    <button type="submit" class="send-btn">
+                <div class="input-container" id="chat-form">
+                    <input type="text" id="queryInput" placeholder="{% trans 'Введіть запит...' %}" class="chat-input" autocomplete="off" />
+                    <button type="button" class="send-btn" id="send-btn">
                         <svg viewBox="0 0 24 24">
-                            <path d="M12 2L22 12L12 22L12 14L2 12L12 10L12 2Z"/>
+                            <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
                         </svg>
                     </button>
-                </form>
-            </div>
-
-            {% else %}
-            <!-- Empty State - Show Form -->
-            <div class="empty-state">
-                <h2>{% trans "Що нового бажаєш спробувати?" %}</h2>
-
-                <div class="suggestion-chips">
-                    <button class="suggestion-chip" onclick="fillQuery('Порекомендуй солодкий коктейль')">🍬 {% trans "Солодкий коктейль" %}</button>
-                    <button class="suggestion-chip" onclick="fillQuery('Щось для вечірки')">🎉 {% trans "Для вечірки" %}</button>
-                    <button class="suggestion-chip" onclick="fillQuery('Легкий романтичний напій')">💕 {% trans "Романтика" %}</button>
-                    <button class="suggestion-chip" onclick="fillQuery('Міцний класичний коктейль')">💪 {% trans "Міцний класика" %}</button>
                 </div>
-
-                <form method="post" class="input-container">
-                    {% csrf_token %}
-                    <input type="hidden" name="quick_query" value="1">
-                    <input type="text" name="query" id="queryInput" placeholder="{% trans 'Введіть запит...' %}" class="chat-input" />
-                    <button type="submit" class="send-btn">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M12 2L22 12L12 22L12 14L2 12L12 10L12 2Z"/>
-                        </svg>
-                    </button>
-                </form>
             </div>
-            {% endif %}
         </main>
     </div>
 </div>
+
+<script nonce="{{ csp_nonce }}">
+const API_URL = '{% url "recipes:ai_sommelier_api" %}';
+const USER_INITIAL = '{{ request.user.first_name.0|default:"U" }}';
+let messageCount = 0;
 
 function fillQuery(text) {
     document.getElementById('queryInput').value = text;
     document.getElementById('queryInput').focus();
 }
 
-function copyResponse() {
-    const content = document.querySelector('.ai-content').innerText;
-    navigator.clipboard.writeText(content).then(() => {
-        alert('{% trans "Скопійовано!" %}');
-    });
+function scrollToBottom() {
+    const conversation = document.getElementById('conversation');
+    conversation.scrollTop = conversation.scrollHeight;
 }
 
-function shareResponse() {
-    if (navigator.share) {
-        navigator.share({
-            title: '{% trans "AI-Сомельє рекомендація" %}',
-            text: document.querySelector('.ai-content').innerText,
-            url: window.location.href
+function addUserMessage(text) {
+    const conversation = document.getElementById('conversation');
+    const msg = document.createElement('div');
+    msg.className = 'message user-message';
+    msg.innerHTML = `
+        <div class="message-avatar">${USER_INITIAL}</div>
+        <div class="message-content"><p>${escapeHtml(text)}</p></div>
+    `;
+    conversation.appendChild(msg);
+    scrollToBottom();
+}
+
+function addTypingIndicator() {
+    const conversation = document.getElementById('conversation');
+    const typing = document.createElement('div');
+    typing.className = 'message ai-message typing-indicator';
+    typing.id = 'typing-indicator';
+    typing.innerHTML = `
+        <div class="ai-header">
+            <div class="message-avatar ai"></div>
+        </div>
+        <div class="ai-content">
+            <div class="typing-dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    `;
+    conversation.appendChild(typing);
+    scrollToBottom();
+}
+
+function removeTypingIndicator() {
+    const typing = document.getElementById('typing-indicator');
+    if (typing) typing.remove();
+}
+
+function addAIMessage(data) {
+    removeTypingIndicator();
+    const conversation = document.getElementById('conversation');
+    
+    // Build alternatives HTML
+    let alternativesHtml = '';
+    if (data.alternatives && data.alternatives.length > 0) {
+        alternativesHtml = `
+            <div class="alternatives-section">
+                <p class="alternatives-label">{% trans "Також рекомендуємо:" %}</p>
+                <div class="alternatives-list">
+                    ${data.alternatives.map(alt => `
+                        <div class="alternative-item">
+                            ${alt.type === 'drink' ? '🍾' : '🍹'}
+                            ${alt.slug ? 
+                                `<a href="/recipes/${alt.slug}/" class="alt-link">${escapeHtml(alt.name)}</a>` : 
+                                escapeHtml(alt.name)
+                            }
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    const msg = document.createElement('div');
+    msg.className = 'message ai-message';
+    msg.innerHTML = `
+        <div class="ai-header">
+            <div class="message-avatar ai"></div>
+            <div class="ai-actions">
+                <button class="action-btn copy-btn" title="{% trans 'Копіювати' %}">
+                    <svg viewBox="0 0 24 24" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="ai-content">
+            <p>${formatExplanation(data.explanation)}</p>
+            
+            <div class="recipe-result">
+                <h4>
+                    ${data.type === 'drink' ? '🍾 {% trans "Напій" %}' : '🍹 {% trans "Коктейль" %}'}: 
+                    ${escapeHtml(data.name)}
+                </h4>
+                ${data.description ? `<p>${escapeHtml(data.description)}</p>` : ''}
+                ${data.slug ? `<a href="/recipes/${data.slug}/" class="recipe-link">{% trans "Переглянути рецепт" %} →</a>` : ''}
+            </div>
+            
+            ${alternativesHtml}
+        </div>
+    `;
+    
+    // Add copy functionality
+    const copyBtn = msg.querySelector('.copy-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+            const text = msg.querySelector('.ai-content').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                copyBtn.innerHTML = '✓';
+                setTimeout(() => {
+                    copyBtn.innerHTML = `<svg viewBox="0 0 24 24" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>`;
+                }, 2000);
+            });
         });
-    } else {
-        copyResponse();
+    }
+    
+    conversation.appendChild(msg);
+    scrollToBottom();
+    
+    // Show new chat button after first message
+    messageCount++;
+    if (messageCount > 0) {
+        document.getElementById('regenerate-btn').classList.remove('hidden');
+    }
+}
+
+function addErrorMessage(text) {
+    removeTypingIndicator();
+    const conversation = document.getElementById('conversation');
+    const msg = document.createElement('div');
+    msg.className = 'message ai-message error-message';
+    msg.innerHTML = `
+        <div class="ai-header">
+            <div class="message-avatar ai"></div>
+        </div>
+        <div class="ai-content">
+            <p>❌ ${escapeHtml(text)}</p>
+        </div>
+    `;
+    conversation.appendChild(msg);
+    scrollToBottom();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatExplanation(text) {
+    // Convert **bold** to <strong>
+    return text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+               .replace(/_([^_]+)_/g, '<em>$1</em>');
+}
+
+async function sendMessage(query) {
+    if (!query.trim()) return;
+    
+    // Hide welcome message
+    const welcome = document.getElementById('welcome-message');
+    if (welcome) welcome.classList.add('hidden');
+    
+    // Clear input
+    document.getElementById('queryInput').value = '';
+    
+    // Add user message
+    addUserMessage(query);
+    
+    // Show typing indicator
+    addTypingIndicator();
+    
+    // Disable input during request
+    const input = document.getElementById('queryInput');
+    const sendBtn = document.getElementById('send-btn');
+    input.disabled = true;
+    sendBtn.disabled = true;
+    
+    try {
+        const response = await fetch(`${API_URL}?query=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            addAIMessage(data);
+        } else {
+            addErrorMessage(data.error || '{% trans "Помилка отримання рекомендації" %}');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        addErrorMessage('{% trans "Помилка зєднання. Спробуйте ще раз." %}');
+    } finally {
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Focus input
-    const input = document.querySelector('.chat-input');
-    if (input) {
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && this.value.trim()) {
-                this.closest('form').submit();
-            }
+    const input = document.getElementById('queryInput');
+    const sendBtn = document.getElementById('send-btn');
+    const regenBtn = document.getElementById('regenerate-btn');
+    
+    // Send on button click
+    sendBtn.addEventListener('click', function() {
+        sendMessage(input.value);
+    });
+    
+    // Send on Enter
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendMessage(input.value);
+        }
+    });
+    
+    // New chat button
+    regenBtn.addEventListener('click', function() {
+        window.location.reload();
+    });
+    
+    // Suggestion chips
+    document.querySelectorAll('.suggestion-chip[data-query]').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+            sendMessage(this.dataset.query);
         });
-    }
-
-    // Scroll to bottom of conversation
-    const conversation = document.querySelector('.conversation');
-    if (conversation) {
-        conversation.scrollTop = conversation.scrollHeight;
-    }
+    });
+    
+    // Focus input
+    input.focus();
 });
 </script>
 {% endblock %}
