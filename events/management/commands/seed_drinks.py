@@ -915,6 +915,7 @@ class Command(BaseCommand):
         ]
         
         created = 0
+        images_loaded = 0
         for drink_data in drinks_data:
             drink, was_created = Drink.objects.get_or_create(
                 slug=drink_data['slug'],
@@ -933,10 +934,104 @@ class Command(BaseCommand):
                     if tag_slug in tags:
                         drink.tags.add(tags[tag_slug])
             
+            # Завантажуємо зображення якщо ще немає
+            if not drink.image:
+                if self.download_drink_image(drink, drink_data.get('category', '')):
+                    images_loaded += 1
+            
             if was_created:
                 created += 1
         
-        self.stdout.write(f'  ✓ Напоїв: {len(drinks_data)} (нових: {created})')
+        self.stdout.write(f'  ✓ Напоїв: {len(drinks_data)} (нових: {created}, зображень: {images_loaded})')
+    
+    def download_drink_image(self, drink, category):
+        """Завантажуємо зображення для напою з TheCocktailDB або Pexels."""
+        import requests
+        from django.core.files.base import ContentFile
+        
+        # Спробуємо знайти в TheCocktailDB (там є деякі напої)
+        drink_mapping = {
+            'absolut-vodka': 'Vodka',
+            'grey-goose': 'Vodka',
+            'smirnoff': 'Vodka',
+            'jack-daniels': 'Whiskey',
+            'jameson': 'Whiskey',
+            'johnnie-walker-black': 'Whiskey',
+            'jim-beam': 'Whiskey',
+            'bacardi-white': 'Rum',
+            'captain-morgan': 'Rum',
+            'havana-club': 'Rum',
+            'gordons-gin': 'Gin',
+            'bombay-sapphire': 'Gin',
+            'tanqueray': 'Gin',
+            'jose-cuervo': 'Tequila',
+            'patron-silver': 'Tequila',
+            'hennessy': 'Cognac',
+            'martell': 'Brandy',
+            'baileys': 'Irish Cream',
+            'kahlua': 'Coffee Liqueur',
+            'cointreau': 'Triple Sec',
+            'grand-marnier': 'Grand Marnier',
+            'amaretto-disaronno': 'Amaretto',
+            'jagermeister': 'Jagermeister',
+            'aperol': 'Aperol',
+            'campari': 'Campari',
+            'martini-bianco': 'Vermouth',
+            'martini-rosso': 'Vermouth',
+        }
+        
+        search_name = drink_mapping.get(drink.slug, None)
+        
+        if search_name:
+            try:
+                api_url = f'https://www.thecocktaildb.com/api/json/v1/1/search.php?i={search_name}'
+                response = requests.get(api_url, timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('ingredients') and len(data['ingredients']) > 0:
+                        image_name = data['ingredients'][0].get('strIngredient')
+                        if image_name:
+                            image_url = f'https://www.thecocktaildb.com/images/ingredients/{image_name}-Medium.png'
+                            img_response = requests.get(image_url, timeout=15)
+                            if img_response.status_code == 200:
+                                filename = f'{drink.slug}.png'
+                                drink.image.save(filename, ContentFile(img_response.content), save=True)
+                                return True
+            except Exception:
+                pass
+        
+        # Fallback - використовуємо зображення інгредієнтів з TheCocktailDB
+        category_ingredients = {
+            'vodka': 'Vodka',
+            'whiskey': 'Whiskey',
+            'rum': 'Rum',
+            'gin': 'Gin',
+            'tequila': 'Tequila',
+            'cognac': 'Cognac',
+            'liqueur': 'Amaretto',
+            'wine': 'Red Wine',
+            'champagne': 'Champagne',
+            'beer': 'Lager',
+            'cider': 'Apple Cider',
+            'vermouth': 'Sweet Vermouth',
+            'aperitif': 'Aperol',
+            'non-alcoholic': 'Orange Juice',
+        }
+        
+        ingredient_name = category_ingredients.get(category, 'Vodka')
+        
+        try:
+            image_url = f'https://www.thecocktaildb.com/images/ingredients/{ingredient_name}-Medium.png'
+            img_response = requests.get(image_url, timeout=15)
+            if img_response.status_code == 200:
+                filename = f'{drink.slug}.png'
+                drink.image.save(filename, ContentFile(img_response.content), save=True)
+                return True
+        except Exception:
+            pass
+        
+        return False
 
     def link_drinks_to_scenarios(self):
         """Прив'язуємо напої до сценаріїв як рекомендовані."""
