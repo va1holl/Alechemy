@@ -111,7 +111,7 @@ class ContentSecurityPolicyMiddleware(MiddlewareMixin):
             # Still include nonce but keep unsafe-inline as fallback for hot reload etc
             csp_directives = [
                 "default-src 'self'",
-                f"script-src 'self' 'nonce-{nonce}' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
+                f"script-src 'self' 'nonce-{nonce}' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com",
                 f"style-src 'self' 'nonce-{nonce}' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com",
                 "font-src 'self' https://fonts.gstatic.com data:",
                 "img-src 'self' data: https: blob:",
@@ -127,7 +127,7 @@ class ContentSecurityPolicyMiddleware(MiddlewareMixin):
             csp_directives = [
                 "default-src 'self'",
                 # Nonce-based: allows only scripts/styles with matching nonce
-                f"script-src 'self' 'nonce-{nonce}' 'strict-dynamic' https://cdn.jsdelivr.net https://unpkg.com",
+                f"script-src 'self' 'nonce-{nonce}' 'strict-dynamic' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com",
                 f"style-src 'self' 'nonce-{nonce}' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com",
                 "font-src 'self' https://fonts.gstatic.com data:",
                 "img-src 'self' data: https: blob:",
