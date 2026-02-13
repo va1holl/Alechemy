@@ -518,3 +518,187 @@ h1, h2, p { margin: 0; }
 }
 
 a.btn, a.btn:visited { color: var(--text); text-decoration: none; }
+
+/* CSP-compliant utility classes (replacing inline styles) */
+.flex-col-full {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.flex-col-form {
+  display: flex;
+  flex-direction: column;
+  gap: 37px;
+}
+
+.flex-col-gap30 {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+  align-items: center;
+}
+
+.flex-col-gap41 {
+  display: flex;
+  flex-direction: column;
+  gap: 41px;
+  width: 100%;
+}
+
+.flex-col-gap25 {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  width: 100%;
+}
+
+.flex-col-gap22 {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.flex-col-gap18 {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
+.flex-col-gap15 {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.label-text {
+  color: var(--text);
+}
+
+.error-text {
+  color: #ffbaba;
+}
+
+.error-field {
+  color: #ffbaba;
+  font-size: 16px;
+}
+
+.remember-text {
+  font-size: 24px;
+  text-decoration: none;
+}
+
+.row-start {
+  align-items: flex-start;
+}
+
+.hr-row-margin {
+  margin-top: -5px;
+}
+
+.input-transparent {
+  background: transparent;
+  border: 0;
+  outline: none;
+  width: 100%;
+  color: var(--text-faint);
+}
+
+.flex-col-gap30 {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.row-gap18 {
+  gap: 18px;
+  align-items: center;
+  display: none;
+}
+
+.row-gap19 {
+  gap: 19px;
+  align-items: center;
+}
+
+.img-block {
+  display: block;
+}
+
+.btn-toggle-method {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  align-items: center;
+  width: max-content;
+}
+
+.toggle-method-text {
+  font-size: 16px;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.img-logo-center {
+  display: block;
+  margin: 0 auto;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.btn-narrow {
+  max-width: 320px;
+  align-self: center;
+}
+
+.hint-text {
+  font-size: 14px;
+}
+
+.row-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.back-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flex-col-gap11 {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.flex-col-gap14 {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.subtitle-white {
+  color: var(--text);
+}
+
+.social-text {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.flex-col-gap35 {
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+  align-items: center;
+}
+
+.hr-short {
+  width: 113px;
+}
