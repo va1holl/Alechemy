@@ -192,7 +192,8 @@ class EventViewTests(TestCase):
         # Set all required profile fields to pass adult_required decorator
         self.user.profile.is_adult_confirmed = True
         self.user.profile.gdpr_consent = True
-        self.user.profile.age = 25  # Required by adult_required decorator
+        from datetime import date
+        self.user.profile.birth_date = date(2000, 1, 1)  # Required by adult_required decorator
         self.user.profile.save()
         
         self.scenario = Scenario.objects.create(

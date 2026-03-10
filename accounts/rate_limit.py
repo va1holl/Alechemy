@@ -44,7 +44,7 @@ def rate_limit(key_prefix, limit=5, period=60, block_time=300):
             if cache.get(block_key):
                 return HttpResponse(
                     "Забагато спроб. Спробуйте пізніше.",
-                    content_type="text/plain",
+                    content_type="text/plain; charset=utf-8",
                     status=429
                 )
             
@@ -64,7 +64,7 @@ def rate_limit(key_prefix, limit=5, period=60, block_time=300):
                 cache.delete(cache_key)
                 return HttpResponse(
                     f"Забагато спроб. Спробуйте через {block_time // 60} хвилин.",
-                    content_type="text/plain",
+                    content_type="text/plain; charset=utf-8",
                     status=429
                 )
             

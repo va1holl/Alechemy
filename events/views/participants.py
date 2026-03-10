@@ -102,6 +102,9 @@ def event_participants(request, pk):
                         related_user=request.user,
                         related_event=event
                     )
+                    # Email-сповіщення
+                    from accounts.emails import send_event_invitation_email
+                    send_event_invitation_email(target_user, request.user, event)
                 else:
                     messages.info(request, f"{user_display} вже запрошений.")
             
@@ -153,6 +156,7 @@ def event_remove_participant(request, pk, participant_pk):
     return redirect("events:event_participants", pk=pk)
 
 
+@require_POST
 @login_required
 @adult_required
 def event_invitation_response(request, pk, action):
@@ -175,11 +179,19 @@ def event_invitation_response(request, pk, action):
         from gamification.services import award_points
         award_points(request.user, 'event_join')
         
+        # Email власнику про прийняття
+        from accounts.emails import send_invitation_response_email
+        send_invitation_response_email(event.user, request.user, event, accepted=True)
+        
     elif action == "decline":
         participant.status = EventParticipant.Status.DECLINED
         participant.responded_at = timezone.now()
         participant.save()
         messages.info(request, "Ви відхилили запрошення")
+        
+        # Email власнику про відхилення
+        from accounts.emails import send_invitation_response_email
+        send_invitation_response_email(event.user, request.user, event, accepted=False)
     
     return redirect("events:event_list")
 
@@ -243,6 +255,7 @@ def my_invitations(request):
     })
 
 
+@require_POST
 @login_required
 @adult_required
 def event_leave(request, pk):

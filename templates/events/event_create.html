@@ -348,7 +348,12 @@
             {% csrf_token %}
             <input type="hidden" name="step" value="create_event">
             <input type="hidden" name="drink_id" value="{{ drink.id }}">
+            {% for d in dishes %}
+            <input type="hidden" name="dish_ids" value="{{ d.id }}">
+            {% endfor %}
+            {% if not dishes and dish %}
             <input type="hidden" name="dish_id" value="{{ dish.id }}">
+            {% endif %}
             <input type="hidden" name="difficulty" value="{{ difficulty }}">
 
             {% if form.non_field_errors %}

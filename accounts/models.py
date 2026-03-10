@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from datetime import date
 import uuid
 import random
 import string
@@ -52,8 +53,18 @@ class Profile(models.Model):
         help_text="Ім'я, яке бачитимуть інші користувачі"
     )
 
-    # по ТЗ: возраст, пол, вес, рост
-    age = models.PositiveIntegerField(null=True, blank=True, help_text="Полных лет")
+    # по ТЗ: дата народження, стать, вага, зріст
+    birth_date = models.DateField(null=True, blank=True, help_text="Дата народження")
+
+    @property
+    def age(self):
+        """Вік розраховується автоматично з дати народження."""
+        if not self.birth_date:
+            return None
+        today = date.today()
+        return today.year - self.birth_date.year - (
+            (today.month, today.day) < (self.birth_date.month, self.birth_date.day)
+        )
     sex = models.CharField(
         max_length=10,
         choices=Sex.choices,

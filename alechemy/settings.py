@@ -74,6 +74,8 @@ if not DEBUG and SENTRY_DSN:
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 ALLOWED_HOSTS = [h.strip() for h in ALLOWED_HOSTS if h.strip()]
 
+SITE_DOMAIN = os.getenv("SITE_DOMAIN", "localhost:8000")
+
 
 # Application definition
 
@@ -110,7 +112,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -233,6 +234,7 @@ AUTH_USER_MODEL = "accounts.User"
 
 AUTHENTICATION_BACKENDS = [
     "accounts.backends.EmailBackend",
+    "accounts.backends.GoogleOAuth2Backend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
@@ -241,6 +243,21 @@ LOGIN_REDIRECT_URL = "pages:home"
 LOGOUT_REDIRECT_URL = "pages:home"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# =============================================================================
+# Email Configuration (Gmail SMTP — free 500 emails/day)
+# =============================================================================
+# В продакшені перемикаємо на реальний SMTP
+_EMAIL_HOST = os.getenv('EMAIL_HOST', '')
+if _EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = _EMAIL_HOST
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@alechemy.app')
+    SERVER_EMAIL = os.getenv('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
 
 # Production security settings
 if not DEBUG:
@@ -559,6 +576,12 @@ HCAPTCHA_SECRET = os.getenv('HCAPTCHA_SECRET', '')
 # Disable captcha in development if keys not set
 HCAPTCHA_ENABLED = bool(HCAPTCHA_SITEKEY and HCAPTCHA_SECRET) and not DEBUG
 
+# =============================================================================
+# Google OAuth2 Configuration
+# =============================================================================
+GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_OAUTH2_CLIENT_ID', '')
+GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET', '')
+
 
 # =============================================================================
 # Admin Error Notifications
@@ -583,5 +606,8 @@ if not DEBUG:
     EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 else:
-    # Console backend for development
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    # In dev: use SMTP if configured, otherwise console
+    if os.getenv('EMAIL_HOST'):
+        EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    else:
+        EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

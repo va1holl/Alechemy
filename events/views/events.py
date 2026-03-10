@@ -72,7 +72,13 @@ def event_create_from_scenario(request, slug):
         difficulty = request.POST.get("difficulty") or ""
 
         drink = get_object_or_404(Drink, id=drink_id) if drink_id else None
-        dishes = [get_object_or_404(Dish, id=dish_id)] if dish_id else []
+        # Збираємо всі вибрані страви (множинний вибір)
+        all_dish_ids = dish_ids if dish_ids else ([dish_id] if dish_id else [])
+        dishes_qs = Dish.objects.filter(id__in=all_dish_ids) if all_dish_ids else Dish.objects.none()
+        dishes = list(dishes_qs)
+        # Збираємо всі вибрані напої
+        all_drink_ids = drink_ids if drink_ids else ([drink_id] if drink_id else [])
+        drinks_list = list(Drink.objects.filter(id__in=all_drink_ids)) if all_drink_ids else []
 
         if step == "select_dish":
             # Pre-fill form with values from scenario page
@@ -113,6 +119,12 @@ def event_create_from_scenario(request, slug):
             event.dish = dishes[0] if dishes else None
             event.intensity = intensity
             event.save()
+
+            # Зберігаємо M2M зв'язки
+            if drinks_list:
+                event.drinks.set(drinks_list)
+            if dishes:
+                event.dishes.set(dishes)
 
             # Нараховуємо бали за створення події
             from gamification.services import award_points
@@ -203,17 +215,14 @@ def event_edit(request, pk):
     )
 
 
+@require_POST
 @login_required
 @adult_required
 def event_delete(request, pk):
     """Видалення події."""
     event = get_object_or_404(Event, pk=pk, user=request.user)
-
-    if request.method == "POST":
-        event.delete()
-        return redirect("events:event_list")
-
-    return redirect("events:event_edit", pk=pk)
+    event.delete()
+    return redirect("events:event_deleted")
 
 
 @login_required
@@ -411,3 +420,10 @@ def event_search_api(request):
         })
     
     return JsonResponse({'events': results})
+
+
+@login_required
+@adult_required
+def event_deleted(request):
+    """Сторінка підтвердження видалення події."""
+    return render(request, "events/event_deleted.html")

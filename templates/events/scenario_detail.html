@@ -981,7 +981,7 @@
         </div>
         <div class="profile-grid">
             <div class="profile-item">
-                <div class="profile-value">{{ profile.age|default:"-" }}</div>
+                <div class="profile-value">{% if profile.birth_date %}{{ profile.age }}{% else %}-{% endif %}</div>
                 <div class="profile-label">{% trans "Вік" %}</div>
             </div>
             <div class="profile-item">

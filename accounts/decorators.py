@@ -28,12 +28,12 @@ def adult_required(view_func):
             messages.error(request, "Нужно подтвердить, что тебе 18+ (в профиле).")
             return redirect("pages:me")
 
-        if profile.age is None:
-            messages.error(request, "Укажи возраст в профиле (приложение 18+).")
-            return redirect("pages:me")
+        if profile.birth_date is None:
+            messages.error(request, "Вкажи дату народження в профілі (додаток 18+).")
+            return redirect("pages:personal_data")
 
         if profile.age < 18:
-            messages.error(request, "Доступ только для пользователей 18+.")
+            messages.error(request, "Доступ тільки для користувачів 18+.")
             return redirect("pages:home")
 
         return view_func(request, *args, **kwargs)

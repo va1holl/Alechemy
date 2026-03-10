@@ -15,6 +15,7 @@ urlpatterns = [
     path("events/<int:pk>/", views.event_detail, name="event_detail"),
     path("events/<int:pk>/edit/", views.event_edit, name="event_edit"),
     path("events/<int:pk>/delete/", views.event_delete, name="event_delete"),
+    path("events/deleted/", views.event_deleted, name="event_deleted"),
     
     # Нові функції: локація, фідбек, учасники
     path("events/<int:pk>/location/", views.event_location, name="event_location"),

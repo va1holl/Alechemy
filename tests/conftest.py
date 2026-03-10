@@ -2,6 +2,7 @@
 Pytest configuration and shared fixtures for Alechemy tests.
 """
 import pytest
+from datetime import date
 from django.contrib.auth import get_user_model
 from django.test import Client
 
@@ -46,7 +47,7 @@ def adult_user(db, user):
     
     # Create profile with all required fields for adult_required
     profile, _ = Profile.objects.get_or_create(user=user)
-    profile.age = 25  # Adult
+    profile.birth_date = date(2000, 1, 1)  # Adult
     profile.gdpr_consent = True
     profile.is_adult_confirmed = True
     profile.save()
@@ -83,7 +84,7 @@ def other_user(db):
     from accounts.models import Profile
     
     profile, _ = Profile.objects.get_or_create(user=user)
-    profile.age = 30
+    profile.birth_date = date(1995, 6, 15)
     profile.gdpr_consent = True
     profile.is_adult_confirmed = True
     profile.save()

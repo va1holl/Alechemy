@@ -404,10 +404,10 @@
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">{% trans "Вік" %}</label>
-                    <input type="number" name="age" class="form-input" 
-                           value="{{ profile.age|default:'' }}" 
-                           placeholder="25" min="18" max="120">
+                    <label class="form-label">{% trans "Дата народження" %}</label>
+                    <input type="date" name="birth_date" class="form-input" 
+                           value="{{ profile.birth_date|date:'Y-m-d' }}" 
+                           max="{{ max_birth_date|date:'Y-m-d' }}">
                 </div>
                 
                 <div class="form-group">
@@ -421,40 +421,7 @@
             </div>
         </div>
 
-        <!-- Підтвердження -->
-        <div class="form-section">
-            <h3 class="section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 11l3 3L22 4"/>
-                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                </svg>
-                {% trans "Підтвердження" %}
-            </h3>
-            
-            <div class="checkbox-group">
-                <label class="checkbox-item">
-                    <input type="checkbox" name="is_adult_confirmed" {% if profile.is_adult_confirmed %}checked{% endif %}>
-                    <span class="checkbox-box">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                    </span>
-                    <span class="checkbox-text">{% trans "Підтверджую, що мені виповнилося 18 років" %}</span>
-                </label>
-                
-                <label class="checkbox-item">
-                    <input type="checkbox" name="gdpr_consent" {% if profile.gdpr_consent %}checked{% endif %}>
-                    <span class="checkbox-box">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                    </span>
-                    <span class="checkbox-text">
-                        {% trans "Погоджуюсь з" %} <a href="{% url 'pages:privacy_policy' %}" target="_blank">{% trans "політикою конфіденційності" %}</a> {% trans "та обробкою персональних даних" %}
-                    </span>
-                </label>
-            </div>
-        </div>
+
 
         <button type="submit" class="save-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

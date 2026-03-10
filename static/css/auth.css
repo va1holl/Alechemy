@@ -83,6 +83,9 @@ body {
 
 .card.card-top {
   padding: 105px 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .container {
@@ -563,6 +566,7 @@ a.btn, a.btn:visited { color: var(--text); text-decoration: none; }
 .flex-col-gap18 {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 18px;
   width: 100%;
 }

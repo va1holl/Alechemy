@@ -5,7 +5,8 @@ from .views import (
     SignUpView, EmailLoginView, EmailLogoutView,
     MyPasswordChangeView, MyPasswordChangeDoneView,
     MyPasswordResetView, MyPasswordResetDoneView,
-    MyPasswordResetConfirmView, MyPasswordResetCompleteView
+    MyPasswordResetConfirmView, MyPasswordResetCompleteView,
+    google_login, google_callback,
 )
 from django.views.generic import TemplateView
 
@@ -25,4 +26,8 @@ urlpatterns = [
     path("password_reset/done/", MyPasswordResetDoneView.as_view(), name="password_reset_done"),
     path("reset/<uidb64>/<token>/", MyPasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("reset/done/", MyPasswordResetCompleteView.as_view(), name="password_reset_complete"),
+
+    # Google OAuth2
+    path("google/login/", google_login, name="google_login"),
+    path("google/callback/", google_callback, name="google_callback"),
 ]

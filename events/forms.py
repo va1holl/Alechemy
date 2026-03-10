@@ -1,4 +1,6 @@
 from django import forms
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .models import AlcoholLog, Dish, Drink, Event
@@ -119,12 +121,39 @@ class EventCreateFromScenarioForm(forms.ModelForm):
         model = Event
         fields = ["title", "date", "people_count", "duration_hours", "notes"]
         widgets = {
-            "title": forms.TextInput(attrs={"class": "form-input", "placeholder": "Назва заходу"}),
+            "title": forms.TextInput(attrs={"class": "form-input", "placeholder": "Назва заходу", "maxlength": "150"}),
             "date": forms.DateInput(attrs={"type": "date", "class": "form-input"}),
-            "people_count": forms.NumberInput(attrs={"class": "time-input", "min": "1"}),
-            "duration_hours": forms.NumberInput(attrs={"class": "time-input", "min": "1"}),
-            "notes": forms.Textarea(attrs={"rows": 3, "class": "form-textarea", "placeholder": "Опишіть завдання..."}),
+            "people_count": forms.NumberInput(attrs={"class": "time-input", "min": "1", "max": "100"}),
+            "duration_hours": forms.NumberInput(attrs={"class": "time-input", "min": "1", "max": "72"}),
+            "notes": forms.Textarea(attrs={"rows": 3, "class": "form-textarea", "placeholder": "Опишіть завдання...", "maxlength": "2000"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        today = timezone.now().date().isoformat()
+        self.fields['date'].widget.attrs['min'] = today
+
+    def clean_date(self):
+        date = self.cleaned_data.get('date')
+        if date and date < timezone.now().date():
+            raise forms.ValidationError(_("Не можна створити подію на минулу дату."))
+        return date
+
+    def clean_people_count(self):
+        val = self.cleaned_data.get('people_count')
+        if val is not None and val < 1:
+            raise forms.ValidationError(_("Мінімум 1 людина."))
+        if val is not None and val > 100:
+            raise forms.ValidationError(_("Максимум 100 людей."))
+        return val
+
+    def clean_duration_hours(self):
+        val = self.cleaned_data.get('duration_hours')
+        if val is not None and val < 1:
+            raise forms.ValidationError(_("Мінімум 1 година."))
+        if val is not None and val > 72:
+            raise forms.ValidationError(_("Максимум 72 години."))
+        return val
 
 
 class EventUpdateForm(forms.ModelForm):
@@ -167,6 +196,14 @@ class EventUpdateForm(forms.ModelForm):
         scenario = kwargs.pop("scenario", None)
         super().__init__(*args, **kwargs)
 
+        # Мін. дата для редагування
+        today = timezone.now().date().isoformat()
+        self.fields['date'].widget.attrs['min'] = today
+        self.fields['people_count'].widget.attrs.update({'min': '1', 'max': '100'})
+        self.fields['duration_hours'].widget.attrs.update({'min': '1', 'max': '72'})
+        self.fields['location_name'].widget.attrs['maxlength'] = '255'
+        self.fields['location_address'].widget.attrs['maxlength'] = '500'
+
         if scenario is None and self.instance.pk:
             scenario = self.instance.scenario
 
@@ -204,6 +241,28 @@ class EventUpdateForm(forms.ModelForm):
         else:
             self.fields["dish"].queryset = Dish.objects.all().order_by("name")
 
+    def clean_date(self):
+        date = self.cleaned_data.get('date')
+        if date and date < timezone.now().date():
+            raise forms.ValidationError(_("Не можна встановити минулу дату."))
+        return date
+
+    def clean_people_count(self):
+        val = self.cleaned_data.get('people_count')
+        if val is not None and val < 1:
+            raise forms.ValidationError(_("Мінімум 1 людина."))
+        if val is not None and val > 100:
+            raise forms.ValidationError(_("Максимум 100 людей."))
+        return val
+
+    def clean_duration_hours(self):
+        val = self.cleaned_data.get('duration_hours')
+        if val is not None and val < 1:
+            raise forms.ValidationError(_("Мінімум 1 година."))
+        if val is not None and val > 72:
+            raise forms.ValidationError(_("Максимум 72 години."))
+        return val
+
 
 class AlcoholLogForm(forms.ModelForm):
     class Meta:
@@ -211,7 +270,26 @@ class AlcoholLogForm(forms.ModelForm):
         fields = ["event", "drink", "volume_ml", "taken_at", "abv", "note"]
         widgets = {
             "taken_at": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "volume_ml": forms.NumberInput(attrs={"min": "1", "max": "10000"}),
+            "abv": forms.NumberInput(attrs={"min": "0", "max": "100", "step": "0.1"}),
+            "note": forms.TextInput(attrs={"maxlength": "255"}),
         }
+
+    def clean_volume_ml(self):
+        val = self.cleaned_data.get('volume_ml')
+        if val is not None and val < 1:
+            raise forms.ValidationError(_("Об'єм має бути більше 0."))
+        if val is not None and val > 10000:
+            raise forms.ValidationError(_("Максимум 10000 мл."))
+        return val
+
+    def clean_abv(self):
+        val = self.cleaned_data.get('abv')
+        if val is not None and val < 0:
+            raise forms.ValidationError(_("Міцність не може бути від'ємною."))
+        if val is not None and val > 100:
+            raise forms.ValidationError(_("Максимум 100%."))
+        return val
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)

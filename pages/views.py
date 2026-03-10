@@ -125,11 +125,9 @@ def personal_data_view(request):
         # Валідація та очистка даних
         weight_raw = request.POST.get("weight", "").strip()
         height_raw = request.POST.get("height", "").strip()
-        age_raw = request.POST.get("age", "").strip()
         sex = request.POST.get("sex", "").strip()
         display_name = request.POST.get("display_name", "").strip()
-        is_adult_confirmed = request.POST.get("is_adult_confirmed") == "on"
-        gdpr_consent = request.POST.get("gdpr_consent") == "on"
+        # is_adult_confirmed та gdpr_consent встановлюються при реєстрації і не змінюються тут
         
         # Зберігаємо display_name (до 50 символів)
         profile.display_name = display_name[:50] if display_name else ""
@@ -156,18 +154,24 @@ def personal_data_view(request):
             except (ValueError, TypeError):
                 errors.append("Невірний формат зросту")
         
-        # Валідація віку (18-120 років)
-        if age_raw:
+        # Валідація дати народження (18+)
+        birth_date_raw = request.POST.get("birth_date", "").strip()
+        if birth_date_raw:
             try:
-                age = int(age_raw)
-                if age < 18:
+                from datetime import date, datetime
+                bd = datetime.strptime(birth_date_raw, "%Y-%m-%d").date()
+                today = date.today()
+                age = today.year - bd.year - ((today.month, today.day) < (bd.month, bd.day))
+                if bd > today:
+                    errors.append("Дата народження не може бути в майбутньому")
+                elif age < 18:
                     errors.append("Вам має бути 18 років або більше")
                 elif age > 120:
-                    errors.append("Невірний вік")
+                    errors.append("Невірна дата народження")
                 else:
-                    profile.age = age
+                    profile.birth_date = bd
             except (ValueError, TypeError):
-                errors.append("Невірний формат віку")
+                errors.append("Невірний формат дати народження")
         
         # Валідація статі (тільки дозволені значення)
         if sex:
@@ -177,8 +181,7 @@ def personal_data_view(request):
             else:
                 errors.append("Невірне значення статі")
         
-        profile.is_adult_confirmed = is_adult_confirmed
-        profile.gdpr_consent = gdpr_consent
+
         
         if errors:
             for error in errors:
@@ -188,7 +191,10 @@ def personal_data_view(request):
             messages.success(request, "Дані успішно збережено!")
             return redirect("pages:personal_data")
     
-    return render(request, "pages/personal_data.html", {"profile": profile})
+    from datetime import date
+    today = date.today()
+    max_birth_date = today.replace(year=today.year - 18)
+    return render(request, "pages/personal_data.html", {"profile": profile, "max_birth_date": max_birth_date})
 
 
 @login_required
