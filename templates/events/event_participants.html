@@ -464,16 +464,6 @@
         <h1 class="page-title">{% trans "Учасники" %}</h1>
     </div>
     
-    {% if messages %}
-    <div class="messages-container">
-        {% for message in messages %}
-        <div class="message-item message-{{ message.tags }}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    
     <!-- Invite Section - Only for admins -->
     {% if is_admin %}
     <div class="invite-section">

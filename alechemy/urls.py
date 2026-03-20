@@ -43,3 +43,14 @@ urlpatterns = [
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Catch-all: any URL that didn't match above → 404 page
+from django.urls import re_path
+from pages.views import custom_404
+urlpatterns += [
+    re_path(r"^.*$", lambda r: custom_404(r, Exception("Not found"))),
+]
+
+# Custom error handlers (used when DEBUG=False)
+handler404 = "pages.views.custom_404"
+handler500 = "pages.views.custom_500"

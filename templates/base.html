@@ -76,10 +76,11 @@
   body.has-rail header { margin-left: 170px; width: calc(100% - 170px); }
   @media (max-width: 900px) {
     .side-rail { display: none; }
-    body.has-rail main, body.has-rail header { margin-left: 0; }
+    body.has-rail main, body.has-rail header { margin-left: 0; width: 100%; }
   }
 </style>
 <header>
+  {% block messages %}
   {% if messages %}
     <div class="messages-container">
       <ul class="messages">
@@ -89,6 +90,7 @@
       </ul>
     </div>
   {% endif %}
+  {% endblock %}
 </header>
 
 {% if request.user.is_authenticated %}

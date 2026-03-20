@@ -895,3 +895,827 @@
     padding: 10px !important;
   }
 }
+
+/* ===========================
+   UNIVERSAL CONTAINER WIDTH FIXES
+   All page containers → fluid on mobile
+   =========================== */
+
+/* ---- Tablet (≤900px): widen to 95% ---- */
+@media (max-width: 900px) {
+  .dashboard,
+  .calculator-page,
+  .profile-page,
+  .settings-page,
+  .personal-page,
+  .personal-data-page,
+  .notifications-page,
+  .privacy-policy-page,
+  .challenges-shell,
+  .leaderboard-page,
+  .user-profile-page,
+  .friends-page,
+  .plan-choice-page,
+  .payment-page,
+  .scenarios-page,
+  .event-page,
+  .event-create-page,
+  .event-edit-page,
+  .events-page,
+  .discussion-page,
+  .feedback-page,
+  .invite-page,
+  .location-page,
+  .participants-page,
+  .diary-page,
+  .diary-add-page,
+  .diary-detail-page,
+  .rating-page,
+  .achievements-page,
+  .quiz-page,
+  .challenges-page,
+  .place-detail-page,
+  .cocktail-list-page,
+  .cocktail-detail-page,
+  .cocktail-search-page,
+  .sommelier-page,
+  .stats-dashboard,
+  .shopping-page,
+  .shopping-detail-page,
+  .welcome-page,
+  .delete-page,
+  .success-page,
+  .home-page {
+    width: 95% !important;
+    max-width: 100% !important;
+  }
+
+  .delete-card,
+  .welcome-card,
+  .success-card {
+    width: 90% !important;
+    max-width: 550px !important;
+  }
+}
+
+/* ---- Mobile (≤768px): 90% width ---- */
+@media (max-width: 768px) {
+  .dashboard,
+  .calculator-page,
+  .profile-page,
+  .settings-page,
+  .personal-page,
+  .personal-data-page,
+  .notifications-page,
+  .privacy-policy-page,
+  .challenges-shell,
+  .leaderboard-page,
+  .user-profile-page,
+  .friends-page,
+  .plan-choice-page,
+  .payment-page,
+  .scenarios-page,
+  .event-page,
+  .event-create-page,
+  .event-edit-page,
+  .events-page,
+  .discussion-page,
+  .feedback-page,
+  .invite-page,
+  .location-page,
+  .participants-page,
+  .diary-page,
+  .diary-add-page,
+  .diary-detail-page,
+  .rating-page,
+  .achievements-page,
+  .quiz-page,
+  .challenges-page,
+  .place-detail-page,
+  .cocktail-list-page,
+  .cocktail-detail-page,
+  .cocktail-search-page,
+  .sommelier-page,
+  .stats-dashboard,
+  .shopping-page,
+  .shopping-detail-page,
+  .welcome-page,
+  .delete-page,
+  .success-page,
+  .home-page {
+    width: 90% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .delete-card,
+  .welcome-card,
+  .success-card {
+    width: 90% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+/* ===========================
+   UNIVERSAL TEXT OVERFLOW FIX
+   =========================== */
+@media (max-width: 768px) {
+  * {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  pre, code {
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-width: 100%;
+  }
+
+  img, video, iframe, canvas, svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* ===========================
+   CHALLENGES PAGE (no @media)
+   =========================== */
+@media (max-width: 768px) {
+  .challenges-page {
+    padding: 20px 0 !important;
+  }
+
+  .challenges-title {
+    font-size: 22px !important;
+  }
+
+  .challenges-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .challenge-card {
+    padding: 16px !important;
+  }
+
+  .challenge-name {
+    font-size: 16px !important;
+  }
+
+  .challenge-footer {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  .btn-claim {
+    text-align: center !important;
+    width: 100% !important;
+  }
+}
+
+/* ===========================
+   SOCIAL LEADERBOARD (no @media)
+   =========================== */
+@media (max-width: 768px) {
+  .leaderboard-page .page-header {
+    flex-wrap: wrap !important;
+  }
+
+  .period-tabs {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .tab {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+  }
+
+  .your-position {
+    flex-direction: column !important;
+    gap: 12px !important;
+    text-align: center !important;
+    padding: 16px !important;
+  }
+
+  .your-rank {
+    justify-content: center !important;
+  }
+
+  .your-points {
+    text-align: center !important;
+  }
+
+  .leaderboard-item {
+    padding: 12px 16px !important;
+  }
+
+  .item-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 14px !important;
+    margin-right: 12px !important;
+  }
+
+  .item-name {
+    font-size: 14px !important;
+  }
+
+  .score-value {
+    font-size: 16px !important;
+  }
+}
+
+/* ===========================
+   SOCIAL USER PROFILE (no @media)
+   =========================== */
+@media (max-width: 768px) {
+  .user-profile-page .page-header {
+    flex-wrap: wrap !important;
+  }
+
+  .profile-card {
+    padding: 20px !important;
+  }
+
+  .profile-avatar {
+    width: 80px !important;
+    height: 80px !important;
+    font-size: 32px !important;
+  }
+
+  .profile-name {
+    font-size: 20px !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .stat-card {
+    padding: 16px !important;
+  }
+
+  .stat-value {
+    font-size: 24px !important;
+  }
+}
+
+/* ===========================
+   DELETE ACCOUNT (no @media)
+   =========================== */
+@media (max-width: 768px) {
+  .delete-page {
+    padding: 20px 8px !important;
+    align-items: flex-start !important;
+  }
+
+  .delete-card {
+    border-radius: 20px !important;
+    padding: 24px 16px !important;
+  }
+
+  .delete-title {
+    font-size: 22px !important;
+  }
+
+  .delete-description {
+    font-size: 14px !important;
+  }
+
+  .delete-icon {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  .delete-icon svg {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .warning-list {
+    padding: 14px !important;
+  }
+
+  .warning-list li {
+    font-size: 13px !important;
+  }
+
+  .btn-cancel,
+  .btn-delete {
+    height: 48px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* ===========================
+   DASHBOARD SIDEBAR COLLAPSE
+   =========================== */
+@media (max-width: 900px) {
+  .main-layout {
+    flex-direction: column !important;
+  }
+
+  .filter-panel {
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  .content-area {
+    width: 100% !important;
+  }
+}
+
+/* ===========================
+   AI SOMMELIER SIDEBAR COLLAPSE
+   =========================== */
+@media (max-width: 900px) {
+  .sommelier-page .content-area,
+  .sommelier-layout {
+    flex-direction: column !important;
+  }
+
+  .chat-sidebar,
+  .sommelier-sidebar {
+    width: 100% !important;
+    min-width: unset !important;
+    position: static !important;
+    max-height: 400px !important;
+  }
+}
+
+/* ===========================
+   GRIDS — UNIVERSAL COLLAPSE
+   =========================== */
+@media (max-width: 768px) {
+  /* All auto-fill/auto-fit grids → 1 column */
+  .friends-grid,
+  .ingredients-grid,
+  .cocktails-grid,
+  .achievements-grid,
+  .features-grid,
+  .options-grid,
+  .stages-grid,
+  .params-grid,
+  .plans-container,
+  .content-grid,
+  .profile-grid,
+  .form-grid,
+  .time-row,
+  .form-row,
+  .drinks-cocktails-grid,
+  .leaderboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 3-col stat grids → 1 column already handled above */
+  .stats-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* Shopping 2-col layout → stacked */
+  .shopping-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Premium payment 2-col → stacked */
+  .content-wrapper {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===========================
+   GAMIFICATION LEADERBOARD
+   (podium height fix)
+   =========================== */
+@media (max-width: 768px) {
+  .podium-container {
+    height: auto !important;
+    min-height: 200px !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    justify-content: center !important;
+  }
+
+  .podium-item {
+    width: 30% !important;
+    min-width: 90px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .podium-container {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .podium-item {
+    width: 80% !important;
+  }
+}
+
+/* ===========================
+   STATS DASHBOARD
+   =========================== */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .charts-section {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bar-chart {
+    min-height: 200px !important;
+  }
+}
+
+/* ===========================
+   MAP PAGE MOBILE
+   =========================== */
+@media (max-width: 768px) {
+  .map-page {
+    padding: 0 !important;
+  }
+
+  .map-container {
+    height: calc(100vh - 160px) !important;
+    border-radius: 0 !important;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===========================
+   RECIPE DETAIL PAGE
+   =========================== */
+@media (max-width: 768px) {
+  .cocktail-detail-page {
+    padding: 16px !important;
+  }
+
+  .recipes-carousel {
+    gap: 12px !important;
+  }
+
+  .recipe-hero {
+    flex-direction: column !important;
+  }
+
+  .recipe-hero img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
+
+/* ===========================
+   RECIPE SEARCH PAGE
+   =========================== */
+@media (max-width: 768px) {
+  .cocktail-search-page .search-filters {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+}
+
+/* ===========================
+   WELCOME PAGE
+   =========================== */
+@media (max-width: 600px) {
+  .welcome-card {
+    border-radius: 20px !important;
+    padding: 24px 16px !important;
+  }
+
+  .welcome-features {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+}
+
+/* ===========================
+   ALL PAGES — PADDING RESET (small phones)
+   =========================== */
+@media (max-width: 480px) {
+  .dashboard,
+  .calculator-page,
+  .profile-page,
+  .settings-page,
+  .personal-data-page,
+  .notifications-page,
+  .privacy-policy-page,
+  .challenges-shell,
+  .leaderboard-page,
+  .user-profile-page,
+  .friends-page,
+  .plan-choice-page,
+  .payment-page,
+  .scenarios-page,
+  .event-page,
+  .event-create-page,
+  .event-edit-page,
+  .events-page,
+  .discussion-page,
+  .feedback-page,
+  .invite-page,
+  .location-page,
+  .participants-page,
+  .diary-page,
+  .diary-add-page,
+  .diary-detail-page,
+  .rating-page,
+  .achievements-page,
+  .quiz-page,
+  .challenges-page,
+  .place-detail-page,
+  .cocktail-list-page,
+  .cocktail-detail-page,
+  .cocktail-search-page,
+  .sommelier-page,
+  .stats-dashboard,
+  .shopping-page,
+  .shopping-detail-page,
+  .welcome-page,
+  .delete-page,
+  .success-page,
+  .home-page {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .delete-card,
+  .welcome-card,
+  .success-card {
+    padding: 20px 12px !important;
+  }
+
+  /* Event detail / discussion actions */
+  .event-actions,
+  .discussion-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .event-actions .btn,
+  .discussion-actions .btn {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* Tabs horizontal scroll */
+  .period-tabs,
+  .tabs,
+  .tab-buttons,
+  .filter-tabs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
+  }
+
+  .period-tabs::-webkit-scrollbar,
+  .tabs::-webkit-scrollbar,
+  .tab-buttons::-webkit-scrollbar,
+  .filter-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .tab,
+  .tab-btn,
+  .filter-tab {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* ===========================
+   NOTIFICATIONS PAGE
+   =========================== */
+@media (max-width: 768px) {
+  .notification-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+}
+
+/* ===========================
+   PRIVACY POLICY
+   =========================== */
+@media (max-width: 768px) {
+  .privacy-policy-page h2 {
+    font-size: 18px !important;
+  }
+
+  .privacy-policy-page p,
+  .privacy-policy-page li {
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+  }
+}
+
+/* ===========================
+   PERSONAL DATA FORM
+   =========================== */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+/* ===========================
+   EVENT CREATE/EDIT FORMS
+   =========================== */
+@media (max-width: 768px) {
+  .time-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .event-create-page .form-card,
+  .event-edit-page .form-card {
+    padding: 16px !important;
+  }
+}
+
+/* ===========================
+   DIARY PAGES
+   =========================== */
+@media (max-width: 768px) {
+  .diary-add-page,
+  .diary-detail-page {
+    padding: 20px 16px !important;
+  }
+}
+
+/* ===========================
+   EVENT PARTICIPANTS
+   =========================== */
+@media (max-width: 768px) {
+  .participant-card {
+    padding: 12px !important;
+  }
+
+  .participant-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+}
+
+/* ===========================
+   FRIENDS LIST
+   =========================== */
+@media (max-width: 768px) {
+  .friends-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .friend-card {
+    padding: 16px !important;
+  }
+
+  .friend-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .friend-actions .btn {
+    width: 100% !important;
+    text-align: center !important;
+  }
+}
+
+/* ===========================
+   PREMIUM PAGES
+   =========================== */
+@media (max-width: 768px) {
+  .plans-container {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .plan-card {
+    padding: 20px !important;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===========================
+   HOME PAGE
+   =========================== */
+@media (max-width: 768px) {
+  .home-page .hero,
+  .hero-section {
+    padding: 30px 16px !important;
+  }
+
+  .hero-title {
+    font-size: 24px !important;
+  }
+
+  .hero-subtitle {
+    font-size: 14px !important;
+  }
+
+  .home-page .cards-grid,
+  .home-page .features-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 20px !important;
+  }
+}
+
+/* ===========================
+   COCKTAIL QUIZ
+   =========================== */
+@media (max-width: 768px) {
+  .quiz-page {
+    padding: 20px 16px !important;
+  }
+
+  .options-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .quiz-question {
+    font-size: 18px !important;
+  }
+}
+
+/* ===========================
+   ACHIEVEMENTS PAGE
+   =========================== */
+@media (max-width: 768px) {
+  .achievements-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .achievement-card {
+    padding: 16px !important;
+  }
+}
+
+/* ===========================
+   EVENT FEEDBACK / DISCUSSION
+   =========================== */
+@media (max-width: 768px) {
+  .feedback-page,
+  .discussion-page {
+    padding: 20px 16px !important;
+  }
+
+  .feedback-form textarea,
+  .discussion-form textarea {
+    min-height: 100px !important;
+  }
+}
+
+/* ===========================
+   EVENT LOCATION
+   =========================== */
+@media (max-width: 768px) {
+  .location-page .map-container {
+    height: 300px !important;
+  }
+}
+
+/* ===========================
+   PLACE DETAIL
+   =========================== */
+@media (max-width: 768px) {
+  .place-detail-page .info-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .place-detail-page .stats-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+}

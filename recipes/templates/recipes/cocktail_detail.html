@@ -440,11 +440,13 @@
     justify-content: center;
     gap: 8px;
     text-decoration: none;
+    min-height: 52px;
 }
 
 .btn svg {
     width: 20px;
     height: 20px;
+    flex-shrink: 0;
 }
 
 .btn-primary {
@@ -516,6 +518,10 @@
 
     .action-buttons {
         flex-direction: column;
+    }
+
+    .action-buttons .btn {
+        width: 100%;
     }
 }
 

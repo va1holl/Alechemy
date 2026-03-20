@@ -301,6 +301,8 @@
     font-size: 13px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.7);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .category-header:hover {
@@ -1122,7 +1124,7 @@
                 <div class="form-label">{% trans "Оберіть коктейлі (можна декілька):" %}</div>
                 {% for category, items in cocktail_categories.items %}
                 <div class="category-group">
-                    <div class="category-header" onclick="toggleCategory(this)">
+                    <div class="category-header" data-toggle="category">
                         <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
@@ -1289,25 +1291,15 @@
     {% endif %}
 
     {% if selected_drinks or selected_cocktails %}
-            {% if dishes %}
-    <!-- Dish Selection -->
-    <div class="form-card dishes-section">
-        <div class="card-title">
-            <svg viewBox="0 0 24 24" stroke-width="2">
+    <!-- Create Event -->
+    <div class="form-card" style="text-align: center; margin-top: 24px;">
+        <div class="card-title" style="justify-content: center;">
+            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" width="20" height="20">
                 <path d="M12 2L2 7l10 5 10-5-10-5z"/>
                 <path d="M2 17l10 5 10-5"/>
                 <path d="M2 12l10 5 10-5"/>
             </svg>
-            {% trans "Рекомендовані страви" %}
-        </div>
-        
-        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
-            {% for drink in selected_drinks %}
-            <div class="drink-badge">🍷 {{ drink.name }}</div>
-            {% endfor %}
-            {% for cocktail in selected_cocktails %}
-            <div class="drink-badge">🍹 {{ cocktail.name }}</div>
-            {% endfor %}
+            {% trans "Створити подію з обраними напоями та стравами" %}
         </div>
 
         <form method="post" action="{% url 'events:event_create_from_scenario' scenario.slug %}">
@@ -1319,48 +1311,32 @@
             {% for cocktail in selected_cocktails %}
             <input type="hidden" name="cocktail_ids" value="{{ cocktail.id }}">
             {% endfor %}
+            {% for dish in selected_dishes %}
+            <input type="hidden" name="dish_ids" value="{{ dish.id }}">
+            {% endfor %}
             <input type="hidden" name="people_count" value="{{ people_count }}">
             <input type="hidden" name="duration_hours" value="{{ duration_hours }}">
             <input type="hidden" name="difficulty" value="{{ selected_difficulty }}">
 
-
-            <div class="radio-group">
-                {% for dish in dishes %}
-                <label class="radio-card">
-                    <input type="checkbox" name="dish_ids" value="{{ dish.id }}">
-                    <span>{{ dish.name }}</span>
-                    <span class="difficulty">{{ dish.get_difficulty_display }}</span>
-                </label>
-                {% endfor %}
-            </div>
-            <div style="margin-top: 10px; color: #888; font-size: 0.95em;">
-                {% trans "Можна не вибирати страви зараз — додати їх можна буде у деталях події." %}
-            </div>
-
-            <button type="submit" class="submit-btn" style="margin-top: 20px;">{% trans "Створити подію" %}</button>
-        </form>
-    </div>
-        {% else %}
-    <div class="info-card">
-        <div class="empty-state">
-            {% trans "Для обраних напоїв підійдуть будь-які закуски" %}
-        </div>
-    </div>
-            <form method="post" action="{% url 'events:event_create_from_scenario' scenario.slug %}" style="text-align:center; margin-top: 24px;">
-                {% csrf_token %}
-                <input type="hidden" name="step" value="select_dish">
+            {% if selected_dishes %}
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; justify-content: center;">
                 {% for drink in selected_drinks %}
-                    <input type="hidden" name="drink_ids" value="{{ drink.id }}">
+                <div class="drink-badge">🍷 {{ drink.name }}</div>
                 {% endfor %}
                 {% for cocktail in selected_cocktails %}
-                    <input type="hidden" name="cocktail_ids" value="{{ cocktail.id }}">
+                <div class="drink-badge">🍹 {{ cocktail.name }}</div>
                 {% endfor %}
-                <input type="hidden" name="people_count" value="{{ people_count }}">
-                <input type="hidden" name="duration_hours" value="{{ duration_hours }}">
-                <input type="hidden" name="difficulty" value="{{ selected_difficulty }}">
-                <button type="submit" class="submit-btn" style="margin-top: 20px;">{% trans "Створити подію без страви" %}</button>
-            </form>
-        {% endif %}
+                {% for dish in selected_dishes %}
+                <div class="drink-badge">🍽️ {{ dish.name }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <button type="submit" class="submit-btn" style="margin-top: 12px;">
+                {% trans "Створити подію" %}
+            </button>
+        </form>
+    </div>
     {% endif %}
     </div><!-- end results-container -->
     
@@ -1431,6 +1407,13 @@
             items.classList.add('expanded');
         }
     }
+    
+    // Bind category headers
+    document.querySelectorAll('[data-toggle="category"]').forEach(header => {
+        header.addEventListener('click', function() {
+            toggleCategory(this);
+        });
+    });
     
     // AJAX form submission
     const form = document.getElementById('drink-selection-form');
